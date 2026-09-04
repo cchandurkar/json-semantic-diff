@@ -1,15 +1,16 @@
 import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
-import { FormsModule } from '@angular/forms';
 import { JsonInputComponent } from './components/json-input/json-input.component';
 import { DiffTreeComponent } from './components/diff-tree/diff-tree.component';
 import { AnalysisDrawerComponent } from './components/analysis-drawer/analysis-drawer.component';
 import { SourceDiffComponent } from './components/source-diff/source-diff.component';
 import { ExamplePickerComponent } from './components/example-picker/example-picker.component';
+import { SettingsMenuComponent } from './components/settings-menu/settings-menu.component';
 import { DEFAULT_DIFF_OPTIONS, diffJson } from './core/diff';
 import { formatJson } from './core/json/format';
 import { ArrayMatchAnalysis, DiffOptions, DiffResult, JsonValue } from './core/models/diff.models';
 import { displayPath } from './shared/format';
 import { stepChange } from './shared/node-navigation';
+import { TooltipDirective } from './shared/tooltip/tooltip.directive';
 import { Theme, applyTheme, readStoredTheme, storeTheme } from './shared/theme';
 import { flattenChanges } from './source';
 import { DiffExample } from './examples';
@@ -22,7 +23,7 @@ const HERO_EXIT_MS = 340;
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [FormsModule, JsonInputComponent, DiffTreeComponent, SourceDiffComponent, ExamplePickerComponent, AnalysisDrawerComponent],
+  imports: [JsonInputComponent, DiffTreeComponent, SourceDiffComponent, ExamplePickerComponent, SettingsMenuComponent, AnalysisDrawerComponent, TooltipDirective],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './app.component.html',
   styleUrl: './app.component.css'
@@ -53,6 +54,8 @@ export class AppComponent {
   readonly changeList = computed(() => { const r = this.result(); return r ? flattenChanges(r.root) : []; });
   readonly autoMatchedCount = computed(() => this.result()?.autoMatchedCount ?? 0);
   readonly uncertainCount = computed(() => this.result()?.uncertainCount ?? 0);
+  /** Matching analysis only exists when the documents contained at least one array pair. */
+  readonly hasAnalysis = computed(() => (this.result()?.arrays.length ?? 0) > 0);
 
   compare(): void {
     const leftText = formatJson(this.leftText());

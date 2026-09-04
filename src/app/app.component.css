@@ -26,6 +26,10 @@ h1 span { color:var(--muted); }
 .primary-button:disabled { opacity:.42; cursor:not-allowed; }
 .secondary-button { border:1px solid var(--border); background:var(--panel); color:var(--text); padding:9px 13px; }
 .secondary-button:hover { background:var(--hover); }
+.icon-button { display:inline-flex; align-items:center; justify-content:center; border:1px solid transparent; background:transparent; border-radius:9px; padding:0 9px; cursor:pointer; color:var(--muted); }
+.icon-button.danger { color:var(--danger); }
+.icon-button.danger:hover { background:var(--danger-bg); border-color:var(--danger-border); }
+.icon-button:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
 .collapsed-inputs { width:100%; height:47px; border:1px solid var(--border); border-radius:12px; background:var(--panel); display:flex; gap:18px; align-items:center; padding:0 14px; color:var(--muted); font-size:11px; cursor:pointer; }
 .collapsed-inputs span:first-child { color:var(--text); font-weight:700; margin-right:auto; }
 .collapsed-inputs strong { color:var(--accent); }
@@ -52,10 +56,16 @@ h1 span { color:var(--muted); }
 .segmented { padding:5px 9px; }
 .segmented.active { background:var(--surface); color:var(--text); }
 .segmented:disabled { opacity:.4; cursor:not-allowed; }
-.toggle-label { display:flex; align-items:center; gap:6px; color:var(--muted); font-size:11px; white-space:nowrap; padding:4px 5px; }
-.toggle-label input { accent-color:var(--accent); }
 .toolbar-button { border:1px solid var(--border); margin-left:auto; }
 .toolbar-button + .toolbar-button { margin-left:0; }
+/* Tooltip host for the disabled Matching analysis button: a disabled button fires no
+   pointer events, so the wrapper must receive them instead. */
+.tooltip-anchor { display:inline-flex; }
+.tooltip-anchor .toolbar-button { margin-left:0; }
+.tooltip-anchor .toolbar-button:disabled { pointer-events:none; }
+.tooltip-anchor:focus-visible { outline:2px solid var(--accent); outline-offset:2px; border-radius:8px; }
+.toolbar-button:disabled { opacity:.4; cursor:not-allowed; }
+.toolbar-button:disabled:hover { color:var(--muted); background:transparent; }
 .ignore-panel { margin-bottom:10px; border:1px solid var(--border); border-radius:12px; background:var(--panel); padding:15px; display:grid; grid-template-columns:1fr minmax(300px,.7fr); gap:16px; animation:rise .16s ease-out; }
 .ignore-panel strong { font-size:12px; }
 .ignore-panel p { color:var(--muted); font-size:11px; margin:5px 0 0; }
@@ -76,7 +86,7 @@ h1 span { color:var(--muted); }
   .summary-card { grid-template-columns:1fr 1fr 1fr 1fr; }
   .summary-main { grid-column:1/-1; min-height:65px !important; border-bottom:1px solid var(--border-soft); }
   .summary-meta { grid-column:1/-1; min-height:60px !important; flex-direction:row !important; align-items:center; gap:15px; border-top:1px solid var(--border-soft); }
-  .diff-toolbar { overflow-x:auto; }
+  .diff-toolbar { flex-wrap:wrap; }
   .ignore-panel { grid-template-columns:1fr; }
   .chips { grid-column:auto; }
 }

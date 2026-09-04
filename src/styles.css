@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "@angular/cdk/overlay-prebuilt.css";
 
 :root {
   color-scheme: light;
@@ -66,3 +67,6 @@ body { margin:0; min-width:320px; min-height:100vh; background:radial-gradient(c
 button,input,textarea { font:inherit; }
 button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
 ::selection { background:color-mix(in srgb, var(--accent) 22%, transparent); }
+
+/* Tooltip panel. Global because the CDK overlay pane lives outside every component. */
+.difflens-tooltip { max-width:240px; padding:5px 9px; border:1px solid var(--border); border-radius:7px; background:var(--surface); color:var(--text); font:11px/1.4 var(--sans); box-shadow:0 6px 18px rgba(10,14,22,.14); pointer-events:none; }

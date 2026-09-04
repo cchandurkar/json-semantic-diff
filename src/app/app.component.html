@@ -111,11 +111,20 @@
             <button type="button" class="segmented" (click)="stepChange(1)" aria-label="Next change">›</button>
           </div>
         }
-        <label class="toggle-label"><input type="checkbox" [ngModel]="changesOnly()" (ngModelChange)="changesOnly.set($event)"> Changes only</label>
-        <label class="toggle-label"><input type="checkbox" [ngModel]="options().normalizeTimestamps" (ngModelChange)="patchOption('normalizeTimestamps', $event)"> Normalize timestamps</label>
-        <label class="toggle-label"><input type="checkbox" [ngModel]="options().normalizeNumbers" (ngModelChange)="patchOption('normalizeNumbers', $event)"> Numeric strings</label>
+        <app-settings-menu
+          [changesOnly]="changesOnly()"
+          [normalizeTimestamps]="options().normalizeTimestamps"
+          [normalizeNumbers]="options().normalizeNumbers"
+          (changesOnlyChange)="changesOnly.set($event)"
+          (normalizeTimestampsChange)="patchOption('normalizeTimestamps', $event)"
+          (normalizeNumbersChange)="patchOption('normalizeNumbers', $event)" />
         <button class="toolbar-button" (click)="ignoreOpen.set(!ignoreOpen())">Ignore {{ options().ignorePaths.length ? '(' + options().ignorePaths.length + ')' : '' }}</button>
-        <button class="toolbar-button" (click)="openFirstAnalysis()">Matching analysis</button>
+        <span
+          class="tooltip-anchor"
+          [appTooltip]="hasAnalysis() ? 'Inspect how arrays were matched' : 'No array matching needed for this comparison'"
+          [attr.tabindex]="hasAnalysis() ? null : 0">
+          <button type="button" class="toolbar-button" [disabled]="!hasAnalysis()" (click)="openFirstAnalysis()">Matching analysis</button>
+        </span>
       </div>
 
       @if (ignoreOpen()) {
@@ -127,6 +136,9 @@
           <div class="ignore-input-row">
             <input #ignoreRule placeholder="$.metadata.requestId" (keyup.enter)="addIgnore(ignoreRule.value); ignoreRule.value=''">
             <button class="secondary-button" (click)="addIgnore(ignoreRule.value); ignoreRule.value=''">Add rule</button>
+            <button type="button" class="icon-button danger" aria-label="Close ignore paths" title="Close" (click)="ignoreOpen.set(false)">
+              <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true" focusable="false"><path d="M3 3l8 8M11 3l-8 8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+            </button>
           </div>
           @if (options().ignorePaths.length) {
             <div class="chips">

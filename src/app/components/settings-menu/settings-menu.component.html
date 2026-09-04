@@ -1,0 +1,45 @@
+<div class="settings-menu">
+  <button
+    #trigger
+    type="button"
+    class="settings-trigger"
+    aria-label="Comparison settings"
+    aria-controls="comparison-settings-panel"
+    [attr.aria-expanded]="open()"
+    (click)="toggle()">
+    <svg class="gear" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <circle cx="12" cy="12" r="3" />
+      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+    </svg>
+    <span class="trigger-text">Settings</span>
+  </button>
+
+  @if (open()) {
+    <div #panel id="comparison-settings-panel" class="settings-panel" role="group" aria-label="Comparison settings">
+      <p class="settings-section">View</p>
+      <label class="toggle-row">
+        <input type="checkbox" [checked]="changesOnly()" (change)="changesOnlyChange.emit(isChecked($event))">
+        <span class="toggle-text">
+          <span class="toggle-name">Changes only</span>
+          <span class="toggle-hint">Hide unchanged rows. Does not re-run the comparison.</span>
+        </span>
+      </label>
+
+      <p class="settings-section">Normalization</p>
+      <label class="toggle-row">
+        <input type="checkbox" [checked]="normalizeTimestamps()" (change)="normalizeTimestampsChange.emit(isChecked($event))">
+        <span class="toggle-text">
+          <span class="toggle-name">Normalize timestamps</span>
+          <span class="toggle-hint">Treat equivalent instants in different zones as equal.</span>
+        </span>
+      </label>
+      <label class="toggle-row">
+        <input type="checkbox" [checked]="normalizeNumbers()" (change)="normalizeNumbersChange.emit(isChecked($event))">
+        <span class="toggle-text">
+          <span class="toggle-name">Numeric strings</span>
+          <span class="toggle-hint">Compare "42" and 42 as the same value.</span>
+        </span>
+      </label>
+    </div>
+  }
+</div>

@@ -1,4 +1,4 @@
-.example-picker { position:relative; display:inline-block; }
+.example-picker { position:relative; display:inline-block; user-select:none; }
 .picker-trigger { border:0; background:transparent; color:var(--muted); cursor:pointer; border-radius:8px; font:500 12px var(--sans); padding:7px 10px; }
 .picker-trigger:hover { color:var(--text); background:var(--hover); }
 .picker-trigger.as-secondary { border:1px solid var(--border); background:var(--panel); color:var(--text); border-radius:9px; font:650 12px var(--sans); padding:9px 13px; }
