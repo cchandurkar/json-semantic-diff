@@ -1,0 +1,34 @@
+<div class="tree" role="tree">
+  @for (node of visibleNodes(); track node.path) {
+    <ng-container *ngTemplateOutlet="row; context: { $implicit: node, depth: 0 }"></ng-container>
+  }
+</div>
+
+<ng-template #row let-node let-depth="depth">
+  @if (!changesOnly() || node.hasChanges) {
+    <div class="diff-row" [class]="'kind-' + node.changeKind" [class.is-selected]="node.id === selectedNodeId()" [style.--depth]="depth" [attr.data-node-id]="node.id">
+      <button class="expand" (click)="toggle(node.path)" [disabled]="!node.children?.length" [attr.aria-label]="'Toggle ' + node.label">
+        {{ node.children?.length ? (expanded().has(node.path) ? '▾' : '▸') : '·' }}
+      </button>
+      <span class="change-marker">{{ marker(node.changeKind) }}</span>
+      <div class="path-cell">
+        <button type="button" class="label" (click)="nodeSelected.emit(node.id)">{{ node.label }}</button>
+        @if (node.arrayMatch?.outcome === 'identity-applied') {
+          <button class="match-pill" (click)="analysisRequested.emit(node.path)">
+            Matched by {{ node.arrayMatch?.keyPaths?.join(' + ') }} · {{ percent(node.arrayMatch?.inference?.best?.score) }}
+          </button>
+        } @else if (node.arrayMatch?.inference && node.arrayMatch?.confidence === 'low') {
+          <button class="match-pill warning" (click)="analysisRequested.emit(node.path)">Matching uncertain</button>
+        }
+      </div>
+      <div class="value-cell left">{{ display(node.left) }}</div>
+      <div class="arrow">{{ node.changeKind === 'modified' || node.changeKind === 'type-changed' ? '→' : '' }}</div>
+      <div class="value-cell right">{{ display(node.right) }}</div>
+    </div>
+    @if (node.children?.length && expanded().has(node.path)) {
+      @for (child of node.children; track child.path) {
+        <ng-container *ngTemplateOutlet="row; context: { $implicit: child, depth: depth + 1 }"></ng-container>
+      }
+    }
+  }
+</ng-template>

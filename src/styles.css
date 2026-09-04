@@ -1,0 +1,68 @@
+@import "tailwindcss";
+
+:root {
+  color-scheme: light;
+  --sans: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  --page: #f7f8fa;
+  --panel: #ffffff;
+  --surface: #f3f4f6;
+  --hover: #f4f5f7;
+  --text: #161a22;
+  --muted: #68707f;
+  --muted-2: #9aa1ad;
+  --border: #dfe3e8;
+  --border-soft: #edf0f3;
+  --border-strong: #aeb7c4;
+  --focus-ring: rgba(74, 101, 140, .12);
+  --accent: #425d83;
+  --success: #237653;
+  --success-bg: #edf8f2;
+  --success-border: #c8e8d8;
+  --warning: #8a5c12;
+  --warning-bg: #fff8e8;
+  --warning-border: #efdba8;
+  --danger: #b23b42;
+  --danger-bg: #fff1f2;
+  --danger-border: #efc4c8;
+  --added: #267653;
+  --added-bg: #eff9f4;
+  --removed: #a8464d;
+  --removed-bg: #fff2f3;
+  --modified: #8a6514;
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --page: #0d1015;
+  --panel: #141820;
+  --surface: #1b202a;
+  --hover: #1b2029;
+  --text: #edf0f5;
+  --muted: #9ba5b4;
+  --muted-2: #626c7a;
+  --border: #2a313d;
+  --border-soft: #222934;
+  --border-strong: #4d5a6b;
+  --focus-ring: rgba(126, 156, 197, .14);
+  --accent: #9ab7dc;
+  --success: #78caa7;
+  --success-bg: #13271f;
+  --success-border: #254d3d;
+  --warning: #dfb968;
+  --warning-bg: #2a2112;
+  --warning-border: #57451d;
+  --danger: #eb9299;
+  --danger-bg: #2d181b;
+  --danger-border: #5d2c31;
+  --added: #79c8a7;
+  --added-bg: #14251f;
+  --removed: #e68e95;
+  --removed-bg: #2b181b;
+  --modified: #ddba70;
+}
+* { box-sizing:border-box; }
+html { background:var(--page); color:var(--text); font-family:var(--sans); scroll-behavior:smooth; }
+body { margin:0; min-width:320px; min-height:100vh; background:radial-gradient(circle at 50% -20%, color-mix(in srgb, var(--panel) 70%, transparent), transparent 38%), var(--page); }
+button,input,textarea { font:inherit; }
+button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+::selection { background:color-mix(in srgb, var(--accent) 22%, transparent); }

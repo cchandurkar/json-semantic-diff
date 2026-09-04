@@ -1,0 +1,28 @@
+<section class="input-card" [class.has-error]="error()">
+  <div class="input-card__header">
+    <div>
+      <span class="eyebrow">{{ label() }}</span>
+      <span class="status" [class.error]="error()">{{ statusText() }}</span>
+    </div>
+    <div class="header-actions">
+      <button type="button" class="file-button" [disabled]="!value().trim()" (click)="format()">Format</button>
+      <label class="file-button">
+        Open file
+        <input type="file" accept=".json,application/json" (change)="fileSelected($event)" hidden>
+      </label>
+    </div>
+  </div>
+  <app-code-editor
+    class="json-editor"
+    [value]="value()"
+    (valueChange)="onEditorValue($event)"
+    [darkMode]="darkMode()"
+    [(editorHeight)]="editorHeight"
+    [ariaLabel]="label() + ' JSON'"
+    placeholder="Paste JSON here, or drop a .json file"
+    (dragover)="$event.preventDefault()"
+    (drop)="dropFile($event)"></app-code-editor>
+  @if (error()) {
+    <div class="parse-error">{{ error() }}</div>
+  }
+</section>

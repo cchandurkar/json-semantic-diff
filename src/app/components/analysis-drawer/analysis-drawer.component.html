@@ -1,0 +1,57 @@
+@if (analysis()) {
+  <div class="backdrop" (click)="closed.emit()"></div>
+  <aside class="drawer" aria-label="Matching analysis">
+    <header>
+      <div>
+        <span class="eyebrow">MATCHING ANALYSIS</span>
+        <h2>{{ analysis()?.path }}</h2>
+      </div>
+      <button class="icon-button" (click)="closed.emit()" aria-label="Close analysis">×</button>
+    </header>
+
+    @if (analysis()?.inference?.best; as best) {
+      <section class="selected">
+        <span class="section-label">{{ analysis()?.outcome === 'identity-applied' ? 'SELECTED' : 'TOP CANDIDATE' }}</span>
+        <div class="candidate-title">
+          <strong>{{ best.paths.join(' + ') }}</strong>
+          <span>{{ percent(best.score) }}</span>
+        </div>
+        @if (analysis()?.outcome === 'ambiguous') {
+          <div class="notice warning">Several fields score similarly. DiffLens will not auto-match this array.</div>
+        } @else if (analysis()?.outcome === 'identity-applied') {
+          <div class="notice success">High-confidence identity detected and applied automatically.</div>
+        } @else {
+          <div class="notice warning">No key met the threshold for safe automatic matching. Array position is being used.</div>
+        }
+      </section>
+
+      <section>
+        <span class="section-label">WHY?</span>
+        @for (metric of metrics(best); track metric.label) {
+          <div class="metric">
+            <div class="meta"><span>{{ metric.label }}</span><strong>{{ percent(metric.value) }}</strong></div>
+            <div class="track"><div class="fill" [style.width.%]="metric.value * 100"></div></div>
+          </div>
+        }
+      </section>
+
+      @if (analysis()?.inference?.alternatives?.length) {
+        <section>
+          <span class="section-label">OTHER CANDIDATES</span>
+          @for (candidate of analysis()?.inference?.alternatives; track candidate.paths.join('|')) {
+            <div class="alternative">
+              <span>{{ candidate.paths.join(' + ') }}</span>
+              <strong>{{ percent(candidate.score) }}</strong>
+            </div>
+          }
+        </section>
+      }
+    } @else {
+      <section><div class="notice warning">No usable scalar identity candidates were found for this array.</div></section>
+    }
+
+    <footer>
+      <p>Scoring is deterministic and local. No ML or external service is used.</p>
+    </footer>
+  </aside>
+}

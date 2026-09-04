@@ -1,0 +1,50 @@
+<div class="source">
+  <div class="pane-heads">
+    <span class="pane-head">ORIGINAL</span>
+    <span class="pane-head">CHANGED</span>
+  </div>
+  <p class="pane-note">
+    Aligned for comparison: object keys are sorted and matched records are paired side by side, so this is a semantic
+    projection rather than a verbatim reproduction of your input.
+  </p>
+
+  <div class="source-scroll">
+    @for (item of items(); track $index) {
+      @if (item.kind === 'collapsed') {
+        <button type="button" class="collapsed-row" (click)="expand(item.key)">
+          ⋯ Show {{ item.hiddenLines }} unchanged {{ item.hiddenLines === 1 ? 'line' : 'lines' }} ⋯
+        </button>
+      } @else {
+        <div
+          class="src-row"
+          [class]="'kind-' + item.row.changeKind"
+          [class.is-ignored]="item.row.ignored"
+          [class.is-selected]="item.row.nodeId === selectedNodeId()"
+          [attr.data-node-id]="item.row.nodeId">
+
+          <span class="gutter">{{ item.row.left?.lineNumber }}</span>
+          <span class="marker left-marker" aria-hidden="true">{{ leftMarker(item.row) }}</span>
+          <span class="code left" [style.--depth]="item.row.depth">{{ item.row.left?.text }}</span>
+
+          <span class="gutter">{{ item.row.right?.lineNumber }}</span>
+          <span class="marker right-marker" aria-hidden="true">{{ rightMarker(item.row) }}</span>
+          <span class="code right" [style.--depth]="item.row.depth">
+            <button type="button" class="code-text" (click)="nodeSelected.emit(item.row.nodeId)">{{ item.row.right?.text }}</button>
+            @if (item.row.arrayMatch; as match) {
+              @if (item.row.reordered) {
+                <span class="reorder-pill" [title]="reorderTooltip">↕ Reordered for comparison</span>
+              }
+              @if (match.outcome === 'identity-applied') {
+                <span class="match-pill" [title]="reorderTooltip">{{ matchSummary(match) }}</span>
+              }
+            }
+          </span>
+
+          @if (changeLabel(item.row); as label) {
+            <span class="sr-only">{{ label }}</span>
+          }
+        </div>
+      }
+    }
+  </div>
+</div>

@@ -1,0 +1,164 @@
+<header class="site-header">
+  <a class="brand" href="#" (click)="$event.preventDefault(); reset()">
+    <span class="brand-mark">D</span>
+    <span>DiffLens</span>
+  </a>
+  <nav>
+    <button class="link-button" (click)="loadExample()">Example</button>
+    <a class="link-button" href="https://github.com" target="_blank" rel="noreferrer">GitHub</a>
+    <button class="theme-toggle" (click)="toggleTheme()" [attr.aria-label]="darkMode() ? 'Use light theme' : 'Use dark theme'">{{ darkMode() ? '☀' : '◐' }}</button>
+  </nav>
+</header>
+
+<main class="page-shell">
+  @if (!result()) {
+    <section class="hero" animate.leave="hero-leave">
+      <div class="privacy-badge"><span class="dot"></span> Runs entirely in your browser</div>
+      <h1>Understand what changed,<br><span>not just where.</span></h1>
+      <p>JSON comparison with smart array matching, noise reduction, and explainable identity detection.</p>
+    </section>
+  }
+
+  <section class="workspace">
+    <div class="section-heading input-heading">
+      <div>
+        <span class="section-kicker">INPUTS</span>
+        @if (result()) { <span class="quiet">Compared locally · nothing uploaded</span> }
+      </div>
+      @if (result()) {
+        <button class="link-button" (click)="inputsCollapsed.set(!inputsCollapsed())">{{ inputsCollapsed() ? 'Expand inputs' : 'Collapse inputs' }}</button>
+      }
+    </div>
+
+    @if (!inputsCollapsed()) {
+      <div class="input-grid" [class.compact]="!!result()">
+        <app-json-input
+          label="ORIGINAL"
+          [value]="leftText()"
+          [error]="leftError()"
+          [statusText]="inputStatus(leftText(), leftError())"
+          [darkMode]="darkMode()"
+          [(editorHeight)]="editorHeight"
+          (valueChange)="leftText.set($event); markDirty()" />
+        <app-json-input
+          label="CHANGED"
+          [value]="rightText()"
+          [error]="rightError()"
+          [statusText]="inputStatus(rightText(), rightError())"
+          [darkMode]="darkMode()"
+          [(editorHeight)]="editorHeight"
+          (valueChange)="rightText.set($event); markDirty()" />
+      </div>
+    } @else {
+      <button class="collapsed-inputs" (click)="inputsCollapsed.set(false)">
+        <span>▸ Inputs</span>
+        <span>Original ✓</span>
+        <span>Changed ✓</span>
+        <strong>Edit</strong>
+      </button>
+    }
+
+    <div class="compare-row">
+      @if (dirty() && result()) { <span class="dirty-note">Inputs changed</span> }
+      <button class="primary-button" [disabled]="!canCompare()" (click)="compare()">
+        {{ result() ? (dirty() ? 'Recompare' : 'Compare again') : 'Compare JSON' }}
+      </button>
+      @if (!result()) {
+        <button class="secondary-button" (click)="loadExample()">Load example</button>
+      }
+    </div>
+  </section>
+
+  @if (result(); as diff) {
+    <section class="results" id="results">
+      <div class="summary-card">
+        <div class="summary-main">
+          <strong>{{ diff.summary.totalChanges }}</strong>
+          <span>changes</span>
+        </div>
+        <div class="summary-stat added"><b>+{{ diff.summary.added }}</b><span>Added</span></div>
+        <div class="summary-stat removed"><b>−{{ diff.summary.removed }}</b><span>Removed</span></div>
+        <div class="summary-stat modified"><b>~{{ diff.summary.modified + diff.summary.typeChanged }}</b><span>Modified</span></div>
+        <div class="summary-meta">
+          <span>{{ diff.arrays.length }} arrays analyzed</span>
+          <span>{{ autoMatchedCount() }} auto-matched</span>
+          <span>{{ diff.elapsedMs }} ms</span>
+        </div>
+      </div>
+
+      @if (autoMatchedCount() > 0) {
+        <div class="insight-strip">
+          <span class="insight-icon">✓</span>
+          <span>{{ matchingInsight() }}</span>
+          <button class="link-button" (click)="openFirstAnalysis()">See analysis</button>
+        </div>
+      } @else if (uncertainCount() > 0) {
+        <div class="insight-strip warning-strip">
+          <span class="insight-icon">!</span>
+          <span>{{ uncertainCount() }} array(s) had no safe identity match and are compared by position.</span>
+          <button class="link-button" (click)="openFirstAnalysis()">Inspect</button>
+        </div>
+      }
+
+      <div class="diff-toolbar">
+        <div class="toolbar-group" role="tablist" aria-label="Diff view">
+          <button type="button" class="segmented" role="tab" [class.active]="view() === 'tree'" [attr.aria-selected]="view() === 'tree'" (click)="view.set('tree')">Tree</button>
+          <button type="button" class="segmented" role="tab" [class.active]="view() === 'source'" [attr.aria-selected]="view() === 'source'" (click)="view.set('source')">Source</button>
+        </div>
+        @if (changeList().length) {
+          <div class="toolbar-group" role="group" aria-label="Change navigation">
+            <button type="button" class="segmented" (click)="stepChange(-1)" aria-label="Previous change">‹</button>
+            <button type="button" class="segmented" (click)="stepChange(1)" aria-label="Next change">›</button>
+          </div>
+        }
+        <label class="toggle-label"><input type="checkbox" [ngModel]="changesOnly()" (ngModelChange)="changesOnly.set($event)"> Changes only</label>
+        <label class="toggle-label"><input type="checkbox" [ngModel]="options().normalizeTimestamps" (ngModelChange)="patchOption('normalizeTimestamps', $event)"> Normalize timestamps</label>
+        <label class="toggle-label"><input type="checkbox" [ngModel]="options().normalizeNumbers" (ngModelChange)="patchOption('normalizeNumbers', $event)"> Numeric strings</label>
+        <button class="toolbar-button" (click)="ignoreOpen.set(!ignoreOpen())">Ignore {{ options().ignorePaths.length ? '(' + options().ignorePaths.length + ')' : '' }}</button>
+        <button class="toolbar-button" (click)="openFirstAnalysis()">Matching analysis</button>
+      </div>
+
+      @if (ignoreOpen()) {
+        <div class="ignore-panel">
+          <div>
+            <strong>Ignore paths</strong>
+            <p>Use JSON-style paths and wildcards, e.g. <code>$.users[*].updatedAt</code> or <code>$.**.requestId</code>.</p>
+          </div>
+          <div class="ignore-input-row">
+            <input #ignoreRule placeholder="$.metadata.requestId" (keyup.enter)="addIgnore(ignoreRule.value); ignoreRule.value=''">
+            <button class="secondary-button" (click)="addIgnore(ignoreRule.value); ignoreRule.value=''">Add rule</button>
+          </div>
+          @if (options().ignorePaths.length) {
+            <div class="chips">
+              @for (rule of options().ignorePaths; track rule) {
+                <button class="chip" (click)="removeIgnore(rule)">{{ rule }} <span>×</span></button>
+              }
+            </div>
+          }
+        </div>
+      }
+
+      @if (view() === 'tree') {
+        <app-diff-tree
+          [root]="diff.root"
+          [changesOnly]="changesOnly()"
+          [selectedNodeId]="selectedNodeId()"
+          (nodeSelected)="selectNode($event)"
+          (analysisRequested)="openAnalysis($event)" />
+      } @else {
+        <app-source-diff
+          [result]="diff"
+          [changesOnly]="changesOnly()"
+          [selectedNodeId]="selectedNodeId()"
+          (nodeSelected)="selectNode($event)" />
+      }
+    </section>
+  }
+</main>
+
+<footer class="site-footer">
+  <span>DiffLens</span>
+  <span>Private by design. Your JSON never leaves this browser.</span>
+</footer>
+
+<app-analysis-drawer [analysis]="selectedAnalysis()" (closed)="selectedAnalysis.set(null)" />

@@ -1,0 +1,8 @@
+:host { display:block; resize:vertical; overflow:hidden; min-height:120px; }
+.code-editor { height:100%; }
+:host ::ng-deep .cm-editor { height:100%; background:transparent; }
+:host ::ng-deep .cm-editor.cm-focused { outline:0; }
+:host ::ng-deep .cm-scroller { overflow:auto; font:13px/1.55 var(--mono); }
+:host ::ng-deep .cm-content { padding:16px 0; caret-color:var(--text); tab-size:2; }
+:host ::ng-deep .cm-gutters { background:transparent; border-right:1px solid var(--border-soft); color:var(--muted-2); }
+:host ::ng-deep .cm-placeholder { color:var(--muted-2); }
