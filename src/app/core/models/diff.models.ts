@@ -26,7 +26,21 @@ export type ArrayMatchOutcome =
   /** Inference ran but found no usable candidate key. */
   | 'no-candidates'
   /** Inference never ran: scalar, empty, or non-object array. */
-  | 'positional';
+  | 'positional'
+  /** The user pinned an explicit key, overriding whatever inference suggested. */
+  | 'manual-key'
+  /** The user pinned physical positions, overriding whatever inference suggested. */
+  | 'manual-position';
+
+/**
+ * A user-supplied matching decision for one array, keyed in
+ * `DiffOptions.arrayMatching` by the array path PATTERN it applies to.
+ */
+export interface ArrayMatchOverride {
+  strategy: 'auto' | 'key' | 'position';
+  /** Required for 'key'. Element-relative dotted paths, e.g. ["store","sku"] or ["location.store"]. */
+  fields?: string[];
+}
 
 export interface CandidateStats {
   paths: string[];
@@ -69,6 +83,15 @@ export interface ArrayMatchAnalysis {
   reordered: boolean;
   keyPaths?: string[];
   inference?: IdentityInference;
+  /**
+   * Present only when a user override decided the strategy. `strategy` stays the
+   * pairing MECHANISM; provenance lives here and in `outcome`.
+   */
+  override?: { strategy: 'key' | 'position'; fields?: string[]; pattern: string };
+  /** Stats for the fields ACTUALLY used to pair, whether inferred or pinned. */
+  keyStats?: CandidateStats;
+  /** Buckets holding more than one record on some side; 0 means a clean key. */
+  duplicateKeyCount?: number;
 }
 
 export interface DiffNode {
@@ -129,6 +152,11 @@ export interface DiffOptions {
   ignorePaths: string[];
   normalizeNumbers: boolean;
   normalizeTimestamps: boolean;
+  /**
+   * User overrides keyed by array path PATTERN (same glob syntax as
+   * `ignorePaths`, e.g. `$.users[*].tags`). Exact keys win over patterns.
+   */
+  arrayMatching?: Record<string, ArrayMatchOverride>;
 }
 
 export interface DiffResult {

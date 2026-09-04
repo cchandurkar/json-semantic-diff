@@ -1,11 +1,15 @@
 import { ChangeDetectionStrategy, Component, computed, effect, input, output, signal } from '@angular/core';
-import { DiffResult } from '../../core/diff';
+import { CdkContextMenuTrigger, CdkMenu, CdkMenuGroup, CdkMenuItem, CdkMenuTrigger } from '@angular/cdk/menu';
+import { DiffNode, DiffResult } from '../../core/diff';
+import { findNodeById } from '../../shared/node-navigation';
+import { NodeActionEvent, NodeActionId, NodeMenuGroup, buildNodeMenu } from '../../shared/node-actions';
 import { DEFAULT_CONTEXT_LINES, emitSourceRows, segmentRows } from '../../source';
 import { REORDER_TOOLTIP, buildItems, changeLabel, collapsedKeyContaining, leftMarker, matchSummary, rightMarker } from './source-view-model';
 
 @Component({
   selector: 'app-source-diff',
   standalone: true,
+  imports: [CdkMenu, CdkMenuItem, CdkMenuGroup, CdkMenuTrigger, CdkContextMenuTrigger],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './source-diff.component.html',
   styleUrl: './source-diff.component.css'
@@ -14,7 +18,10 @@ export class SourceDiffComponent {
   readonly result = input.required<DiffResult>();
   readonly changesOnly = input(true);
   readonly selectedNodeId = input<string | null>(null);
+  /** The canonical tree, so a row id can be resolved back to its node. */
+  readonly root = input<DiffNode | null>(null);
   readonly nodeSelected = output<string>();
+  readonly nodeAction = output<NodeActionEvent>();
 
   /** Expanded collapsed-region keys, layered on top of the segments. */
   private readonly expanded = signal<ReadonlySet<string>>(new Set());
@@ -44,6 +51,29 @@ export class SourceDiffComponent {
       // Expanding queues a re-render; scroll once the DOM has caught up.
       setTimeout(() => document.querySelector(`[data-node-id="${cssAttr(id)}"]`)?.scrollIntoView({ behavior: 'smooth', block: 'center' }));
     });
+  }
+
+  /**
+   * Copy-only menu for a source row (§9).
+   *
+   * Source rows map to canonical node ids, so the same `buildNodeMenu` model is
+   * reused and then filtered to the copy group: ignore and matching actions need
+   * tree context (the containing array) that a flat row does not carry.
+   */
+  rowMenu(nodeId: string): NodeMenuGroup[] {
+    const node = this.nodeFor(nodeId);
+    if (!node) return [];
+    return buildNodeMenu(node).filter(group => group.title === 'Copy');
+  }
+
+  emitAction(action: NodeActionId, nodeId: string): void {
+    const node = this.nodeFor(nodeId);
+    if (node) this.nodeAction.emit({ action, node });
+  }
+
+  private nodeFor(nodeId: string): DiffNode | undefined {
+    const root = this.root();
+    return root ? findNodeById(root, nodeId) : undefined;
   }
 
   expand(key: string): void {

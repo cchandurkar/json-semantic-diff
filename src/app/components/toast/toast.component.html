@@ -1,0 +1,11 @@
+<div class="toast-region" role="status" aria-live="polite">
+  @if (message(); as toast) {
+    <div class="toast" [class.is-error]="toast.tone === 'error'">
+      <span class="toast-text">{{ toast.text }}</span>
+      @if (toast.undoLabel) {
+        <button type="button" class="toast-action" (click)="undo.emit()">{{ toast.undoLabel }}</button>
+      }
+      <button type="button" class="toast-close" (click)="dismissed.emit()" aria-label="Dismiss notification">×</button>
+    </div>
+  }
+</div>

@@ -6,24 +6,39 @@
 
 <ng-template #row let-node let-depth="depth">
   @if (!changesOnly() || node.hasChanges) {
-    <div class="diff-row" [class]="'kind-' + node.changeKind" [class.is-selected]="node.id === selectedNodeId()" [style.--depth]="depth" [attr.data-node-id]="node.id">
+    <div
+      class="diff-row"
+      [class]="'kind-' + node.changeKind"
+      [class.is-selected]="node.id === selectedNodeId()"
+      [style.--depth]="depth"
+      [attr.data-node-id]="node.id"
+      [cdkContextMenuTriggerFor]="nodeMenu"
+      [cdkContextMenuTriggerData]="{ $implicit: node }">
       <button class="expand" (click)="toggle(node.path)" [disabled]="!node.children?.length" [attr.aria-label]="'Toggle ' + node.label">
         {{ node.children?.length ? (isExpanded(node.path) ? '▾' : '▸') : '·' }}
       </button>
       <span class="change-marker">{{ marker(node.changeKind) }}</span>
       <div class="path-cell">
         <button type="button" class="label" (click)="nodeSelected.emit(node.id)">{{ node.label }}</button>
-        @if (node.arrayMatch?.outcome === 'identity-applied') {
-          <button class="match-pill" (click)="analysisRequested.emit(node.path)">
-            Matched by {{ node.arrayMatch?.keyPaths?.join(' + ') }} · {{ percent(node.arrayMatch?.inference?.best?.score) }}
+        @if (showsKeyPill(node)) {
+          <button type="button" class="match-pill" (click)="analysisRequested.emit(node.path)">
+            Matched by {{ node.arrayMatch?.keyPaths?.join(' + ') }} · {{ keyPillSuffix(node) }}
           </button>
-        } @else if (node.arrayMatch?.inference && node.arrayMatch?.confidence === 'low') {
-          <button class="match-pill warning" (click)="analysisRequested.emit(node.path)">Matching uncertain</button>
+        } @else if (node.arrayMatch?.outcome === 'manual-position') {
+          <button type="button" class="match-pill" (click)="analysisRequested.emit(node.path)">Position · Manual</button>
+        } @else if (node.arrayMatch?.inference && node.arrayMatch?.confidence === 'low' && !node.arrayMatch?.override) {
+          <button type="button" class="match-pill warning" (click)="analysisRequested.emit(node.path)">Matching uncertain</button>
         }
       </div>
       <div class="value-cell left">{{ display(node.left) }}</div>
       <div class="arrow">{{ node.changeKind === 'modified' || node.changeKind === 'type-changed' ? '→' : '' }}</div>
       <div class="value-cell right">{{ display(node.right) }}</div>
+      <button
+        type="button"
+        class="row-actions"
+        [cdkMenuTriggerFor]="nodeMenu"
+        [cdkMenuTriggerData]="{ $implicit: node }"
+        [attr.aria-label]="'Actions for ' + node.label">⋯</button>
     </div>
     @if (node.children?.length && isExpanded(node.path)) {
       @for (child of node.children; track child.path) {
@@ -31,4 +46,22 @@
       }
     }
   }
+</ng-template>
+
+<!-- One template shared by the right-click trigger and the per-row "⋯" button; CDK
+     instantiates it lazily and passes the node through the trigger data. -->
+<ng-template #nodeMenu let-node>
+  <div cdkMenu [attr.aria-label]="'Actions for ' + node.label">
+    @for (group of menuGroups(node); track group.title; let last = $last) {
+      <div cdkMenuGroup [attr.aria-label]="group.title">
+        <p class="node-menu-title">{{ group.title }}</p>
+        @for (item of group.items; track item.id) {
+          <button type="button" cdkMenuItem (cdkMenuItemTriggered)="emitAction(item.id, node)">
+            {{ item.label }}
+          </button>
+        }
+      </div>
+      @if (!last) { <hr class="node-menu-separator" aria-hidden="true"> }
+    }
+  </div>
 </ng-template>

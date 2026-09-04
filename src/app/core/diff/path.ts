@@ -10,7 +10,12 @@ export type PathSegment =
   | { kind: 'root' }
   | { kind: 'key'; name: string }
   | { kind: 'index'; index: number }
-  | { kind: 'identity'; keyPaths: string[]; values: string[] };
+  /**
+   * `occurrence` is the 0-based ordinal of this record within its key bucket.
+   * It exists only to disambiguate duplicate keys and is OMITTED from every
+   * rendered form when 0, so unique keys serialize exactly as they always have.
+   */
+  | { kind: 'identity'; keyPaths: string[]; values: string[]; occurrence?: number };
 
 export const ROOT_SEGMENT: PathSegment = { kind: 'root' };
 
@@ -22,8 +27,13 @@ export function indexSegment(index: number): PathSegment {
   return { kind: 'index', index };
 }
 
-export function identitySegment(keyPaths: string[], values: string[]): PathSegment {
-  return { kind: 'identity', keyPaths, values };
+export function identitySegment(keyPaths: string[], values: string[], occurrence = 0): PathSegment {
+  return occurrence > 0 ? { kind: 'identity', keyPaths, values, occurrence } : { kind: 'identity', keyPaths, values };
+}
+
+/** `#k` disambiguator for duplicate-keyed records; empty for the first occurrence. */
+function occurrenceSuffix(occurrence: number | undefined): string {
+  return occurrence ? `#${occurrence}` : '';
 }
 
 /**
@@ -35,7 +45,7 @@ export function appendPath(parent: string, segment: PathSegment): string {
     case 'root': return '$';
     case 'key': return `${parent}.${segment.name}`;
     case 'index': return `${parent}[${segment.index}]`;
-    case 'identity': return `${parent}[${segment.values.join('|')}]`;
+    case 'identity': return `${parent}[${segment.values.join('|')}${occurrenceSuffix(segment.occurrence)}]`;
   }
 }
 
@@ -46,7 +56,7 @@ export function appendPath(parent: string, segment: PathSegment): string {
 export function appendId(parent: string, segment: PathSegment): string {
   if (segment.kind !== 'identity') return appendPath(parent, segment);
   const body = segment.keyPaths.map((keyPath, i) => `${keyPath}=${segment.values[i]}`).join(';');
-  return `${parent}[${body}]`;
+  return `${parent}[${body}${occurrenceSuffix(segment.occurrence)}]`;
 }
 
 /** Short display label for a segment. */
@@ -55,7 +65,7 @@ export function segmentLabel(segment: PathSegment): string {
     case 'root': return 'root';
     case 'key': return segment.name;
     case 'index': return `[${segment.index}]`;
-    case 'identity': return `[${segment.keyPaths.join('+')}=${segment.values.join('|')}]`;
+    case 'identity': return `[${segment.keyPaths.join('+')}=${segment.values.join('|')}${occurrenceSuffix(segment.occurrence)}]`;
   }
 }
 

@@ -8,7 +8,15 @@
  *            and identity (`[102]`) element paths
  */
 export function shouldIgnore(path: string, rules: string[]): boolean {
-  return rules.some(rule => compileRule(rule).test(path));
+  return rules.some(rule => matchesPathPattern(path, rule));
+}
+
+/**
+ * The single glob-ish path matcher, shared by ignore rules and array-matching
+ * overrides so the two can never drift apart.
+ */
+export function matchesPathPattern(path: string, pattern: string): boolean {
+  return compileRule(pattern).test(path);
 }
 
 function compileRule(rule: string): RegExp {

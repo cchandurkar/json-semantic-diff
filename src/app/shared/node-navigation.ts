@@ -45,3 +45,32 @@ export function stepChange(changes: string[], current: string | null, delta: 1 |
   if (index === -1) return delta === 1 ? changes[0] : changes[changes.length - 1];
   return changes[(index + delta + changes.length) % changes.length];
 }
+
+/**
+ * The chain of nodes from the root down to `nodeId`, inclusive, or an empty
+ * array when the id is not in this tree.
+ *
+ * Walked rather than derived from the path string: identity brackets may
+ * themselves contain `.` and `[`, so prefix slicing is never safe.
+ */
+export function nodeChain(root: DiffNode, nodeId: string): DiffNode[] {
+  const chain: DiffNode[] = [];
+  const walk = (node: DiffNode): boolean => {
+    chain.push(node);
+    if (node.id === nodeId) return true;
+    for (const child of node.children ?? []) if (walk(child)) return true;
+    chain.pop();
+    return false;
+  };
+  return walk(root) ? chain : [];
+}
+
+/** Finds a node by canonical `path`. Array analyses are keyed by path, not id. */
+export function findNodeByPath(root: DiffNode, path: string): DiffNode | undefined {
+  if (root.path === path) return root;
+  for (const child of root.children ?? []) {
+    const hit = findNodeByPath(child, path);
+    if (hit) return hit;
+  }
+  return undefined;
+}

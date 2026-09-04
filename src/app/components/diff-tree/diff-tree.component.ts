@@ -1,13 +1,15 @@
 import { ChangeDetectionStrategy, Component, computed, effect, input, output, signal } from '@angular/core';
 import { NgTemplateOutlet } from '@angular/common';
+import { CdkContextMenuTrigger, CdkMenu, CdkMenuGroup, CdkMenuItem, CdkMenuTrigger } from '@angular/cdk/menu';
 import { DiffNode, JsonValue } from '../../core/models/diff.models';
 import { percent } from '../../shared/format';
 import { ancestorPaths } from '../../shared/node-navigation';
+import { NodeActionEvent, NodeActionId, buildNodeMenu, deriveMatchingTarget } from '../../shared/node-actions';
 
 @Component({
   selector: 'app-diff-tree',
   standalone: true,
-  imports: [NgTemplateOutlet],
+  imports: [NgTemplateOutlet, CdkMenu, CdkMenuItem, CdkMenuGroup, CdkMenuTrigger, CdkContextMenuTrigger],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './diff-tree.component.html',
   styleUrl: './diff-tree.component.css'
@@ -18,6 +20,7 @@ export class DiffTreeComponent {
   readonly selectedNodeId = input<string | null>(null);
   readonly analysisRequested = output<string>();
   readonly nodeSelected = output<string>();
+  readonly nodeAction = output<NodeActionEvent>();
   /**
    * Collapsed rather than expanded paths: a fresh diff shows every row open, and
    * only paths the user explicitly closed are tracked.
@@ -68,6 +71,32 @@ export class DiffTreeComponent {
     if (Array.isArray(value)) return `Array(${value.length})`;
     if (value && typeof value === 'object') return `{${Object.keys(value).length} keys}`;
     return typeof value === 'string' ? `"${value}"` : JSON.stringify(value);
+  }
+
+  /**
+   * Menu contents for one node. Evaluated only for the menu actually being
+   * rendered - CDK instantiates the template lazily on open - so this stays O(1)
+   * per interaction rather than per row.
+   */
+  menuGroups(node: DiffNode) {
+    return buildNodeMenu(node, deriveMatchingTarget(this.root(), node.id));
+  }
+
+  emitAction(action: NodeActionId, node: DiffNode): void {
+    this.nodeAction.emit({ action, node, target: deriveMatchingTarget(this.root(), node.id) });
+  }
+
+  /** True for the pill that opens the matching panel: auto identity or a pinned key. */
+  showsKeyPill(node: DiffNode): boolean {
+    const outcome = node.arrayMatch?.outcome;
+    return outcome === 'identity-applied' || outcome === 'manual-key';
+  }
+
+  /** `Matched by store + sku · Manual` for an override, `· 97%` for inference. */
+  keyPillSuffix(node: DiffNode): string {
+    const match = node.arrayMatch;
+    if (!match) return '';
+    return match.override ? 'Manual' : percent(match.inference?.best?.score);
   }
 
   /** Re-exported for the template; formatting lives in shared/format.ts. */

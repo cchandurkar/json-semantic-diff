@@ -117,7 +117,9 @@
           [normalizeNumbers]="options().normalizeNumbers"
           (changesOnlyChange)="changesOnly.set($event)"
           (normalizeTimestampsChange)="patchOption('normalizeTimestamps', $event)"
-          (normalizeNumbersChange)="patchOption('normalizeNumbers', $event)" />
+          (normalizeNumbersChange)="patchOption('normalizeNumbers', $event)"
+          [arrays]="matchingContexts()"
+          (overrideChanged)="applyMatchingOverride($event)" />
         <button class="toolbar-button" (click)="ignoreOpen.set(!ignoreOpen())">Ignore {{ options().ignorePaths.length ? '(' + options().ignorePaths.length + ')' : '' }}</button>
         <span
           class="tooltip-anchor"
@@ -156,13 +158,16 @@
           [changesOnly]="changesOnly()"
           [selectedNodeId]="selectedNodeId()"
           (nodeSelected)="selectNode($event)"
+          (nodeAction)="handleNodeAction($event)"
           (analysisRequested)="openAnalysis($event)" />
       } @else {
         <app-source-diff
           [result]="diff"
           [changesOnly]="changesOnly()"
           [selectedNodeId]="selectedNodeId()"
-          (nodeSelected)="selectNode($event)" />
+          [root]="diff.root"
+          (nodeSelected)="selectNode($event)"
+          (nodeAction)="handleNodeAction($event)" />
       }
     </section>
   }
@@ -174,3 +179,4 @@
 </footer>
 
 <app-analysis-drawer [analysis]="selectedAnalysis()" (closed)="selectedAnalysis.set(null)" />
+<app-toast [message]="toast()" (undo)="runUndo()" (dismissed)="dismissToast()" />

@@ -174,3 +174,18 @@ export function readPath(row: JsonObject, path: string): JsonValue | undefined {
   }
   return current;
 }
+
+/**
+ * Scores an EXPLICIT field set the same way inference scores its own
+ * candidates, so a pinned key can be reported with directly comparable stats.
+ * Returns undefined when neither side yields a single complete key value.
+ */
+export function evaluateKey(left: JsonObject[], right: JsonObject[], fields: string[]): CandidateStats | undefined {
+  if (!fields.length) return undefined;
+  return scoreCandidate(fields, left.map(r => flattenScalarPaths(r)), right.map(r => flattenScalarPaths(r)));
+}
+
+/** Every scalar leaf path present on either side; the pickable key fields for a UI. */
+export function eligibleKeyPaths(left: JsonObject[], right: JsonObject[]): string[] {
+  return discoverCandidatePaths(left.map(r => flattenScalarPaths(r)), right.map(r => flattenScalarPaths(r)));
+}

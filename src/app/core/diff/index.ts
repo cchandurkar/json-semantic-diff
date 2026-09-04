@@ -6,11 +6,11 @@
  */
 export { diffJson } from './diff-engine';
 export { DEFAULT_DIFF_OPTIONS } from './options';
-export { inferIdentity, readPath } from './matching/identity-inference';
-export { matchArrays, selectArrayStrategy, pairByIdentity, pairByPosition } from './matching/matching';
+export { inferIdentity, readPath, evaluateKey, eligibleKeyPaths } from './matching/identity-inference';
+export { matchArrays, selectArrayStrategy, resolveOverride, pairByIdentity, pairByPosition } from './matching/matching';
 export type { ArrayMatchResult, MatchedPair } from './matching/matching';
 export { normalize, looksLikeTimestamp } from './normalization/normalization';
-export { shouldIgnore } from './ignore/ignore-rules';
+export { shouldIgnore, matchesPathPattern } from './ignore/ignore-rules';
 export {
   ROOT_SEGMENT,
   keySegment,
@@ -25,6 +25,7 @@ export type { PathSegment } from './path';
 export type {
   ArrayMatchAnalysis,
   ArrayMatchOutcome,
+  ArrayMatchOverride,
   CandidateStats,
   DiffChangeKind,
   DiffNodeKind,

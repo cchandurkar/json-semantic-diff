@@ -20,7 +20,9 @@
           [class]="'kind-' + item.row.changeKind"
           [class.is-ignored]="item.row.ignored"
           [class.is-selected]="item.row.nodeId === selectedNodeId()"
-          [attr.data-node-id]="item.row.nodeId">
+          [attr.data-node-id]="item.row.nodeId"
+          [cdkContextMenuTriggerFor]="rowActions"
+          [cdkContextMenuTriggerData]="{ $implicit: item.row.nodeId }">
 
           <span class="gutter">{{ item.row.left?.lineNumber }}</span>
           <span class="marker left-marker" aria-hidden="true">{{ leftMarker(item.row) }}</span>
@@ -43,8 +45,29 @@
           @if (changeLabel(item.row); as label) {
             <span class="sr-only">{{ label }}</span>
           }
+          <button
+            type="button"
+            class="row-actions"
+            [cdkMenuTriggerFor]="rowActions"
+            [cdkMenuTriggerData]="{ $implicit: item.row.nodeId }"
+            aria-label="Row actions">⋯</button>
         </div>
       }
     }
   </div>
 </div>
+
+<!-- Copy-only menu shared by the row right-click trigger and the "⋯" button. -->
+<ng-template #rowActions let-nodeId>
+  <div cdkMenu aria-label="Row actions">
+    @for (group of rowMenu(nodeId); track group.title) {
+      <div cdkMenuGroup [attr.aria-label]="group.title">
+        @for (item of group.items; track item.id) {
+          <button type="button" cdkMenuItem (cdkMenuItemTriggered)="emitAction(item.id, nodeId)">
+            {{ item.label }}
+          </button>
+        }
+      </div>
+    }
+  </div>
+</ng-template>

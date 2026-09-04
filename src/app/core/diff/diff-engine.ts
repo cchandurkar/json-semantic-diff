@@ -21,7 +21,13 @@ export function diffJson(left: JsonValue, right: JsonValue, options: DiffOptions
     arrays,
     autoMatchedCount: arrays.filter(a => a.outcome === 'identity-applied').length,
     uncertainCount: arrays.filter(a => a.outcome === 'ambiguous' || a.outcome === 'below-threshold' || a.outcome === 'no-candidates').length,
-    primaryAnalysis: arrays.find(a => a.outcome === 'identity-applied') ?? arrays.find(a => a.outcome !== 'positional') ?? arrays[0],
+    // Manual decisions outrank inferred ones: if the user pinned something, that
+    // is the array they are looking at.
+    primaryAnalysis:
+      arrays.find(a => a.outcome === 'manual-key' || a.outcome === 'manual-position') ??
+      arrays.find(a => a.outcome === 'identity-applied') ??
+      arrays.find(a => a.outcome !== 'positional') ??
+      arrays[0],
     elapsedMs: Math.round((now() - started) * 10) / 10
   };
 }
@@ -100,7 +106,7 @@ function compareArrays(
   options: DiffOptions,
   arrays: ArrayMatchAnalysis[]
 ): DiffNode {
-  const { analysis, pairs } = matchArrays(left, right, base.path);
+  const { analysis, pairs } = matchArrays(left, right, base.path, options.arrayMatching);
   // Normalization preserves array length, so the pair indices address the raw
   // arrays too - that is how an element recovers its untouched source value.
   const rawL = Array.isArray(rawLeft) ? rawLeft : undefined;

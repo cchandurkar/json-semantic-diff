@@ -1,15 +1,21 @@
-import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { JsonInputComponent } from './components/json-input/json-input.component';
 import { DiffTreeComponent } from './components/diff-tree/diff-tree.component';
 import { AnalysisDrawerComponent } from './components/analysis-drawer/analysis-drawer.component';
 import { SourceDiffComponent } from './components/source-diff/source-diff.component';
 import { ExamplePickerComponent } from './components/example-picker/example-picker.component';
 import { SettingsMenuComponent } from './components/settings-menu/settings-menu.component';
+import { ToastComponent } from './components/toast/toast.component';
+import { ArrayMatchingContext } from './components/settings-menu/settings-menu.component';
 import { DEFAULT_DIFF_OPTIONS, diffJson } from './core/diff';
 import { formatJson } from './core/json/format';
 import { ArrayMatchAnalysis, DiffOptions, DiffResult, JsonValue } from './core/models/diff.models';
 import { displayPath } from './shared/format';
-import { stepChange } from './shared/node-navigation';
+import { findNodeByPath, stepChange } from './shared/node-navigation';
+import { MatchingOverrideChange, NodeActionEvent, applyOverrideToOptions, ignoreFieldEverywhereRule, ignoreThisPathRule, matchingKeyOverride } from './shared/node-actions';
+import { ClipboardService } from './shared/clipboard/clipboard.service';
+import { formatChange, formatNewValue, formatOldValue, formatSemanticPath, formatSubtree } from './shared/clipboard/diff-clipboard';
+import { ToastMessage, createToast } from './shared/toast';
 import { TooltipDirective } from './shared/tooltip/tooltip.directive';
 import { Theme, applyTheme, readStoredTheme, storeTheme } from './shared/theme';
 import { flattenChanges } from './source';
@@ -19,11 +25,14 @@ const EDITOR_HEIGHT_DEFAULT = 260;
 const EDITOR_HEIGHT_COMPACT = 170;
 /** Must match the `sink` animation duration on `.hero-leave` in app.component.css. */
 const HERO_EXIT_MS = 340;
+/** How long a toast stays up; longer when it offers an undo. */
+const TOAST_MS = 2400;
+const TOAST_UNDO_MS = 5000;
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [JsonInputComponent, DiffTreeComponent, SourceDiffComponent, ExamplePickerComponent, SettingsMenuComponent, AnalysisDrawerComponent, TooltipDirective],
+  imports: [JsonInputComponent, DiffTreeComponent, SourceDiffComponent, ExamplePickerComponent, SettingsMenuComponent, AnalysisDrawerComponent, ToastComponent, TooltipDirective],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './app.component.html',
   styleUrl: './app.component.css'
@@ -48,12 +57,28 @@ export class AppComponent {
   readonly view = signal<'tree' | 'source'>('tree');
   /** Single selection shared by both views, keyed on the canonical DiffNode.id. */
   readonly selectedNodeId = signal<string | null>(null);
+  readonly toast = signal<ToastMessage | null>(null);
+
+  private readonly clipboard = inject(ClipboardService);
+  private undoAction: (() => void) | null = null;
+  private toastTimer?: ReturnType<typeof setTimeout>;
 
   readonly canCompare = computed(() => !!this.leftText().trim() && !!this.rightText().trim());
   /** DFS pre-order change ids: view-independent and invariant to collapse state. */
   readonly changeList = computed(() => { const r = this.result(); return r ? flattenChanges(r.root) : []; });
   readonly autoMatchedCount = computed(() => this.result()?.autoMatchedCount ?? 0);
   readonly uncertainCount = computed(() => this.result()?.uncertainCount ?? 0);
+  /**
+   * Every array paired with its node, so the settings panel can list key fields.
+   * Arrays whose node cannot be resolved are dropped rather than rendered broken.
+   */
+  readonly matchingContexts = computed<ArrayMatchingContext[]>(() => {
+    const result = this.result();
+    if (!result) return [];
+    return result.arrays
+      .map(analysis => ({ analysis, node: findNodeByPath(result.root, analysis.path) }))
+      .filter((context): context is ArrayMatchingContext => !!context.node);
+  });
   /** Matching analysis only exists when the documents contained at least one array pair. */
   readonly hasAnalysis = computed(() => (this.result()?.arrays.length ?? 0) > 0);
 
@@ -162,11 +187,79 @@ export class AppComponent {
     this.selectedAnalysis.set(this.result()?.primaryAnalysis ?? null);
   }
 
+  /** Runs a Tree/Source context-menu action (§§4-8). */
+  handleNodeAction(event: NodeActionEvent): void {
+    const { action, node, target } = event;
+    switch (action) {
+      case 'copy-path': return this.copy(formatSemanticPath(node), 'Copied DiffLens path');
+      case 'copy-old-value': return this.copy(formatOldValue(node), 'Copied old value');
+      case 'copy-new-value': return this.copy(formatNewValue(node), 'Copied new value');
+      case 'copy-subtree': return this.copy(formatSubtree(node, 'right'), 'Copied subtree');
+      case 'copy-change': return this.copy(formatChange(node), 'Copied change');
+      case 'ignore-path': return this.applyIgnore(ignoreThisPathRule(node));
+      case 'ignore-field-everywhere': return this.applyIgnore(ignoreFieldEverywhereRule(node));
+      case 'use-as-key':
+      case 'add-to-key':
+        if (!target) return;
+        this.applyMatchingOverride(
+          { pattern: target.pattern, override: matchingKeyOverride(target, action) },
+          `Matching by ${matchingKeyOverride(target, action).fields?.join(' + ')}`
+        );
+        return;
+    }
+  }
+
+  /**
+   * Writes an array-matching override into the options map and recomputes.
+   *
+   * A `null` override deletes the entry, which is how "Reset to Auto" returns the
+   * array to inference. Every other option is preserved, and the open drawer is
+   * re-pointed at the freshly computed analysis for the same path.
+   */
+  applyMatchingOverride(change: MatchingOverrideChange, message?: string): void {
+    const openPath = this.selectedAnalysis()?.path;
+    this.options.update(current => applyOverrideToOptions(current, change.pattern, change.override));
+    this.recompareSilently();
+    if (openPath) this.selectedAnalysis.set(this.result()?.arrays.find(a => a.path === openPath) ?? null);
+    this.showToast(message ?? (change.override ? 'Array matching updated' : 'Matching reset to Auto'));
+  }
+
+  dismissToast(): void {
+    clearTimeout(this.toastTimer);
+    this.toast.set(null);
+    this.undoAction = null;
+  }
+
+  runUndo(): void {
+    const undo = this.undoAction;
+    this.dismissToast();
+    undo?.();
+  }
+
   toggleTheme(): void {
     this.darkMode.update(v => !v);
     const theme: Theme = this.darkMode() ? 'dark' : 'light';
     applyTheme(theme);
     storeTheme(theme);
+  }
+
+  private copy(text: string, successMessage: string): void {
+    if (!text) return this.showToast('Nothing to copy', 'error');
+    const copied = this.clipboard.copy(text);
+    this.showToast(copied ? successMessage : 'Could not access the clipboard', copied ? 'info' : 'error');
+  }
+
+  private applyIgnore(rule: string): void {
+    if (this.options().ignorePaths.includes(rule)) return this.showToast(`Already ignoring ${rule}`);
+    this.addIgnore(rule);
+    this.showToast(`Ignored ${rule}`, 'info', 'Undo', () => this.removeIgnore(rule));
+  }
+
+  private showToast(text: string, tone: 'info' | 'error' = 'info', undoLabel?: string, undo?: () => void): void {
+    clearTimeout(this.toastTimer);
+    this.undoAction = undo ?? null;
+    this.toast.set(createToast(text, tone, undoLabel));
+    this.toastTimer = setTimeout(() => this.dismissToast(), undoLabel ? TOAST_UNDO_MS : TOAST_MS);
   }
 
   private recompareSilently(): void {
