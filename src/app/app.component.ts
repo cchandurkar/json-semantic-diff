@@ -4,31 +4,15 @@ import { JsonInputComponent } from './components/json-input/json-input.component
 import { DiffTreeComponent } from './components/diff-tree/diff-tree.component';
 import { AnalysisDrawerComponent } from './components/analysis-drawer/analysis-drawer.component';
 import { SourceDiffComponent } from './components/source-diff/source-diff.component';
+import { ExamplePickerComponent } from './components/example-picker/example-picker.component';
 import { DEFAULT_DIFF_OPTIONS, diffJson } from './core/diff';
 import { formatJson } from './core/json/format';
 import { ArrayMatchAnalysis, DiffOptions, DiffResult, JsonValue } from './core/models/diff.models';
 import { displayPath } from './shared/format';
 import { stepChange } from './shared/node-navigation';
+import { Theme, applyTheme, readStoredTheme, storeTheme } from './shared/theme';
 import { flattenChanges } from './source';
-
-const EXAMPLE_LEFT = `{
-  "users": [
-    {"userId": 101, "name": "Alice", "status": "active", "updatedAt": "2026-09-04T14:00:00Z"},
-    {"userId": 102, "name": "Bob", "status": "active", "updatedAt": "2026-09-04T14:00:00Z"},
-    {"userId": 103, "name": "Cara", "status": "active", "updatedAt": "2026-09-04T14:00:00Z"}
-  ],
-  "metadata": {"requestId": "req-old", "region": "us-east-1"}
-}`;
-
-const EXAMPLE_RIGHT = `{
-  "users": [
-    {"userId": 103, "name": "Cara", "status": "active", "updatedAt": "2026-09-04T10:00:00-04:00"},
-    {"userId": 101, "name": "Alice", "status": "active", "updatedAt": "2026-09-04T10:00:00-04:00"},
-    {"userId": 102, "name": "Bob", "status": "inactive", "updatedAt": "2026-09-04T10:00:00-04:00", "plan": "premium"},
-    {"userId": 104, "name": "Diego", "status": "active", "updatedAt": "2026-09-04T10:00:00-04:00"}
-  ],
-  "metadata": {"requestId": "req-new", "region": "us-east-1"}
-}`;
+import { DiffExample } from './examples';
 
 const EDITOR_HEIGHT_DEFAULT = 260;
 const EDITOR_HEIGHT_COMPACT = 170;
@@ -38,7 +22,7 @@ const HERO_EXIT_MS = 340;
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [FormsModule, JsonInputComponent, DiffTreeComponent, SourceDiffComponent, AnalysisDrawerComponent],
+  imports: [FormsModule, JsonInputComponent, DiffTreeComponent, SourceDiffComponent, ExamplePickerComponent, AnalysisDrawerComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './app.component.html',
   styleUrl: './app.component.css'
@@ -53,7 +37,8 @@ export class AppComponent {
   readonly dirty = signal(false);
   readonly ignoreOpen = signal(false);
   readonly selectedAnalysis = signal<ArrayMatchAnalysis | null>(null);
-  readonly darkMode = signal(false);
+  /** Seeded from storage; the inline script in index.html already applied it to the document. */
+  readonly darkMode = signal(readStoredTheme() === 'dark');
   readonly editorHeight = signal(EDITOR_HEIGHT_DEFAULT);
   readonly options = signal<DiffOptions>({ ...DEFAULT_DIFF_OPTIONS });
   /** Pure render filter: never round-trips through the engine. */
@@ -114,13 +99,27 @@ export class AppComponent {
     this.recompareSilently();
   }
 
-  loadExample(): void {
-    this.leftText.set(EXAMPLE_LEFT);
-    this.rightText.set(EXAMPLE_RIGHT);
+  /**
+   * Loads a built-in example: populates both editors, applies the example's
+   * comparison settings, and compares.
+   *
+   * The options signal is REPLACED rather than patched, so an example always
+   * demonstrates itself under known settings; any ignore rules or normalization
+   * toggles the user had set are reset to the defaults plus the example's own.
+   * Setting the signal directly (instead of `patchOption`) also avoids the
+   * recompare that would otherwise fire before the new text is compared.
+   */
+  loadExample(example: DiffExample): void {
+    this.leftText.set(formatJson(JSON.stringify(example.original)));
+    this.rightText.set(formatJson(JSON.stringify(example.changed)));
     this.leftError.set(null);
     this.rightError.set(null);
     this.dirty.set(false);
     this.inputsCollapsed.set(false);
+    this.ignoreOpen.set(false);
+    this.selectedAnalysis.set(null);
+    this.selectedNodeId.set(null);
+    this.options.set({ ...DEFAULT_DIFF_OPTIONS, ...example.options });
     setTimeout(() => this.compare());
   }
 
@@ -162,7 +161,9 @@ export class AppComponent {
 
   toggleTheme(): void {
     this.darkMode.update(v => !v);
-    document.documentElement.dataset['theme'] = this.darkMode() ? 'dark' : 'light';
+    const theme: Theme = this.darkMode() ? 'dark' : 'light';
+    applyTheme(theme);
+    storeTheme(theme);
   }
 
   private recompareSilently(): void {

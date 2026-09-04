@@ -6,6 +6,13 @@
   <base href="/">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Understand what changed in JSON, not just where. Private, local-only JSON comparison with smart array matching.">
+  <script>
+    // Applies the saved theme before first paint so a reload never flashes light.
+    // Key must match THEME_STORAGE_KEY in src/app/shared/theme.ts.
+    var savedTheme = null;
+    try { savedTheme = localStorage.getItem('difflens.theme'); } catch (e) { /* storage blocked */ }
+    if (savedTheme === 'dark' || savedTheme === 'light') document.documentElement.dataset.theme = savedTheme;
+  </script>
 </head>
 <body>
   <app-root></app-root>

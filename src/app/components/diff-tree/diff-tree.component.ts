@@ -18,26 +18,45 @@ export class DiffTreeComponent {
   readonly selectedNodeId = input<string | null>(null);
   readonly analysisRequested = output<string>();
   readonly nodeSelected = output<string>();
-  readonly expanded = signal(new Set<string>(['$']));
+  /**
+   * Collapsed rather than expanded paths: a fresh diff shows every row open, and
+   * only paths the user explicitly closed are tracked.
+   */
+  readonly collapsed = signal(new Set<string>());
   readonly visibleNodes = computed(() => this.root().children ?? [this.root()]);
 
   constructor() {
+    // A new comparison starts fully expanded again.
+    effect(() => {
+      this.root();
+      this.collapsed.set(new Set());
+    });
+
     // A selection arriving from elsewhere (Source view, prev/next) must be visible.
-    // The expansion set is keyed on `path`, so ancestors are collected by walking
+    // The collapsed set is keyed on `path`, so ancestors are collected by walking
     // the tree - path strings cannot be sliced safely because identity brackets
     // may themselves contain '.' or '['.
     effect(() => {
       const id = this.selectedNodeId();
       if (!id) return;
       const ancestors = ancestorPaths(this.root(), id);
-      if (ancestors.length) this.expanded.update(current => new Set([...current, ...ancestors]));
+      if (!ancestors.length) return;
+      this.collapsed.update(current => {
+        const next = new Set(current);
+        for (const path of ancestors) next.delete(path);
+        return next;
+      });
     });
   }
 
+  isExpanded(path: string): boolean {
+    return !this.collapsed().has(path);
+  }
+
   toggle(path: string): void {
-    const next = new Set(this.expanded());
+    const next = new Set(this.collapsed());
     next.has(path) ? next.delete(path) : next.add(path);
-    this.expanded.set(next);
+    this.collapsed.set(next);
   }
 
   marker(changeKind: DiffNode['changeKind']): string {

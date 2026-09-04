@@ -33,11 +33,13 @@ DiffLens is a local-first JSON comparison utility. Its defining behavior is to e
 - `src/app/source/index.ts` — public API of the Source presentation layer (framework-free).
 - `src/app/source/source-emitter.ts` — turns a `DiffResult` into side-by-side source rows; re-runs no diff logic.
 - `src/app/source/source-segments.ts` — changes-only segmentation with lazy collapsed regions.
+- `src/app/examples/diff-examples.ts` — built-in demo payloads (pure JSON + optional `DiffOptions`).
 - `src/app/shared/format.ts` — presentation-only formatting helpers shared by components.
 - `src/app/shared/node-navigation.ts` — pure ancestor/lookup/prev-next helpers keyed on `DiffNode.id`.
 - `src/app/components/json-input/` — JSON paste/drop/open surface.
 - `src/app/components/diff-tree/` — primary tree result renderer.
 - `src/app/components/source-diff/` — side-by-side Source renderer; `source-view-model.ts` holds its pure logic.
+- `src/app/components/example-picker/` — dropdown for loading the built-in examples.
 - `src/app/components/analysis-drawer/` — explainability surface for identity inference.
 - `src/app/app.component.*` — page composition and comparison-level state.
 

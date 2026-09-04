@@ -4,7 +4,7 @@
     <span>DiffLens</span>
   </a>
   <nav>
-    <button class="link-button" (click)="loadExample()">Example</button>
+    <app-example-picker align="right" (exampleSelected)="loadExample($event)" />
     <a class="link-button" href="https://github.com" target="_blank" rel="noreferrer">GitHub</a>
     <button class="theme-toggle" (click)="toggleTheme()" [attr.aria-label]="darkMode() ? 'Use light theme' : 'Use dark theme'">{{ darkMode() ? '☀' : '◐' }}</button>
   </nav>
@@ -64,7 +64,7 @@
         {{ result() ? (dirty() ? 'Recompare' : 'Compare again') : 'Compare JSON' }}
       </button>
       @if (!result()) {
-        <button class="secondary-button" (click)="loadExample()">Load example</button>
+        <app-example-picker label="Load example" variant="secondary" (exampleSelected)="loadExample($event)" />
       }
     </div>
   </section>
