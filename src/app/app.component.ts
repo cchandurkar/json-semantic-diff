@@ -46,7 +46,6 @@ export class AppComponent {
   readonly leftError = signal<string | null>(null);
   readonly rightError = signal<string | null>(null);
   readonly result = signal<DiffResult | null>(null);
-  readonly inputsCollapsed = signal(false);
   readonly dirty = signal(false);
   readonly selectedAnalysis = signal<ArrayMatchAnalysis | null>(null);
   /** Seeded from storage; the inline script in index.html already applied it to the document. */
@@ -108,7 +107,6 @@ export class AppComponent {
     this.dirty.set(false);
     // Entering compact mode shrinks both editors; later recompares keep the user's size.
     if (firstCompare) this.editorHeight.set(EDITOR_HEIGHT_COMPACT);
-    if (window.innerWidth < 1000) this.inputsCollapsed.set(true);
     // The hero unmounts via its own `animate.leave` sink animation; no manual scroll is
     // needed since results render in the middle column's own scroll region, already in
     // view rather than below a page fold.
@@ -153,7 +151,6 @@ export class AppComponent {
     this.leftError.set(null);
     this.rightError.set(null);
     this.dirty.set(false);
-    this.inputsCollapsed.set(false);
     this.selectedAnalysis.set(null);
     this.selectedNodeId.set(null);
     this.options.set({ ...DEFAULT_DIFF_OPTIONS, ...example.options });
@@ -163,7 +160,7 @@ export class AppComponent {
   reset(): void {
     this.leftText.set(''); this.rightText.set('');
     this.leftError.set(null); this.rightError.set(null);
-    this.result.set(null); this.dirty.set(false); this.inputsCollapsed.set(false);
+    this.result.set(null); this.dirty.set(false);
     this.selectedNodeId.set(null); this.view.set('tree');
     this.selectedAnalysis.set(null);
     this.editorHeight.set(EDITOR_HEIGHT_DEFAULT);

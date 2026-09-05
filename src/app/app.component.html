@@ -42,45 +42,30 @@
       their surrounding chrome and the compact editorHeight change.
     -->
     <section class="workspace">
-      @if (result()) {
-        <div class="section-heading">
-          <span class="quiet">Compared locally · nothing uploaded</span>
-          <button class="link-button" (click)="inputsCollapsed.set(!inputsCollapsed())">{{ inputsCollapsed() ? 'Expand inputs' : 'Collapse inputs' }}</button>
-        </div>
-      }
-
-      @if (!inputsCollapsed()) {
-        <div class="input-grid" [class.compact]="!!result()">
-          <app-json-input
-            label="ORIGINAL"
-            [value]="leftText()"
-            [error]="leftError()"
-            [statusText]="inputStatus(leftText(), leftError())"
-            [darkMode]="darkMode()"
-            [(editorHeight)]="editorHeight"
-            (valueChange)="leftText.set($event); markDirty()" />
-          <app-json-input
-            label="CHANGED"
-            [value]="rightText()"
-            [error]="rightError()"
-            [statusText]="inputStatus(rightText(), rightError())"
-            [darkMode]="darkMode()"
-            [(editorHeight)]="editorHeight"
-            (valueChange)="rightText.set($event); markDirty()" />
-        </div>
-      } @else {
-        <button class="collapsed-inputs" (click)="inputsCollapsed.set(false)">
-          <span>▸ Inputs</span>
-          <span>Original ✓</span>
-          <span>Changed ✓</span>
-          <strong>Edit</strong>
-        </button>
-      }
+      <div class="input-grid" [class.compact]="!!result()">
+        <app-json-input
+          label="ORIGINAL"
+          [value]="leftText()"
+          [error]="leftError()"
+          [statusText]="inputStatus(leftText(), leftError())"
+          [darkMode]="darkMode()"
+          [(editorHeight)]="editorHeight"
+          (valueChange)="leftText.set($event); markDirty()" />
+        <app-json-input
+          label="CHANGED"
+          [value]="rightText()"
+          [error]="rightError()"
+          [statusText]="inputStatus(rightText(), rightError())"
+          [darkMode]="darkMode()"
+          [(editorHeight)]="editorHeight"
+          (valueChange)="rightText.set($event); markDirty()" />
+      </div>
 
       <div class="compare-row">
         @if (dirty() && result()) { <span class="dirty-note">Inputs changed</span> }
         <button class="primary-button" [disabled]="!canCompare()" (click)="compare()">
-          {{ result() ? (dirty() ? 'Recompare' : 'Compare again') : 'Compare JSON' }}
+          <!-- {{ result() ? (dirty() ? 'Recompare' : 'Compare again') : 'Compare JSON' }} -->
+            Compare JSON
         </button>
       </div>
     </section>

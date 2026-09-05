@@ -6,85 +6,119 @@
   --sans: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
   --radius: 4px;
-  --page: #f7f8fa;
-  --panel: #ffffff;
-  --surface: #f3f4f6;
-  --hover: #f4f5f7;
-  --text: #161a22;
-  --muted: #68707f;
-  --muted-2: #9aa1ad;
-  --border: #dfe3e8;
-  --border-soft: #edf0f3;
-  --border-strong: #aeb7c4;
-  --focus-ring: rgba(74, 101, 140, .12);
-  --accent: #425d83;
-  --success: #237653;
-  --success-bg: #edf8f2;
-  --success-border: #c8e8d8;
-  --warning: #8a5c12;
-  --warning-bg: #fff8e8;
-  --warning-border: #efdba8;
-  --danger: #b23b42;
-  --danger-bg: #fff1f2;
-  --danger-border: #efc4c8;
-  --added: #267653;
-  --added-bg: #eff9f4;
-  --removed: #a8464d;
-  --removed-bg: #fff2f3;
-  --modified: #8a6514;
-  --modified-bg: #fdf6e3;
+  --background: #f8fafc;
+  --foreground: #0f172a;
+  --header: #ffffff;
+  --sidebar: #ffffff;
+  --workspace: #f1f5f9;
+  --card: #ffffff;
+  --card-foreground: #0f172a;
+  --editor: #ffffff;
+  --editor-foreground: #1e293b;
+  --border: #e2e8f0;
+  --border-subtle: #edf2f7;
+  --border-strong: #cbd5e1;
+  --muted: #f1f5f9;
+  --muted-foreground: #64748b;
+  --subtle-foreground: #94a3b8;
+  --primary: #2563eb;
+  --primary-hover: #1d4ed8;
+  --primary-foreground: #ffffff;
+  --accent: #eff6ff;
+  --accent-foreground: #1d4ed8;
+  --focus-ring: rgba(37, 99, 235, .16);
+  --selection: #dbeafe;
+  --selection-border: #93c5fd;
+  --diff-added: #15803d;
+  --diff-added-bg: #f0fdf4;
+  --diff-removed: #dc2626;
+  --diff-removed-bg: #fef2f2;
+  --diff-modified: #b45309;
+  --diff-modified-bg: #fffbeb;
+  --success: var(--diff-added);
+  --success-bg: var(--diff-added-bg);
+  --success-border: color-mix(in srgb, var(--diff-added) 35%, transparent);
+  --warning: var(--diff-modified);
+  --warning-bg: var(--diff-modified-bg);
+  --warning-border: color-mix(in srgb, var(--diff-modified) 35%, transparent);
+  --danger: var(--diff-removed);
+  --danger-bg: var(--diff-removed-bg);
+  --danger-border: color-mix(in srgb, var(--diff-removed) 35%, transparent);
+  --json-key: #2563eb;
+  --json-string: #15803d;
+  --json-number: #7c3aed;
+  --json-boolean: #c2410c;
+  --json-null: #64748b;
+  --json-punctuation: #475569;
 }
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --page: #0d1015;
-  --panel: #141820;
-  --surface: #1b202a;
-  --hover: #1b2029;
-  --text: #edf0f5;
-  --muted: #9ba5b4;
-  --muted-2: #626c7a;
-  --border: #2a313d;
-  --border-soft: #222934;
-  --border-strong: #4d5a6b;
-  --focus-ring: rgba(126, 156, 197, .14);
-  --accent: #9ab7dc;
-  --success: #78caa7;
-  --success-bg: #13271f;
-  --success-border: #254d3d;
-  --warning: #dfb968;
-  --warning-bg: #2a2112;
-  --warning-border: #57451d;
-  --danger: #eb9299;
-  --danger-bg: #2d181b;
-  --danger-border: #5d2c31;
-  --added: #79c8a7;
-  --added-bg: #14251f;
-  --removed: #e68e95;
-  --removed-bg: #2b181b;
-  --modified: #ddba70;
-  --modified-bg: #2a2113;
+  --background: #0d1117;
+  --foreground: #e6edf3;
+  --header: #010409;
+  --sidebar: #010409;
+  --workspace: #0d1117;
+  --card: #161b22;
+  --card-foreground: #e6edf3;
+  --editor: #0d1117;
+  --editor-foreground: #c9d1d9;
+  --border: #30363d;
+  --border-subtle: #21262d;
+  --border-strong: #484f58;
+  --muted: #161b22;
+  --muted-foreground: #8b949e;
+  --subtle-foreground: #6e7681;
+  --primary: #1f6feb;
+  --primary-hover: #388bfd;
+  --primary-foreground: #ffffff;
+  --accent: #12294d;
+  --accent-foreground: #79c0ff;
+  --focus-ring: rgba(31, 111, 235, .35);
+  --selection: #1a3a5c;
+  --selection-border: #388bfd;
+  --diff-added: #3fb950;
+  --diff-added-bg: #033a16;
+  --diff-removed: #f85149;
+  --diff-removed-bg: #67060c;
+  --diff-modified: #d29922;
+  --diff-modified-bg: #3d2d00;
+  --success: var(--diff-added);
+  --success-bg: var(--diff-added-bg);
+  --success-border: color-mix(in srgb, var(--diff-added) 35%, transparent);
+  --warning: var(--diff-modified);
+  --warning-bg: var(--diff-modified-bg);
+  --warning-border: color-mix(in srgb, var(--diff-modified) 35%, transparent);
+  --danger: var(--diff-removed);
+  --danger-bg: var(--diff-removed-bg);
+  --danger-border: color-mix(in srgb, var(--diff-removed) 35%, transparent);
+  --json-key: #7ee787;
+  --json-string: #a5d6ff;
+  --json-number: #d2a8ff;
+  --json-boolean: #ffa657;
+  --json-null: #8b949e;
+  --json-punctuation: #c9d1d9;
 }
 * { box-sizing:border-box; }
 html,body { height:100%; }
-html { background:var(--page); color:var(--text); font-family:var(--sans); }
-body { margin:0; min-width:320px; overflow:hidden; background:radial-gradient(circle at 50% -20%, color-mix(in srgb, var(--panel) 70%, transparent), transparent 38%), var(--page); }
+html { background:var(--background); color:var(--foreground); font-family:var(--sans); }
+body { margin:0; min-width:320px; overflow:hidden; background:radial-gradient(circle at 50% -20%, color-mix(in srgb, var(--card) 70%, transparent), transparent 38%), var(--background); }
 button,input,textarea { font:inherit; }
-button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
-::selection { background:color-mix(in srgb, var(--accent) 22%, transparent); }
+button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible { outline:2px solid var(--primary); outline-offset:2px; }
+::selection { background:var(--selection); }
 
 /* Tooltip panel. Global because the CDK overlay pane lives outside every component. */
-.difflens-tooltip { max-width:240px; padding:5px 9px; border:1px solid var(--border); border-radius:var(--radius); background:var(--surface); color:var(--text); font:11px/1.4 var(--sans); box-shadow:0 6px 18px rgba(10,14,22,.14); pointer-events:none; }
+.difflens-tooltip { max-width:240px; padding:5px 9px; border:1px solid var(--border); border-radius:var(--radius); background:var(--card); color:var(--foreground); font:11px/1.4 var(--sans); box-shadow:0 6px 18px rgba(10,14,22,.14); pointer-events:none; }
 
 /* CDK menu panels. Global because menus render in the body-level `.cdk-overlay-container`,
    which component-scoped styles cannot reach. Matches the house panel look used by
    `.picker-panel` and `.settings-panel`. */
-.cdk-menu { min-width:210px; max-width:min(300px,calc(100vw - 24px)); display:flex; flex-direction:column; padding:5px; border:1px solid var(--border); border-radius:var(--radius); background:var(--panel); box-shadow:0 12px 32px rgba(10,14,22,.14); }
+.cdk-menu { min-width:210px; max-width:min(300px,calc(100vw - 24px)); display:flex; flex-direction:column; padding:5px; border:1px solid var(--border); border-radius:var(--radius); background:var(--card); box-shadow:0 12px 32px rgba(10,14,22,.14); }
 .cdk-menu:focus, .cdk-menu:focus-visible { outline:none; }
 .cdk-menu-group { display:flex; flex-direction:column; }
-.node-menu-title { margin:4px 0 2px; padding:0 9px; color:var(--muted-2); font:600 10px var(--sans); letter-spacing:.07em; text-transform:uppercase; }
-.cdk-menu-item { display:block; width:100%; border:0; border-radius:var(--radius); background:transparent; color:var(--text); font:12px var(--sans); padding:7px 9px; text-align:left; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; cursor:pointer; }
-.cdk-menu-item:hover { background:var(--hover); }
-.cdk-menu-item:focus, .cdk-menu-item:focus-visible { outline:2px solid var(--accent); outline-offset:-2px; background:var(--hover); }
-.cdk-menu-item-disabled, .cdk-menu-item:disabled { color:var(--muted-2); cursor:not-allowed; }
+.node-menu-title { margin:4px 0 2px; padding:0 9px; color:var(--subtle-foreground); font:600 10px var(--sans); letter-spacing:.07em; text-transform:uppercase; }
+.cdk-menu-item { display:block; width:100%; border:0; border-radius:var(--radius); background:transparent; color:var(--foreground); font:12px var(--sans); padding:7px 9px; text-align:left; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; cursor:pointer; }
+.cdk-menu-item:hover { background:var(--accent); }
+.cdk-menu-item:focus, .cdk-menu-item:focus-visible { outline:2px solid var(--primary); outline-offset:-2px; background:var(--accent); }
+.cdk-menu-item-disabled, .cdk-menu-item:disabled { color:var(--subtle-foreground); cursor:not-allowed; }
 .cdk-menu-item-disabled:hover, .cdk-menu-item:disabled:hover { background:transparent; }
-.node-menu-separator { height:0; margin:4px 6px; border:0; border-top:1px solid var(--border-soft); }
+.node-menu-separator { height:0; margin:4px 6px; border:0; border-top:1px solid var(--border-subtle); }

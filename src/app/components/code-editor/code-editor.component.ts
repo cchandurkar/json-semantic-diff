@@ -21,7 +21,8 @@ import {
   placeholder as cmPlaceholder
 } from '@codemirror/view';
 import { defaultKeymap, history, historyKeymap, indentWithTab } from '@codemirror/commands';
-import { bracketMatching, defaultHighlightStyle, foldGutter, foldKeymap, indentOnInput, syntaxHighlighting } from '@codemirror/language';
+import { bracketMatching, foldGutter, foldKeymap, HighlightStyle, indentOnInput, syntaxHighlighting } from '@codemirror/language';
+import { tags } from '@lezer/highlight';
 import { autocompletion, closeBrackets, closeBracketsKeymap, completionKeymap } from '@codemirror/autocomplete';
 import { highlightSelectionMatches, searchKeymap } from '@codemirror/search';
 import { jsonParseLinter, json } from '@codemirror/lang-json';
@@ -36,7 +37,21 @@ function emptyAwareJsonLinter() {
   const parseLinter = jsonParseLinter();
   return (view: EditorView) => (view.state.doc.toString().trim() ? parseLinter(view) : []);
 }
-import { oneDark } from '@codemirror/theme-one-dark';
+import { oneDarkTheme } from '@codemirror/theme-one-dark';
+
+/**
+ * JSON syntax colors driven entirely by the app's `--json-*` CSS custom
+ * properties, so ONE style works for both themes: `var(...)` resolves live
+ * against `[data-theme]`, no swap needed when the user toggles dark mode.
+ */
+const jsonHighlightStyle = HighlightStyle.define([
+  { tag: tags.propertyName, color: 'var(--json-key)' },
+  { tag: tags.string, color: 'var(--json-string)' },
+  { tag: tags.number, color: 'var(--json-number)' },
+  { tag: tags.bool, color: 'var(--json-boolean)' },
+  { tag: tags.null, color: 'var(--json-null)' },
+  { tag: [tags.punctuation, tags.bracket, tags.separator], color: 'var(--json-punctuation)' }
+]);
 
 @Component({
   selector: 'app-code-editor',
@@ -108,7 +123,12 @@ export class CodeEditorComponent implements AfterViewInit, OnDestroy {
   }
 
   private themeExtension(dark: boolean): Extension {
-    return dark ? oneDark : syntaxHighlighting(defaultHighlightStyle, { fallback: true });
+    // `oneDarkTheme` supplies dark-mode editor chrome only (background/gutters/
+    // selection); syntax colors always come from the token-driven style above,
+    // so JSON highlighting stays theme-agnostic in both branches.
+    return dark
+      ? [oneDarkTheme, syntaxHighlighting(jsonHighlightStyle, { fallback: true })]
+      : syntaxHighlighting(jsonHighlightStyle, { fallback: true });
   }
 
   private extensions(): Extension[] {
