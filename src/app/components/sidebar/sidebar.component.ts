@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, ElementRef, effect, input, output, signal, viewChild } from '@angular/core';
 import { DiffExample } from '../../examples';
 import { MatchingOverrideChange } from '../../shared/node-actions';
+import { TooltipDirective } from '../../shared/tooltip/tooltip.directive';
 import { ArrayMatchingComponent, ArrayMatchingContext } from '../array-matching/array-matching.component';
 import { ExamplePickerComponent } from '../example-picker/example-picker.component';
 
@@ -16,7 +17,7 @@ import { ExamplePickerComponent } from '../example-picker/example-picker.compone
 @Component({
   selector: 'app-sidebar',
   standalone: true,
-  imports: [ArrayMatchingComponent, ExamplePickerComponent],
+  imports: [ArrayMatchingComponent, ExamplePickerComponent, TooltipDirective],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './sidebar.component.html',
   styleUrl: './sidebar.component.css',

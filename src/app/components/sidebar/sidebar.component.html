@@ -26,15 +26,15 @@
       <input type="checkbox" [checked]="normalizeTimestamps()" (change)="normalizeTimestampsChange.emit(isChecked($event))">
       <span class="toggle-text">
         <span class="toggle-name">Normalize timestamps</span>
-        <span class="toggle-hint">Treat equivalent instants in different zones as equal.</span>
       </span>
+      <button type="button" class="hint-icon" appTooltip="Treat equivalent instants in different zones as equal." aria-label="What does normalizing timestamps do?">?</button>
     </label>
     <label class="toggle-row">
       <input type="checkbox" [checked]="normalizeNumbers()" (change)="normalizeNumbersChange.emit(isChecked($event))">
       <span class="toggle-text">
         <span class="toggle-name">Numeric strings as numbers</span>
-        <span class="toggle-hint">Compare "42" and 42 as the same value.</span>
       </span>
+      <button type="button" class="hint-icon" appTooltip="Compare &quot;42&quot; and 42 as the same value." aria-label="What does treating numeric strings as numbers do?">?</button>
     </label>
   </section>
 
