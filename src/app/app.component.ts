@@ -1,30 +1,33 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { JsonInputComponent } from './components/json-input/json-input.component';
 import { DiffTreeComponent } from './components/diff-tree/diff-tree.component';
-import { AnalysisDrawerComponent } from './components/analysis-drawer/analysis-drawer.component';
+import { AnalysisPanelComponent } from './components/analysis-panel/analysis-panel.component';
 import { SourceDiffComponent } from './components/source-diff/source-diff.component';
-import { ExamplePickerComponent } from './components/example-picker/example-picker.component';
-import { SettingsMenuComponent } from './components/settings-menu/settings-menu.component';
+import { SidebarComponent } from './components/sidebar/sidebar.component';
 import { ToastComponent } from './components/toast/toast.component';
-import { ArrayMatchingContext } from './components/settings-menu/settings-menu.component';
+import { ArrayMatchingContext } from './components/array-matching/array-matching.component';
 import { DEFAULT_DIFF_OPTIONS, diffJson } from './core/diff';
 import { formatJson } from './core/json/format';
 import { ArrayMatchAnalysis, DiffOptions, DiffResult, JsonValue } from './core/models/diff.models';
-import { displayPath } from './shared/format';
 import { findNodeByPath, stepChange } from './shared/node-navigation';
 import { MatchingOverrideChange, NodeActionEvent, applyOverrideToOptions, ignoreFieldEverywhereRule, ignoreThisPathRule, matchingKeyOverride } from './shared/node-actions';
 import { ClipboardService } from './shared/clipboard/clipboard.service';
 import { formatChange, formatNewValue, formatOldValue, formatSemanticPath, formatSubtree } from './shared/clipboard/diff-clipboard';
 import { ToastMessage, createToast } from './shared/toast';
-import { TooltipDirective } from './shared/tooltip/tooltip.directive';
 import { Theme, applyTheme, readStoredTheme, storeTheme } from './shared/theme';
+import {
+  ANALYSIS_PANEL_DEFAULT_WIDTH,
+  ANALYSIS_PANEL_MAX_WIDTH,
+  ANALYSIS_PANEL_MIN_WIDTH,
+  clampWidth,
+  readStoredAnalysisPanelWidth,
+  storeAnalysisPanelWidth
+} from './shared/resizable-panel';
 import { flattenChanges } from './source';
 import { DiffExample } from './examples';
 
 const EDITOR_HEIGHT_DEFAULT = 260;
 const EDITOR_HEIGHT_COMPACT = 170;
-/** Must match the `sink` animation duration on `.hero-leave` in app.component.css. */
-const HERO_EXIT_MS = 340;
 /** How long a toast stays up; longer when it offers an undo. */
 const TOAST_MS = 2400;
 const TOAST_UNDO_MS = 5000;
@@ -32,7 +35,7 @@ const TOAST_UNDO_MS = 5000;
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [JsonInputComponent, DiffTreeComponent, SourceDiffComponent, ExamplePickerComponent, SettingsMenuComponent, AnalysisDrawerComponent, ToastComponent, TooltipDirective],
+  imports: [JsonInputComponent, DiffTreeComponent, SourceDiffComponent, SidebarComponent, AnalysisPanelComponent, ToastComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './app.component.html',
   styleUrl: './app.component.css'
@@ -45,7 +48,6 @@ export class AppComponent {
   readonly result = signal<DiffResult | null>(null);
   readonly inputsCollapsed = signal(false);
   readonly dirty = signal(false);
-  readonly ignoreOpen = signal(false);
   readonly selectedAnalysis = signal<ArrayMatchAnalysis | null>(null);
   /** Seeded from storage; the inline script in index.html already applied it to the document. */
   readonly darkMode = signal(readStoredTheme() === 'dark');
@@ -58,19 +60,26 @@ export class AppComponent {
   /** Single selection shared by both views, keyed on the canonical DiffNode.id. */
   readonly selectedNodeId = signal<string | null>(null);
   readonly toast = signal<ToastMessage | null>(null);
+  /** Seeded from storage; clamped in case the saved value predates a min/max change. */
+  readonly analysisPanelWidth = signal(
+    clampWidth(readStoredAnalysisPanelWidth() ?? ANALYSIS_PANEL_DEFAULT_WIDTH, ANALYSIS_PANEL_MIN_WIDTH, ANALYSIS_PANEL_MAX_WIDTH)
+  );
+  /** True only while a resize drag is in progress; drives the handle's active style. */
+  readonly resizingAnalysisPanel = signal(false);
 
   private readonly clipboard = inject(ClipboardService);
   private undoAction: (() => void) | null = null;
   private toastTimer?: ReturnType<typeof setTimeout>;
+  private panelResizeStartX = 0;
+  private panelResizeStartWidth = 0;
 
   readonly canCompare = computed(() => !!this.leftText().trim() && !!this.rightText().trim());
   /** DFS pre-order change ids: view-independent and invariant to collapse state. */
   readonly changeList = computed(() => { const r = this.result(); return r ? flattenChanges(r.root) : []; });
-  readonly autoMatchedCount = computed(() => this.result()?.autoMatchedCount ?? 0);
-  readonly uncertainCount = computed(() => this.result()?.uncertainCount ?? 0);
   /**
-   * Every array paired with its node, so the settings panel can list key fields.
-   * Arrays whose node cannot be resolved are dropped rather than rendered broken.
+   * Every array paired with its node, so the sidebar's matching section can
+   * list key fields. Arrays whose node cannot be resolved are dropped rather
+   * than rendered broken.
    */
   readonly matchingContexts = computed<ArrayMatchingContext[]>(() => {
     const result = this.result();
@@ -79,8 +88,12 @@ export class AppComponent {
       .map(analysis => ({ analysis, node: findNodeByPath(result.root, analysis.path) }))
       .filter((context): context is ArrayMatchingContext => !!context.node);
   });
-  /** Matching analysis only exists when the documents contained at least one array pair. */
-  readonly hasAnalysis = computed(() => (this.result()?.arrays.length ?? 0) > 0);
+  /**
+   * The array the analysis panel explains. An explicit selection (a Tree match
+   * pill, or "See analysis" / "Inspect") wins; otherwise it defaults to the
+   * result's own preferred pick.
+   */
+  readonly displayedAnalysis = computed(() => this.selectedAnalysis() ?? this.result()?.primaryAnalysis ?? null);
 
   compare(): void {
     const leftText = formatJson(this.leftText());
@@ -96,12 +109,9 @@ export class AppComponent {
     // Entering compact mode shrinks both editors; later recompares keep the user's size.
     if (firstCompare) this.editorHeight.set(EDITOR_HEIGHT_COMPACT);
     if (window.innerWidth < 1000) this.inputsCollapsed.set(true);
-    // On the first compare the hero is still collapsing; scrolling now would jump down and
-    // then snap back as the document shrinks, so wait for the exit animation to finish.
-    setTimeout(
-      () => document.getElementById('results')?.scrollIntoView({ behavior: 'smooth', block: 'start' }),
-      firstCompare ? HERO_EXIT_MS : 0
-    );
+    // The hero unmounts via its own `animate.leave` sink animation; no manual scroll is
+    // needed since results render in the middle column's own scroll region, already in
+    // view rather than below a page fold.
   }
 
   selectNode(nodeId: string): void { this.selectedNodeId.set(nodeId); }
@@ -144,7 +154,6 @@ export class AppComponent {
     this.rightError.set(null);
     this.dirty.set(false);
     this.inputsCollapsed.set(false);
-    this.ignoreOpen.set(false);
     this.selectedAnalysis.set(null);
     this.selectedNodeId.set(null);
     this.options.set({ ...DEFAULT_DIFF_OPTIONS, ...example.options });
@@ -156,11 +165,46 @@ export class AppComponent {
     this.leftError.set(null); this.rightError.set(null);
     this.result.set(null); this.dirty.set(false); this.inputsCollapsed.set(false);
     this.selectedNodeId.set(null); this.view.set('tree');
-    this.selectedAnalysis.set(null); this.ignoreOpen.set(false);
+    this.selectedAnalysis.set(null);
     this.editorHeight.set(EDITOR_HEIGHT_DEFAULT);
   }
 
   markDirty(): void { if (this.result()) this.dirty.set(true); }
+
+  /**
+   * Right-panel resize drag. Uses pointer capture rather than document-level
+   * listeners: once the handle captures the pointer, it keeps receiving
+   * pointermove/pointerup even after the cursor leaves its thin hit box, so a
+   * fast drag never "drops" the panel.
+   */
+  startPanelResize(event: PointerEvent): void {
+    event.preventDefault();
+    this.panelResizeStartX = event.clientX;
+    this.panelResizeStartWidth = this.analysisPanelWidth();
+    this.resizingAnalysisPanel.set(true);
+    (event.target as HTMLElement).setPointerCapture(event.pointerId);
+  }
+
+  onPanelResizeMove(event: PointerEvent): void {
+    if (!this.resizingAnalysisPanel()) return;
+    // The handle sits on the panel's LEFT edge: dragging it left (negative
+    // delta) widens the panel, dragging it right narrows it.
+    const delta = this.panelResizeStartX - event.clientX;
+    const maxWidth = Math.min(ANALYSIS_PANEL_MAX_WIDTH, window.innerWidth * 0.4);
+    this.analysisPanelWidth.set(clampWidth(this.panelResizeStartWidth + delta, ANALYSIS_PANEL_MIN_WIDTH, maxWidth));
+  }
+
+  endPanelResize(event: PointerEvent): void {
+    if (!this.resizingAnalysisPanel()) return;
+    this.resizingAnalysisPanel.set(false);
+    (event.target as HTMLElement).releasePointerCapture(event.pointerId);
+    storeAnalysisPanelWidth(this.analysisPanelWidth());
+  }
+
+  /** Reads the new state off a checkbox change event. */
+  isChecked(event: Event): boolean {
+    return (event.target as HTMLInputElement).checked;
+  }
 
   inputStatus(text: string, error: string | null): string {
     if (error) return 'Invalid JSON';
@@ -173,18 +217,10 @@ export class AppComponent {
     } catch { return 'Ready to validate'; }
   }
 
-  matchingInsight(): string {
-    const matches = this.result()?.arrays.filter(a => a.outcome === 'identity-applied').slice(0, 2) ?? [];
-    return matches.map(a => `${displayPath(a.path)} by ${a.keyPaths?.join(' + ')}`).join(' · ');
-  }
-
+  /** Fired by the Tree's match pill: selects that array in the (always-visible) analysis panel. */
   openAnalysis(path: string): void {
     const analysis = this.result()?.arrays.find(a => a.path === path) ?? null;
     this.selectedAnalysis.set(analysis);
-  }
-
-  openFirstAnalysis(): void {
-    this.selectedAnalysis.set(this.result()?.primaryAnalysis ?? null);
   }
 
   /** Runs a Tree/Source context-menu action (§§4-8). */
@@ -213,8 +249,9 @@ export class AppComponent {
    * Writes an array-matching override into the options map and recomputes.
    *
    * A `null` override deletes the entry, which is how "Reset to Auto" returns the
-   * array to inference. Every other option is preserved, and the open drawer is
-   * re-pointed at the freshly computed analysis for the same path.
+   * array to inference. Every other option is preserved, and an explicit selection
+   * in the analysis panel is re-pointed at the freshly computed analysis for the
+   * same path.
    */
   applyMatchingOverride(change: MatchingOverrideChange, message?: string): void {
     const openPath = this.selectedAnalysis()?.path;

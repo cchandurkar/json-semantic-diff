@@ -1,182 +1,148 @@
 <header class="site-header">
-  <a class="brand" href="#" (click)="$event.preventDefault(); reset()">
-    <span class="brand-mark">D</span>
-    <span>DiffLens</span>
-  </a>
-  <nav>
-    <app-example-picker align="right" (exampleSelected)="loadExample($event)" />
-    <a class="link-button" href="https://github.com" target="_blank" rel="noreferrer">GitHub</a>
-    <button class="theme-toggle" (click)="toggleTheme()" [attr.aria-label]="darkMode() ? 'Use light theme' : 'Use dark theme'">{{ darkMode() ? '☀' : '◐' }}</button>
-  </nav>
+  <div class="header-inner">
+    <a class="brand" href="#" (click)="$event.preventDefault(); reset()">
+      <span class="brand-mark">D</span>
+      <span>DiffLens</span>
+    </a>
+    <nav>
+      <a class="link-button" href="https://github.com" target="_blank" rel="noreferrer">GitHub</a>
+      <button class="theme-toggle" (click)="toggleTheme()" [attr.aria-label]="darkMode() ? 'Use light theme' : 'Use dark theme'">{{ darkMode() ? '☀' : '◐' }}</button>
+    </nav>
+  </div>
 </header>
 
-<main class="page-shell">
-  @if (!result()) {
-    <section class="hero" animate.leave="hero-leave">
-      <div class="privacy-badge"><span class="dot"></span> Runs entirely in your browser</div>
-      <h1>Understand what changed,<br><span>not just where.</span></h1>
-      <p>JSON comparison with smart array matching, noise reduction, and explainable identity detection.</p>
-    </section>
-  }
+<div class="shell-row">
+  <app-sidebar
+    [normalizeTimestamps]="options().normalizeTimestamps"
+    [normalizeNumbers]="options().normalizeNumbers"
+    [ignorePaths]="options().ignorePaths"
+    [arrays]="matchingContexts()"
+    [selectedAnalysisPath]="selectedAnalysis()?.path ?? result()?.primaryAnalysis?.path ?? null"
+    [hasResult]="!!result()"
+    (exampleSelected)="loadExample($event)"
+    (normalizeTimestampsChange)="patchOption('normalizeTimestamps', $event)"
+    (normalizeNumbersChange)="patchOption('normalizeNumbers', $event)"
+    (ignoreAdded)="addIgnore($event)"
+    (ignoreRemoved)="removeIgnore($event)"
+    (overrideChanged)="applyMatchingOverride($event)"
+    (arraySelected)="openAnalysis($event)" />
 
-  <section class="workspace">
-    <div class="section-heading input-heading">
-      <div>
-        <span class="section-kicker">INPUTS</span>
-        @if (result()) { <span class="quiet">Compared locally · nothing uploaded</span> }
-      </div>
-      @if (result()) {
-        <button class="link-button" (click)="inputsCollapsed.set(!inputsCollapsed())">{{ inputsCollapsed() ? 'Expand inputs' : 'Collapse inputs' }}</button>
-      }
-    </div>
-
-    @if (!inputsCollapsed()) {
-      <div class="input-grid" [class.compact]="!!result()">
-        <app-json-input
-          label="ORIGINAL"
-          [value]="leftText()"
-          [error]="leftError()"
-          [statusText]="inputStatus(leftText(), leftError())"
-          [darkMode]="darkMode()"
-          [(editorHeight)]="editorHeight"
-          (valueChange)="leftText.set($event); markDirty()" />
-        <app-json-input
-          label="CHANGED"
-          [value]="rightText()"
-          [error]="rightError()"
-          [statusText]="inputStatus(rightText(), rightError())"
-          [darkMode]="darkMode()"
-          [(editorHeight)]="editorHeight"
-          (valueChange)="rightText.set($event); markDirty()" />
-      </div>
-    } @else {
-      <button class="collapsed-inputs" (click)="inputsCollapsed.set(false)">
-        <span>▸ Inputs</span>
-        <span>Original ✓</span>
-        <span>Changed ✓</span>
-        <strong>Edit</strong>
-      </button>
+  <main class="main-column">
+    @if (!result()) {
+      <section class="hero" animate.leave="hero-leave">
+        <div class="privacy-badge"><span class="dot"></span> Runs entirely in your browser</div>
+        <h1>Understand what changed,<br><span>not just where.</span></h1>
+        <p>JSON comparison with smart array matching, noise reduction, and explainable identity detection.</p>
+      </section>
     }
 
-    <div class="compare-row">
-      @if (dirty() && result()) { <span class="dirty-note">Inputs changed</span> }
-      <button class="primary-button" [disabled]="!canCompare()" (click)="compare()">
-        {{ result() ? (dirty() ? 'Recompare' : 'Compare again') : 'Compare JSON' }}
-      </button>
-      @if (!result()) {
-        <app-example-picker label="Load example" variant="secondary" (exampleSelected)="loadExample($event)" />
+    <!--
+      Written once regardless of result() so the two app-json-input instances (and their
+      CodeMirror views) are never torn down and recreated across the first compare - only
+      their surrounding chrome and the compact editorHeight change.
+    -->
+    <section class="workspace">
+      @if (result()) {
+        <div class="section-heading">
+          <span class="quiet">Compared locally · nothing uploaded</span>
+          <button class="link-button" (click)="inputsCollapsed.set(!inputsCollapsed())">{{ inputsCollapsed() ? 'Expand inputs' : 'Collapse inputs' }}</button>
+        </div>
       }
-    </div>
-  </section>
 
-  @if (result(); as diff) {
-    <section class="results" id="results">
-      <div class="summary-card">
-        <div class="summary-main">
-          <strong>{{ diff.summary.totalChanges }}</strong>
-          <span>changes</span>
+      @if (!inputsCollapsed()) {
+        <div class="input-grid" [class.compact]="!!result()">
+          <app-json-input
+            label="ORIGINAL"
+            [value]="leftText()"
+            [error]="leftError()"
+            [statusText]="inputStatus(leftText(), leftError())"
+            [darkMode]="darkMode()"
+            [(editorHeight)]="editorHeight"
+            (valueChange)="leftText.set($event); markDirty()" />
+          <app-json-input
+            label="CHANGED"
+            [value]="rightText()"
+            [error]="rightError()"
+            [statusText]="inputStatus(rightText(), rightError())"
+            [darkMode]="darkMode()"
+            [(editorHeight)]="editorHeight"
+            (valueChange)="rightText.set($event); markDirty()" />
         </div>
-        <div class="summary-stat added"><b>+{{ diff.summary.added }}</b><span>Added</span></div>
-        <div class="summary-stat removed"><b>−{{ diff.summary.removed }}</b><span>Removed</span></div>
-        <div class="summary-stat modified"><b>~{{ diff.summary.modified + diff.summary.typeChanged }}</b><span>Modified</span></div>
-        <div class="summary-meta">
-          <span>{{ diff.arrays.length }} arrays analyzed</span>
-          <span>{{ autoMatchedCount() }} auto-matched</span>
-          <span>{{ diff.elapsedMs }} ms</span>
-        </div>
+      } @else {
+        <button class="collapsed-inputs" (click)="inputsCollapsed.set(false)">
+          <span>▸ Inputs</span>
+          <span>Original ✓</span>
+          <span>Changed ✓</span>
+          <strong>Edit</strong>
+        </button>
+      }
+
+      <div class="compare-row">
+        @if (dirty() && result()) { <span class="dirty-note">Inputs changed</span> }
+        <button class="primary-button" [disabled]="!canCompare()" (click)="compare()">
+          {{ result() ? (dirty() ? 'Recompare' : 'Compare again') : 'Compare JSON' }}
+        </button>
       </div>
+    </section>
 
-      @if (autoMatchedCount() > 0) {
-        <div class="insight-strip">
-          <span class="insight-icon">✓</span>
-          <span>{{ matchingInsight() }}</span>
-          <button class="link-button" (click)="openFirstAnalysis()">See analysis</button>
-        </div>
-      } @else if (uncertainCount() > 0) {
-        <div class="insight-strip warning-strip">
-          <span class="insight-icon">!</span>
-          <span>{{ uncertainCount() }} array(s) had no safe identity match and are compared by position.</span>
-          <button class="link-button" (click)="openFirstAnalysis()">Inspect</button>
-        </div>
-      }
-
-      <div class="diff-toolbar">
+    @if (result(); as diff) {
+      <div class="main-toolbar">
         <div class="toolbar-group" role="tablist" aria-label="Diff view">
           <button type="button" class="segmented" role="tab" [class.active]="view() === 'tree'" [attr.aria-selected]="view() === 'tree'" (click)="view.set('tree')">Tree</button>
           <button type="button" class="segmented" role="tab" [class.active]="view() === 'source'" [attr.aria-selected]="view() === 'source'" (click)="view.set('source')">Source</button>
         </div>
+        <label class="toolbar-toggle">
+          <input type="checkbox" [checked]="changesOnly()" (change)="changesOnly.set(isChecked($event))">
+          Changes only
+        </label>
         @if (changeList().length) {
-          <div class="toolbar-group" role="group" aria-label="Change navigation">
-            <button type="button" class="segmented" (click)="stepChange(-1)" aria-label="Previous change">‹</button>
-            <button type="button" class="segmented" (click)="stepChange(1)" aria-label="Next change">›</button>
-          </div>
-        }
-        <app-settings-menu
-          [changesOnly]="changesOnly()"
-          [normalizeTimestamps]="options().normalizeTimestamps"
-          [normalizeNumbers]="options().normalizeNumbers"
-          (changesOnlyChange)="changesOnly.set($event)"
-          (normalizeTimestampsChange)="patchOption('normalizeTimestamps', $event)"
-          (normalizeNumbersChange)="patchOption('normalizeNumbers', $event)"
-          [arrays]="matchingContexts()"
-          (overrideChanged)="applyMatchingOverride($event)" />
-        <button class="toolbar-button" (click)="ignoreOpen.set(!ignoreOpen())">Ignore {{ options().ignorePaths.length ? '(' + options().ignorePaths.length + ')' : '' }}</button>
-        <span
-          class="tooltip-anchor"
-          [appTooltip]="hasAnalysis() ? 'Inspect how arrays were matched' : 'No array matching needed for this comparison'"
-          [attr.tabindex]="hasAnalysis() ? null : 0">
-          <button type="button" class="toolbar-button" [disabled]="!hasAnalysis()" (click)="openFirstAnalysis()">Matching analysis</button>
-        </span>
-      </div>
-
-      @if (ignoreOpen()) {
-        <div class="ignore-panel">
-          <div>
-            <strong>Ignore paths</strong>
-            <p>Use JSON-style paths and wildcards, e.g. <code>$.users[*].updatedAt</code> or <code>$.**.requestId</code>.</p>
-          </div>
-          <div class="ignore-input-row">
-            <input #ignoreRule placeholder="$.metadata.requestId" (keyup.enter)="addIgnore(ignoreRule.value); ignoreRule.value=''">
-            <button class="secondary-button" (click)="addIgnore(ignoreRule.value); ignoreRule.value=''">Add rule</button>
-            <button type="button" class="icon-button danger" aria-label="Close ignore paths" title="Close" (click)="ignoreOpen.set(false)">
-              <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true" focusable="false"><path d="M3 3l8 8M11 3l-8 8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+          <div class="toolbar-group nav-group" role="group" aria-label="Change navigation">
+            <button type="button" class="segmented" (click)="stepChange(-1)" aria-label="Previous change">
+              <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true" focusable="false"><path d="M9 2L4 7l5 5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+            <button type="button" class="segmented" (click)="stepChange(1)" aria-label="Next change">
+              <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true" focusable="false"><path d="M5 2l5 5-5 5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
             </button>
           </div>
-          @if (options().ignorePaths.length) {
-            <div class="chips">
-              @for (rule of options().ignorePaths; track rule) {
-                <button class="chip" (click)="removeIgnore(rule)">{{ rule }} <span>×</span></button>
-              }
-            </div>
-          }
-        </div>
-      }
+        }
+      </div>
 
-      @if (view() === 'tree') {
-        <app-diff-tree
-          [root]="diff.root"
-          [changesOnly]="changesOnly()"
-          [selectedNodeId]="selectedNodeId()"
-          (nodeSelected)="selectNode($event)"
-          (nodeAction)="handleNodeAction($event)"
-          (analysisRequested)="openAnalysis($event)" />
-      } @else {
-        <app-source-diff
-          [result]="diff"
-          [changesOnly]="changesOnly()"
-          [selectedNodeId]="selectedNodeId()"
-          [root]="diff.root"
-          (nodeSelected)="selectNode($event)"
-          (nodeAction)="handleNodeAction($event)" />
-      }
-    </section>
-  }
-</main>
+      <div class="results-scroll">
+        @if (view() === 'tree') {
+          <app-diff-tree
+            [root]="diff.root"
+            [changesOnly]="changesOnly()"
+            [selectedNodeId]="selectedNodeId()"
+            (nodeSelected)="selectNode($event)"
+            (nodeAction)="handleNodeAction($event)"
+            (analysisRequested)="openAnalysis($event)" />
+        } @else {
+          <app-source-diff
+            [result]="diff"
+            [changesOnly]="changesOnly()"
+            [selectedNodeId]="selectedNodeId()"
+            [root]="diff.root"
+            (nodeSelected)="selectNode($event)"
+            (nodeAction)="handleNodeAction($event)" />
+        }
+      </div>
+    }
+  </main>
 
-<footer class="site-footer">
-  <span>DiffLens</span>
-  <span>Private by design. Your JSON never leaves this browser.</span>
-</footer>
+  <div
+    class="panel-resize-handle"
+    [class.is-resizing]="resizingAnalysisPanel()"
+    (pointerdown)="startPanelResize($event)"
+    (pointermove)="onPanelResizeMove($event)"
+    (pointerup)="endPanelResize($event)"
+    (pointercancel)="endPanelResize($event)"></div>
 
-<app-analysis-drawer [analysis]="selectedAnalysis()" (closed)="selectedAnalysis.set(null)" />
+  <app-analysis-panel
+    [style.width.px]="analysisPanelWidth()"
+    [result]="result()"
+    [analysis]="displayedAnalysis()"
+    [selectedPath]="selectedAnalysis()?.path ?? result()?.primaryAnalysis?.path ?? null"
+    (arraySelected)="openAnalysis($event)" />
+</div>
+
 <app-toast [message]="toast()" (undo)="runUndo()" (dismissed)="dismissToast()" />

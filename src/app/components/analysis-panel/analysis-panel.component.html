@@ -1,0 +1,118 @@
+<button
+  #toggleButton
+  type="button"
+  class="panel-toggle"
+  aria-controls="app-analysis-panel"
+  [attr.aria-expanded]="open()"
+  (click)="toggle()">
+  Analysis
+  @if (result(); as diff) {
+    <span class="toggle-badge">{{ diff.summary.totalChanges }}</span>
+  }
+</button>
+
+@if (open()) {
+  <div class="panel-backdrop" (click)="close()"></div>
+}
+
+<aside id="app-analysis-panel" class="analysis-panel" [class.is-open]="open()" aria-label="Analysis">
+  <button type="button" class="drawer-close" (click)="close(true)" aria-label="Close analysis">×</button>
+
+  @if (result(); as diff) {
+    <section class="panel-section">
+      <h3 class="panel-heading">Summary</h3>
+      <div class="summary-card">
+        <div class="stat-row">
+          <div class="stat-chip added"><b>+{{ diff.summary.added }}</b><span>Added</span></div>
+          <div class="stat-chip removed"><b>−{{ diff.summary.removed }}</b><span>Removed</span></div>
+          <div class="stat-chip modified"><b>~{{ diff.summary.modified + diff.summary.typeChanged }}</b><span>Modified</span></div>
+        </div>
+        <div class="summary-meta">
+          <span>{{ diff.arrays.length }} arrays analyzed</span>
+          <span>{{ diff.autoMatchedCount }} auto-matched</span>
+          <span>{{ diff.elapsedMs }} ms</span>
+        </div>
+      </div>
+    </section>
+
+    @if (hasAnalysis()) {
+      <section class="panel-section">
+        <h3 class="panel-heading">Matching analysis</h3>
+
+        <app-array-picker [arrays]="diff.arrays" [selectedPath]="dropdownPath()" (pathSelected)="chooseArray($event)" />
+
+        @if (analysis(); as match) {
+          @if (match.duplicateKeyCount) {
+            <div class="notice warning">
+              ⚠ {{ match.duplicateKeyCount }} duplicate {{ match.duplicateKeyCount === 1 ? 'key' : 'keys' }} — rows
+              sharing a key are matched in document order within each key.
+              @if (match.keyStats; as stats) {
+                <span class="notice-detail">Unique: {{ percent(meanUniqueness(stats)) }} · Complete: {{ percent(stats.completeness) }}</span>
+              }
+            </div>
+          }
+
+          @if (match.inference?.best; as best) {
+            <div class="selected-block">
+              <span class="section-label">{{ selectionLabel() }}</span>
+              <div class="candidate-title">
+                <strong>{{ match.keyPaths?.length ? match.keyPaths.join(' + ') : best.paths.join(' + ') }}</strong>
+                <span>{{ match.override ? 'Manual' : percent(best.score) }}</span>
+              </div>
+
+              @if (match.outcome === 'manual-key' || match.outcome === 'manual-position') {
+                <div class="notice">
+                  Manual override in effect. Change it under Array matching in the sidebar. Automatic inference is
+                  unchanged and shown below for reference.
+                </div>
+                <div class="auto-suggestion">
+                  <span class="section-label">AUTO SUGGESTION</span>
+                  <div class="alternative">
+                    <span>{{ best.paths.join(' + ') }}</span>
+                    <strong>{{ percent(best.score) }} · {{ match.inference.confidence }}</strong>
+                  </div>
+                </div>
+              } @else if (match.outcome === 'ambiguous') {
+                <div class="notice warning">Several fields score similarly. DiffLens will not auto-match this array.</div>
+              } @else if (match.outcome === 'identity-applied') {
+                <div class="notice success">High-confidence identity detected and applied automatically.</div>
+              } @else {
+                <div class="notice warning">No key met the threshold for safe automatic matching. Array position is being used.</div>
+              }
+            </div>
+
+            <div class="metrics-block">
+              <span class="section-label">WHY?</span>
+              @for (metric of metrics(match.keyStats ?? best); track metric.label) {
+                <div class="metric">
+                  <div class="meta"><span>{{ metric.label }}</span><strong>{{ percent(metric.value) }}</strong></div>
+                  <div class="track"><div class="fill" [style.width.%]="metric.value * 100"></div></div>
+                </div>
+              }
+            </div>
+
+            @if (match.inference.alternatives.length) {
+              <div class="alternatives-block">
+                <span class="section-label">OTHER CANDIDATES</span>
+                @for (candidate of match.inference.alternatives; track candidate.paths.join('|')) {
+                  <div class="alternative">
+                    <span>{{ candidate.paths.join(' + ') }}</span>
+                    <strong>{{ percent(candidate.score) }}</strong>
+                  </div>
+                }
+              </div>
+            }
+          } @else {
+            <div class="notice warning">No usable scalar identity candidates were found for this array.</div>
+          }
+
+          <p class="panel-footnote">Scoring is deterministic and local. No ML or external service is used.</p>
+        }
+      </section>
+    }
+  } @else {
+    <section class="panel-section">
+      <p class="panel-empty">Analysis appears here once you compare two documents.</p>
+    </section>
+  }
+</aside>

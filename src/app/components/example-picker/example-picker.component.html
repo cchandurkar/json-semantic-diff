@@ -1,30 +1,28 @@
-<div class="example-picker" [class.align-right]="align() === 'right'">
-  <button
-    #trigger
-    type="button"
-    class="picker-trigger"
-    [class.as-secondary]="variant() === 'secondary'"
-    [attr.aria-expanded]="open()"
-    aria-haspopup="menu"
-    (click)="toggle()">
-    {{ label() }} <span class="caret" aria-hidden="true">▾</span>
-  </button>
+<button
+  #trigger
+  type="button"
+  class="picker-trigger"
+  aria-haspopup="menu"
+  [attr.aria-expanded]="open()"
+  (click)="toggle()">
+  <span class="trigger-label">{{ label() }}</span>
+  <span class="caret" aria-hidden="true">▾</span>
+</button>
 
-  @if (open()) {
-    <div #panel class="picker-panel" role="menu" aria-label="Built-in examples">
-      @for (example of examples(); track example.id) {
-        <button type="button" class="picker-item" role="menuitem" (click)="select(example)">
-          <span class="picker-name">{{ example.name }}</span>
-          <span class="picker-description">{{ example.description }}</span>
-          @if (example.highlights.length) {
-            <span class="picker-highlights">
-              @for (highlight of example.highlights; track highlight) {
-                <span class="picker-badge">{{ highlight }}</span>
-              }
-            </span>
-          }
-        </button>
-      }
-    </div>
-  }
-</div>
+<ng-template #panelTpl>
+  <div class="picker-panel" role="menu" aria-label="Built-in examples">
+    @for (example of examples; track example.id) {
+      <button type="button" class="picker-item" role="menuitem" (click)="select(example)">
+        <span class="picker-name">{{ example.name }}</span>
+        <span class="picker-description">{{ example.description }}</span>
+        @if (example.highlights.length) {
+          <span class="picker-highlights">
+            @for (highlight of example.highlights; track highlight) {
+              <span class="picker-badge">{{ highlight }}</span>
+            }
+          </span>
+        }
+      </button>
+    }
+  </div>
+</ng-template>

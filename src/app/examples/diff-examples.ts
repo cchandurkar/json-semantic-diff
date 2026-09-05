@@ -124,9 +124,78 @@ const NOISY_API_RESPONSE: DiffExample = {
   }
 };
 
+/**
+ * Example 5 - multiple independent array-matching decisions in one document: a
+ * top-level `teams` array, a sibling `projects` array, and a NESTED `members`
+ * array inside each team. All four arrays are matched by identity, and each
+ * gets its own reorder plus a genuine change: one nested member's role
+ * changes, and one project's status changes.
+ */
+const TEAMS_AND_PROJECTS: DiffExample = {
+  id: 'teams-and-projects',
+  name: 'Teams & Projects',
+  description: 'Nested arrays and multiple array-matching decisions in one comparison.',
+  highlights: ['Multiple arrays', 'Nested identity matching', 'Reordering'],
+  original: {
+    organization: 'Nimbus Labs',
+    teams: [
+      {
+        teamId: 'T-100',
+        name: 'Platform',
+        members: [
+          { memberId: 'M-1', name: 'Alice', role: 'engineer' },
+          { memberId: 'M-2', name: 'Bob', role: 'engineer' },
+          { memberId: 'M-3', name: 'Carol', role: 'lead' }
+        ]
+      },
+      {
+        teamId: 'T-200',
+        name: 'Growth',
+        members: [
+          { memberId: 'M-4', name: 'Dana', role: 'analyst' },
+          { memberId: 'M-5', name: 'Evan', role: 'engineer' }
+        ]
+      }
+    ],
+    projects: [
+      { projectId: 'P-1', name: 'Checkout Revamp', status: 'active' },
+      { projectId: 'P-2', name: 'Search Relevance', status: 'planning' },
+      { projectId: 'P-3', name: 'Billing Migration', status: 'active' }
+    ]
+  },
+  changed: {
+    organization: 'Nimbus Labs',
+    teams: [
+      {
+        teamId: 'T-200',
+        name: 'Growth',
+        members: [
+          { memberId: 'M-5', name: 'Evan', role: 'engineer' },
+          { memberId: 'M-4', name: 'Dana', role: 'analyst' }
+        ]
+      },
+      {
+        teamId: 'T-100',
+        name: 'Platform',
+        members: [
+          { memberId: 'M-3', name: 'Carol', role: 'lead' },
+          { memberId: 'M-1', name: 'Alice', role: 'engineer' },
+          { memberId: 'M-2', name: 'Bob', role: 'staff engineer' }
+        ]
+      }
+    ],
+    projects: [
+      { projectId: 'P-3', name: 'Billing Migration', status: 'active' },
+      { projectId: 'P-1', name: 'Checkout Revamp', status: 'shipped' },
+      { projectId: 'P-2', name: 'Search Relevance', status: 'planning' }
+    ]
+  }
+};
+
 export const DIFF_EXAMPLES: readonly DiffExample[] = [
   API_RESPONSE,
   REORDERED_USERS,
   INVENTORY_BY_STORE,
-  NOISY_API_RESPONSE
+  NOISY_API_RESPONSE,
+  TEAMS_AND_PROJECTS
 ];

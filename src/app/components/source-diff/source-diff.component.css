@@ -1,4 +1,4 @@
-.source { border:1px solid var(--border); border-radius:14px; overflow:hidden; background:var(--panel); }
+.source { border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; background:var(--panel); }
 .pane-heads { display:grid; grid-template-columns:1fr 1fr; border-bottom:1px solid var(--border-soft); }
 .pane-head { padding:9px 14px; font:600 11px var(--sans); letter-spacing:.08em; color:var(--muted); }
 .pane-head + .pane-head { border-left:1px solid var(--border-soft); }
@@ -26,8 +26,8 @@
 .reorder-pill { border-color:var(--border); background:var(--surface); color:var(--muted); }
 .collapsed-row { display:block; width:100%; border:0; border-bottom:1px solid var(--border-soft); background:var(--surface); color:var(--muted); font:11px var(--sans); padding:7px 14px; text-align:center; cursor:pointer; }
 .collapsed-row:hover { color:var(--text); background:var(--hover); }
-.code-text:focus-visible, .collapsed-row:focus-visible { outline:2px solid var(--accent); outline-offset:-2px; border-radius:4px; }
-.row-actions { align-self:center; width:22px; height:22px; border:0; border-radius:6px; background:transparent; color:var(--muted-2); font-size:13px; line-height:1; cursor:pointer; opacity:0; }
+.code-text:focus-visible, .collapsed-row:focus-visible { outline:2px solid var(--accent); outline-offset:-2px; border-radius:var(--radius); }
+.row-actions { align-self:center; width:22px; height:22px; border:0; border-radius:var(--radius); background:transparent; color:var(--muted-2); font-size:13px; line-height:1; cursor:pointer; opacity:0; }
 .src-row:hover .row-actions, .row-actions:focus-visible, .row-actions[aria-expanded="true"] { opacity:1; }
 .row-actions:hover { color:var(--text); background:var(--hover); }
 .row-actions:focus-visible { outline:2px solid var(--accent); outline-offset:1px; }

@@ -5,6 +5,7 @@
   color-scheme: light;
   --sans: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  --radius: 4px;
   --page: #f7f8fa;
   --panel: #ffffff;
   --surface: #f3f4f6;
@@ -31,6 +32,7 @@
   --removed: #a8464d;
   --removed-bg: #fff2f3;
   --modified: #8a6514;
+  --modified-bg: #fdf6e3;
 }
 :root[data-theme="dark"] {
   color-scheme: dark;
@@ -60,25 +62,27 @@
   --removed: #e68e95;
   --removed-bg: #2b181b;
   --modified: #ddba70;
+  --modified-bg: #2a2113;
 }
 * { box-sizing:border-box; }
-html { background:var(--page); color:var(--text); font-family:var(--sans); scroll-behavior:smooth; }
-body { margin:0; min-width:320px; min-height:100vh; background:radial-gradient(circle at 50% -20%, color-mix(in srgb, var(--panel) 70%, transparent), transparent 38%), var(--page); }
+html,body { height:100%; }
+html { background:var(--page); color:var(--text); font-family:var(--sans); }
+body { margin:0; min-width:320px; overflow:hidden; background:radial-gradient(circle at 50% -20%, color-mix(in srgb, var(--panel) 70%, transparent), transparent 38%), var(--page); }
 button,input,textarea { font:inherit; }
 button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
 ::selection { background:color-mix(in srgb, var(--accent) 22%, transparent); }
 
 /* Tooltip panel. Global because the CDK overlay pane lives outside every component. */
-.difflens-tooltip { max-width:240px; padding:5px 9px; border:1px solid var(--border); border-radius:7px; background:var(--surface); color:var(--text); font:11px/1.4 var(--sans); box-shadow:0 6px 18px rgba(10,14,22,.14); pointer-events:none; }
+.difflens-tooltip { max-width:240px; padding:5px 9px; border:1px solid var(--border); border-radius:var(--radius); background:var(--surface); color:var(--text); font:11px/1.4 var(--sans); box-shadow:0 6px 18px rgba(10,14,22,.14); pointer-events:none; }
 
 /* CDK menu panels. Global because menus render in the body-level `.cdk-overlay-container`,
    which component-scoped styles cannot reach. Matches the house panel look used by
    `.picker-panel` and `.settings-panel`. */
-.cdk-menu { min-width:210px; max-width:min(300px,calc(100vw - 24px)); display:flex; flex-direction:column; padding:5px; border:1px solid var(--border); border-radius:12px; background:var(--panel); box-shadow:0 12px 32px rgba(10,14,22,.14); }
+.cdk-menu { min-width:210px; max-width:min(300px,calc(100vw - 24px)); display:flex; flex-direction:column; padding:5px; border:1px solid var(--border); border-radius:var(--radius); background:var(--panel); box-shadow:0 12px 32px rgba(10,14,22,.14); }
 .cdk-menu:focus, .cdk-menu:focus-visible { outline:none; }
 .cdk-menu-group { display:flex; flex-direction:column; }
 .node-menu-title { margin:4px 0 2px; padding:0 9px; color:var(--muted-2); font:600 10px var(--sans); letter-spacing:.07em; text-transform:uppercase; }
-.cdk-menu-item { display:block; width:100%; border:0; border-radius:8px; background:transparent; color:var(--text); font:12px var(--sans); padding:7px 9px; text-align:left; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; cursor:pointer; }
+.cdk-menu-item { display:block; width:100%; border:0; border-radius:var(--radius); background:transparent; color:var(--text); font:12px var(--sans); padding:7px 9px; text-align:left; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; cursor:pointer; }
 .cdk-menu-item:hover { background:var(--hover); }
 .cdk-menu-item:focus, .cdk-menu-item:focus-visible { outline:2px solid var(--accent); outline-offset:-2px; background:var(--hover); }
 .cdk-menu-item-disabled, .cdk-menu-item:disabled { color:var(--muted-2); cursor:not-allowed; }

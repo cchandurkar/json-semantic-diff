@@ -1,0 +1,27 @@
+<button
+  #trigger
+  type="button"
+  class="picker-trigger"
+  aria-haspopup="menu"
+  [attr.aria-expanded]="open()"
+  (click)="toggle()">
+  <span class="trigger-label">{{ triggerPath() ?? 'Select array' }}</span>
+  <span class="caret" aria-hidden="true">▾</span>
+</button>
+
+<ng-template #panelTpl>
+  <div class="picker-panel" role="menu" aria-label="Arrays in this comparison">
+    @for (arrayMatch of arrays(); track arrayMatch.path) {
+      <button
+        type="button"
+        class="picker-item"
+        role="menuitemradio"
+        [attr.aria-checked]="isSelected(arrayMatch.path)"
+        [class.is-selected]="isSelected(arrayMatch.path)"
+        (click)="select(arrayMatch.path)">
+        <span class="picker-name">{{ arrayMatch.path }}</span>
+        <span class="picker-hint">{{ describeArrayMatch(arrayMatch) }}</span>
+      </button>
+    }
+  </div>
+</ng-template>

@@ -33,9 +33,9 @@ function arrayAt(result: DiffResult, path: string): ArrayMatchAnalysis {
 }
 
 describe('example catalogue', () => {
-  it('exposes the four documented examples in picker order', () => {
+  it('exposes the five documented examples in picker order', () => {
     expect(DIFF_EXAMPLES.map(e => e.id)).toEqual([
-      'api-response', 'reordered-users', 'inventory-by-store', 'noisy-api-response'
+      'api-response', 'reordered-users', 'inventory-by-store', 'noisy-api-response', 'teams-and-projects'
     ]);
   });
 
@@ -235,6 +235,64 @@ describe('Example 4 - Noisy API Response', () => {
       '$.products[sku=SKU-4820].available modified true->false'
     ]);
     expect(result.summary).toEqual({ added: 0, removed: 0, modified: 2, typeChanged: 0, unchanged: 21, totalChanges: 2 });
+  });
+});
+
+describe('Example 5 - Teams & Projects', () => {
+  const subject = example('teams-and-projects');
+  const result = compare(subject);
+  const teams = arrayAt(result, '$.teams');
+  const projects = arrayAt(result, '$.projects');
+  const platformMembers = arrayAt(result, '$.teams[T-100].members');
+  const growthMembers = arrayAt(result, '$.teams[T-200].members');
+
+  it('infers teamId as the identity for the top-level teams array', () => {
+    expect(teams.keyPaths).toEqual(['teamId']);
+    expect(teams.outcome).toBe('identity-applied');
+    expect(teams.strategy).toBe('identity');
+    expect(teams.confidence).toBe('high');
+  });
+
+  it('infers projectId as the identity for the sibling projects array', () => {
+    expect(projects.keyPaths).toEqual(['projectId']);
+    expect(projects.outcome).toBe('identity-applied');
+    expect(projects.strategy).toBe('identity');
+    expect(projects.confidence).toBe('high');
+  });
+
+  it('infers memberId as the identity for EACH nested members array independently', () => {
+    for (const members of [platformMembers, growthMembers]) {
+      expect(members.keyPaths).toEqual(['memberId']);
+      expect(members.outcome).toBe('identity-applied');
+      expect(members.strategy).toBe('identity');
+      expect(members.confidence).toBe('high');
+    }
+  });
+
+  it('detects reordering on both the top-level teams array and a nested members array', () => {
+    expect(teams.reordered).toBe(true);
+    expect(projects.reordered).toBe(true);
+    expect(platformMembers.reordered).toBe(true);
+    expect(growthMembers.reordered).toBe(true);
+  });
+
+  it('reports exactly the two intended changes: one nested, one top-level', () => {
+    expect(changedLeaves(result.root)).toEqual([
+      '$.projects[projectId=P-1].status modified "active"->"shipped"',
+      '$.teams[teamId=T-100].members[memberId=M-2].role modified "engineer"->"staff engineer"'
+    ]);
+  });
+
+  it('produces no add/remove noise despite three separate reorders', () => {
+    expect(result.summary).toEqual({ added: 0, removed: 0, modified: 2, typeChanged: 0, unchanged: 27, totalChanges: 2 });
+  });
+
+  it('keeps every array membership stable across the two payloads', () => {
+    const teamIds = (doc: unknown) => (doc as { teams: { teamId: string }[] }).teams.map(t => t.teamId).sort();
+    const projectIds = (doc: unknown) => (doc as { projects: { projectId: string }[] }).projects.map(p => p.projectId).sort();
+
+    expect(teamIds(subject.changed)).toEqual(teamIds(subject.original));
+    expect(projectIds(subject.changed)).toEqual(projectIds(subject.original));
   });
 });
 

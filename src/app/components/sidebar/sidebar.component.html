@@ -1,0 +1,71 @@
+<button
+  #toggleButton
+  type="button"
+  class="sidebar-toggle"
+  aria-controls="app-sidebar-panel"
+  [attr.aria-expanded]="open()"
+  (click)="toggle()">
+  <span aria-hidden="true">☰</span> Setup
+</button>
+
+@if (open()) {
+  <div class="sidebar-backdrop" (click)="close()"></div>
+}
+
+<aside id="app-sidebar-panel" class="sidebar-panel" [class.is-open]="open()" aria-label="Comparison setup">
+  <button type="button" class="drawer-close" (click)="close(true)" aria-label="Close setup">×</button>
+
+  <section class="sidebar-section" aria-labelledby="sidebar-examples-heading">
+    <h3 id="sidebar-examples-heading" class="sidebar-heading">Examples</h3>
+    <app-example-picker (exampleSelected)="exampleSelected.emit($event)" />
+  </section>
+
+  <section class="sidebar-section" aria-labelledby="sidebar-comparison-heading">
+    <h3 id="sidebar-comparison-heading" class="sidebar-heading">Comparison</h3>
+    <label class="toggle-row">
+      <input type="checkbox" [checked]="normalizeTimestamps()" (change)="normalizeTimestampsChange.emit(isChecked($event))">
+      <span class="toggle-text">
+        <span class="toggle-name">Normalize timestamps</span>
+        <span class="toggle-hint">Treat equivalent instants in different zones as equal.</span>
+      </span>
+    </label>
+    <label class="toggle-row">
+      <input type="checkbox" [checked]="normalizeNumbers()" (change)="normalizeNumbersChange.emit(isChecked($event))">
+      <span class="toggle-text">
+        <span class="toggle-name">Numeric strings as numbers</span>
+        <span class="toggle-hint">Compare "42" and 42 as the same value.</span>
+      </span>
+    </label>
+  </section>
+
+  <section class="sidebar-section" aria-labelledby="sidebar-ignore-heading">
+    <h3 id="sidebar-ignore-heading" class="sidebar-heading">Ignore paths</h3>
+    @if (ignorePaths().length) {
+      <ul class="ignore-list">
+        @for (rule of ignorePaths(); track rule) {
+          <li class="ignore-item">
+            <span class="ignore-pattern">{{ rule }}</span>
+            <button type="button" class="ignore-remove" (click)="ignoreRemoved.emit(rule)" [attr.aria-label]="'Remove ignore rule ' + rule">
+              <span aria-hidden="true">×</span>
+            </button>
+          </li>
+        }
+      </ul>
+    }
+    <div class="ignore-row">
+      <input #ignoreRule placeholder="$.metadata.requestId" aria-label="Ignore path pattern" (keyup.enter)="addIgnoreRule(ignoreRule)">
+      <button type="button" class="ghost-action" (click)="addIgnoreRule(ignoreRule)">Add</button>
+    </div>
+  </section>
+
+  @if (hasResult()) {
+    <section class="sidebar-section" aria-labelledby="sidebar-matching-heading">
+      <h3 id="sidebar-matching-heading" class="sidebar-heading">Array matching</h3>
+      <app-array-matching
+        [arrays]="arrays()"
+        [selectedPath]="selectedAnalysisPath()"
+        (overrideChanged)="overrideChanged.emit($event)"
+        (arraySelected)="arraySelected.emit($event)" />
+    </section>
+  }
+</aside>
