@@ -35,9 +35,14 @@
       </div>
     </section>
 
+    <section class="panel-section">
+      <h3 class="panel-heading">Changes by area</h3>
+      <app-change-overview [root]="diff.root" [selectedNodeId]="selectedNodeId()" (nodeSelected)="nodeSelected.emit($event)" />
+    </section>
+
     @if (hasAnalysis()) {
       <section class="panel-section">
-        <h3 class="panel-heading">Matching analysis</h3>
+        <h3 class="panel-heading">Array matching analysis</h3>
 
         <app-array-picker [arrays]="diff.arrays" [selectedPath]="dropdownPath()" (pathSelected)="chooseArray($event)" />
 

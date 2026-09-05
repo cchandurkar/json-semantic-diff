@@ -1,0 +1,33 @@
+<div class="overview" role="tree">
+  @if (!areas().length) {
+    <p class="panel-empty">No changes to show.</p>
+  } @else {
+    @for (area of areas(); track area.nodeId) {
+      <ng-container *ngTemplateOutlet="row; context: { $implicit: area, depth: 0 }"></ng-container>
+    }
+  }
+</div>
+
+<ng-template #row let-area let-depth="depth">
+  <div class="area-row" [class.is-selected]="area.nodeId === selectedNodeId()" [style.--depth]="depth">
+    <button
+      type="button"
+      class="expand"
+      (click)="toggle(area.nodeId)"
+      [disabled]="!area.children.length"
+      [attr.aria-label]="'Toggle ' + area.label">{{ area.children.length ? (isExpanded(area.nodeId) ? '▾' : '▸') : '·' }}</button>
+    <button type="button" class="area-main" (click)="nodeSelected.emit(area.nodeId)">
+      <span class="area-label">{{ area.label }}</span>
+      <span class="track"><span class="fill" [style.width.%]="barWidth(area)"></span></span>
+      <span class="area-trailing">
+        <span class="area-count">{{ area.count }}</span>
+        <span class="chevron" aria-hidden="true">›</span>
+      </span>
+    </button>
+  </div>
+  @if (area.children.length && isExpanded(area.nodeId)) {
+    @for (child of area.children; track child.nodeId) {
+      <ng-container *ngTemplateOutlet="row; context: { $implicit: child, depth: depth + 1 }"></ng-container>
+    }
+  }
+</ng-template>

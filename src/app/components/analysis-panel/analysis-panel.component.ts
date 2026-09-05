@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, ElementRef, computed, effect, input
 import { ArrayMatchAnalysis, CandidateStats, DiffResult } from '../../core/diff';
 import { percent } from '../../shared/format';
 import { ArrayPickerComponent } from '../array-picker/array-picker.component';
+import { ChangeOverviewComponent } from '../change-overview/change-overview.component';
 
 /**
  * Right rail: summary counts and the matching-analysis explanation that used
@@ -20,7 +21,7 @@ import { ArrayPickerComponent } from '../array-picker/array-picker.component';
 @Component({
   selector: 'app-analysis-panel',
   standalone: true,
-  imports: [ArrayPickerComponent],
+  imports: [ArrayPickerComponent, ChangeOverviewComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './analysis-panel.component.html',
   styleUrl: './analysis-panel.component.css',
@@ -36,9 +37,13 @@ export class AnalysisPanelComponent {
   readonly analysis = input<ArrayMatchAnalysis | null>(null);
   /** An externally-driven selection, e.g. from a Tree match-pill click or the sidebar's own picker. */
   readonly selectedPath = input<string | null>(null);
+  /** The currently selected canonical diff node, shared with Tree/Source; drives the Changes-by-area highlight and its own row clicks navigate it. */
+  readonly selectedNodeId = input<string | null>(null);
 
   /** Fired only when the USER picks a different array via this panel's own select. */
   readonly arraySelected = output<string>();
+  /** Fired when the user clicks a Changes-by-area row; the parent re-points `selectedNodeId`. */
+  readonly nodeSelected = output<string>();
 
   /** Drawer state; only meaningful below the breakpoint, where the toggle shows. */
   readonly open = signal(false);

@@ -142,7 +142,9 @@
     [result]="result()"
     [analysis]="displayedAnalysis()"
     [selectedPath]="selectedAnalysis()?.path ?? result()?.primaryAnalysis?.path ?? null"
-    (arraySelected)="openAnalysis($event)" />
+    [selectedNodeId]="selectedNodeId()"
+    (arraySelected)="openAnalysis($event)"
+    (nodeSelected)="selectNode($event)" />
 </div>
 
 <app-toast [message]="toast()" (undo)="runUndo()" (dismissed)="dismissToast()" />
