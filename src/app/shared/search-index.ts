@@ -29,18 +29,25 @@ function textOf(value: JsonValue | undefined): string {
  * `ignored` subtree entirely so search can never surface what an ignore rule
  * has hidden.
  *
- * Searchable text per node: `label` (the property/key name), `path`, and `id`
- * — the id already spells out array identity segments such as
- * `$.users[userId=102]` or `$.items[sku=SKU-1001]`, so identity labels are
- * covered without separate extraction — plus the four value fields (`left`,
- * `right`, and their pre-normalization `leftRaw`/`rightRaw` counterparts, so a
- * search matches what the Source view actually displays).
+ * Searchable text per node: `label` (the property/key name — for an
+ * identity-matched array element this already spells out the identity, e.g.
+ * `[sku+store=SKU-1001|BOS]`, so identity labels are covered without separate
+ * extraction) and `path`, plus the four value fields (`left`, `right`, and
+ * their pre-normalization `leftRaw`/`rightRaw` counterparts, so a search
+ * matches what the Source view actually displays).
+ *
+ * Deliberately NOT `node.id`: unlike `label`, the id is a cumulative path that
+ * embeds every ancestor's identity segment (e.g. a `.price` leaf's id is
+ * `$.inventory[sku=X;store=Y].price`). Indexing it would make an unrelated
+ * sibling field (price, quantity, ...) match a search for "store" purely
+ * because it inherited that text from its container's id, even though neither
+ * its own label nor its rendered text ever shows "store".
  */
 export function buildSearchIndex(root: DiffNode): SearchEntry[] {
   const entries: SearchEntry[] = [];
   const walk = (node: DiffNode): void => {
     if (node.ignored) return;
-    const parts = [node.label, node.path, node.id, textOf(node.left), textOf(node.right), textOf(node.leftRaw), textOf(node.rightRaw)];
+    const parts = [node.label, node.path, textOf(node.left), textOf(node.right), textOf(node.leftRaw), textOf(node.rightRaw)];
     entries.push({ nodeId: node.id, haystack: parts.join('\u0000').toLowerCase(), hasChanges: node.hasChanges });
     node.children?.forEach(walk);
   };

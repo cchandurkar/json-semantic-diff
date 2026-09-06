@@ -112,3 +112,42 @@ export function renderCell(row: SourceDiffRow, side: 'left' | 'right'): CellRend
 function isRemovedSide(kind: DiffChangeKind): boolean {
   return kind === 'removed' || kind === 'modified' || kind === 'type-changed';
 }
+
+/**
+ * Whether this row's own rendered text (either side) visibly contains `query`,
+ * case-insensitively.
+ *
+ * Deliberately NOT "is this row's nodeId one of the search results": a
+ * container's open/close scaffold rows share the container's id, and an
+ * identity-matched element's id spells out its key=value pairs (e.g.
+ * `sku=X;store=Y`) which are never rendered as literal text on the `{`/`}`
+ * lines - matching by id there would highlight lines the user can't see any
+ * match on.
+ */
+export function rowMatchesQuery(row: SourceDiffRow, query: string): boolean {
+  const q = query.trim().toLowerCase();
+  if (!q) return false;
+  return (row.left?.text.toLowerCase().includes(q) ?? false) || (row.right?.text.toLowerCase().includes(q) ?? false);
+}
+
+/**
+ * Splits `text` around every case-insensitive occurrence of `query`, for
+ * `<mark>`-highlighting matched substrings inline. Returns the whole text as
+ * one non-hit segment when the query is empty or `text` is empty.
+ */
+export function matchSpans(text: string, query: string): { text: string; hit: boolean }[] {
+  const q = query.trim();
+  if (!q || !text) return [{ text, hit: false }];
+  const lower = text.toLowerCase();
+  const qLower = q.toLowerCase();
+  const out: { text: string; hit: boolean }[] = [];
+  let i = 0;
+  while (i < text.length) {
+    const idx = lower.indexOf(qLower, i);
+    if (idx === -1) { out.push({ text: text.slice(i), hit: false }); break; }
+    if (idx > i) out.push({ text: text.slice(i, idx), hit: false });
+    out.push({ text: text.slice(idx, idx + q.length), hit: true });
+    i = idx + q.length;
+  }
+  return out;
+}

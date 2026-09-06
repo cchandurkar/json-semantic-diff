@@ -19,19 +19,19 @@
           [class.in-range]="selectedRange().has(item.row.nodeId)"
           [class.range-start]="$index === rangeEndpoints().start"
           [class.range-end]="$index === rangeEndpoints().end"
-          [class.search-match]="searchResultIds().has(item.row.nodeId)"
+          [class.search-match]="rowMatchesQuery(item.row, searchQuery())"
           [attr.data-node-id]="item.row.nodeId"
           [cdkContextMenuTriggerFor]="rowActions"
           [cdkContextMenuTriggerData]="{ $implicit: item.row.nodeId }">
 
           <span class="gutter">{{ item.row.left?.lineNumber }}</span>
           <span class="marker left-marker" aria-hidden="true">{{ leftMarker(item.row) }}</span>
-          <span class="code left" [style.--depth]="item.row.depth">@if (renderCell(item.row, 'left'); as cell) {{{ cell.key }}@for (seg of cell.segments; track $index) {<span [class.diff-mark]="seg.changed">{{ seg.text }}</span>}{{ cell.tail }}}</span>
+          <span class="code left" [style.--depth]="item.row.depth">@if (renderCell(item.row, 'left'); as cell) {<ng-container *ngTemplateOutlet="highlighted; context: { $implicit: cell.key ?? '' }"></ng-container>@for (seg of cell.segments; track $index) {<span [class.diff-mark]="seg.changed"><ng-container *ngTemplateOutlet="highlighted; context: { $implicit: seg.text }"></ng-container></span>}<ng-container *ngTemplateOutlet="highlighted; context: { $implicit: cell.tail }"></ng-container>}</span>
 
           <span class="gutter">{{ item.row.right?.lineNumber }}</span>
           <span class="marker right-marker" aria-hidden="true">{{ rightMarker(item.row) }}</span>
           <span class="code right" [style.--depth]="item.row.depth">
-            <button type="button" class="code-text" (click)="nodeSelected.emit(item.row.nodeId)">@if (renderCell(item.row, 'right'); as cell) {{{ cell.key }}@for (seg of cell.segments; track $index) {<span [class.diff-mark]="seg.changed">{{ seg.text }}</span>}{{ cell.tail }}}</button>
+            <button type="button" class="code-text" (click)="nodeSelected.emit(item.row.nodeId)">@if (renderCell(item.row, 'right'); as cell) {<ng-container *ngTemplateOutlet="highlighted; context: { $implicit: cell.key ?? '' }"></ng-container>@for (seg of cell.segments; track $index) {<span [class.diff-mark]="seg.changed"><ng-container *ngTemplateOutlet="highlighted; context: { $implicit: seg.text }"></ng-container></span>}<ng-container *ngTemplateOutlet="highlighted; context: { $implicit: cell.tail }"></ng-container>}</button>
             @if (item.row.arrayMatch; as match) {
               @if (item.row.reordered) {
                 <span class="reorder-pill" [title]="reorderTooltip">↕ Reordered for comparison</span>
@@ -56,6 +56,18 @@
     }
   </div>
 </div>
+
+<!-- Splits any rendered text around the current search query for inline <mark> highlighting;
+     shared by both sides' key/segment/tail so it isn't triplicated per row. -->
+<ng-template #highlighted let-text>
+  @for (part of matchSpans(text, searchQuery()); track $index) {
+    @if (part.hit) {
+      <mark class="search-hit">{{ part.text }}</mark>
+    } @else {
+      {{ part.text }}
+    }
+  }
+</ng-template>
 
 <!-- Copy-only menu shared by the row right-click trigger and the "⋯" button. -->
 <ng-template #rowActions let-nodeId>

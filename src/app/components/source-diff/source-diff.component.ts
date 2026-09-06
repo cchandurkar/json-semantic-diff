@@ -1,15 +1,16 @@
 import { ChangeDetectionStrategy, Component, computed, effect, input, output, signal } from '@angular/core';
+import { NgTemplateOutlet } from '@angular/common';
 import { CdkContextMenuTrigger, CdkMenu, CdkMenuGroup, CdkMenuItem, CdkMenuTrigger } from '@angular/cdk/menu';
 import { DiffNode, DiffResult } from '../../core/diff';
 import { findNodeById } from '../../shared/node-navigation';
 import { NodeActionEvent, NodeActionId, NodeMenuGroup, buildNodeMenu } from '../../shared/node-actions';
 import { DEFAULT_CONTEXT_LINES, emitSourceRows, segmentRows } from '../../source';
-import { REORDER_TOOLTIP, buildItems, changeLabel, collapsedKeyContaining, leftMarker, matchSummary, renderCell, rightMarker } from './source-view-model';
+import { REORDER_TOOLTIP, buildItems, changeLabel, collapsedKeyContaining, leftMarker, matchSpans, matchSummary, renderCell, rightMarker, rowMatchesQuery } from './source-view-model';
 
 @Component({
   selector: 'app-source-diff',
   standalone: true,
-  imports: [CdkMenu, CdkMenuItem, CdkMenuGroup, CdkMenuTrigger, CdkContextMenuTrigger],
+  imports: [NgTemplateOutlet, CdkMenu, CdkMenuItem, CdkMenuGroup, CdkMenuTrigger, CdkContextMenuTrigger],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './source-diff.component.html',
   styleUrl: './source-diff.component.css'
@@ -20,8 +21,7 @@ export class SourceDiffComponent {
   readonly selectedNodeId = input<string | null>(null);
   /** Every id in the selected node's subtree, so a container highlights as one block. */
   readonly selectedRange = input<ReadonlySet<string>>(new Set());
-  /** Canonical ids of every current search match, independent of selection. */
-  readonly searchResultIds = input<ReadonlySet<string>>(new Set());
+  readonly searchQuery = input('');
   /** The canonical tree, so a row id can be resolved back to its node. */
   readonly root = input<DiffNode | null>(null);
   readonly nodeSelected = output<string>();
@@ -66,6 +66,8 @@ export class SourceDiffComponent {
   readonly matchSummary = matchSummary;
   readonly renderCell = renderCell;
   readonly reorderTooltip = REORDER_TOOLTIP;
+  readonly rowMatchesQuery = rowMatchesQuery;
+  readonly matchSpans = matchSpans;
 
   constructor() {
     // Scrolling to the selected node is the one place this view touches the DOM.

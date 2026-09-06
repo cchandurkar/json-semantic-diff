@@ -28,6 +28,7 @@
 .range-start { border-top:2px solid var(--primary); }
 .src-row.range-end { border-bottom:2px solid var(--primary); }
 .search-match { background:color-mix(in srgb, var(--primary) 6%, transparent); }
+.search-hit { background:color-mix(in srgb, var(--warning) 55%, transparent); border-radius:2px; padding:0 1px; }
 .reorder-pill, .match-pill { flex:none; margin:1px 0 1px 8px; border:1px solid var(--success-border); background:var(--success-bg); color:var(--success); border-radius:999px; padding:1px 7px; font:10px var(--sans); white-space:nowrap; cursor:help; }
 .reorder-pill { border-color:var(--border); background:var(--muted); color:var(--muted-foreground); }
 .collapsed-row { grid-column:1 / -1; display:block; width:100%; border:0; border-bottom:1px solid var(--border-subtle); background:var(--muted); color:var(--muted-foreground); font:11px var(--sans); padding:7px 14px; text-align:center; cursor:pointer; }
