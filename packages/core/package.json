@@ -40,7 +40,9 @@
   "scripts": {
     "build": "rm -rf dist && tsc -p tsconfig.json",
     "prepack": "npm run build",
-    "test": "vitest run"
+    "test": "vitest run",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix"
   },
   "devDependencies": {
     "@types/node": "^24.13.3",

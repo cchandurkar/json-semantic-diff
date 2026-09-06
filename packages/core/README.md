@@ -17,7 +17,9 @@ npm install json-semantic-diff
 ```ts
 import { diffJson, DEFAULT_DIFF_OPTIONS } from 'json-semantic-diff';
 
-const result = diffJson({ users: [{ userId: 1, name: 'Alice' }] }, { users: [{ userId: 1, name: 'Alicia' }] }, DEFAULT_DIFF_OPTIONS);
+const lhs = { users: [{ userId: 1, name: 'Alice' }] };
+const rhs = { users: [{ userId: 1, name: 'Alicia' }] };
+const result = diffJson(lhs, rhs, DEFAULT_DIFF_OPTIONS);
 
 console.log(result.summary);
 // { added: 0, removed: 0, modified: 1, typeChanged: 0, unchanged: 0, totalChanges: 1 }

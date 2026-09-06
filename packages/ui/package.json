@@ -5,7 +5,9 @@
   "scripts": {
     "start": "ng serve",
     "build": "ng build",
-    "test": "ng test"
+    "test": "ng test",
+    "lint": "eslint . && stylelint \"src/**/*.css\"",
+    "lint:fix": "eslint . --fix && stylelint \"src/**/*.css\" --fix"
   },
   "dependencies": {
     "json-semantic-diff": "*",
@@ -30,14 +32,19 @@
     "tslib": "^2.8.1"
   },
   "devDependencies": {
-    "@angular-eslint/builder": "^22.2.0",
+    "@angular-eslint/eslint-plugin": "^22.2.0",
+    "@angular-eslint/eslint-plugin-template": "^22.2.0",
+    "@angular-eslint/template-parser": "^22.2.0",
     "@angular/build": "^22.1.5",
     "@angular/cli": "^22.1.5",
     "@angular/compiler-cli": "^22.1.5",
     "@tailwindcss/postcss": "^4.1.12",
     "@types/node": "^24.13.3",
+    "angular-eslint": "^22.2.0",
     "jsdom": "^26.1.0",
     "postcss": "^8.5.6",
+    "stylelint": "^17.15.0",
+    "stylelint-config-standard": "^40.0.0",
     "tailwindcss": "^4.1.12",
     "typescript": "~6.0.2",
     "vitest": "^4.1.11"

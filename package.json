@@ -2,13 +2,15 @@
   "name": "json-semantic-diff-monorepo",
   "version": "0.2.0",
   "private": true,
-  "workspaces": ["packages/*"],
+  "workspaces": [
+    "packages/*"
+  ],
   "scripts": {
     "start": "npm run start --workspace=packages/ui",
     "build": "npm run build --workspace=packages/core && npm run build --workspace=packages/ui",
     "test": "npm run test --workspace=packages/core && npm run test --workspace=packages/ui",
-    "lint": "eslint . && stylelint \"packages/*/src/**/*.css\"",
-    "lint:fix": "eslint . --fix && stylelint \"packages/*/src/**/*.css\" --fix",
+    "lint": "npm run lint --workspace=packages/core && npm run lint --workspace=packages/ui",
+    "lint:fix": "npm run lint:fix --workspace=packages/core && npm run lint:fix --workspace=packages/ui",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
   },
@@ -16,19 +18,12 @@
     "node": ">=24.15.0 <25"
   },
   "devDependencies": {
-    "@angular-eslint/builder": "^22.2.0",
-    "@angular-eslint/eslint-plugin": "^22.2.0",
-    "@angular-eslint/eslint-plugin-template": "^22.2.0",
-    "@angular-eslint/template-parser": "^22.2.0",
     "@eslint/js": "^10.0.1",
-    "angular-eslint": "^22.2.0",
     "eslint": "^10.10.0",
     "eslint-config-prettier": "^10.1.8",
     "playwright": "^1.60.0",
     "prettier": "^3.9.6",
     "prettier-plugin-tailwindcss": "^0.8.1",
-    "stylelint": "^17.15.0",
-    "stylelint-config-standard": "^40.0.0",
     "tailwindcss": "^4.1.12",
     "typescript": "~6.0.2",
     "typescript-eslint": "^8.69.0"
