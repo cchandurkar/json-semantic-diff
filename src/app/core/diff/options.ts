@@ -8,7 +8,8 @@ import { DiffOptions } from '../models/diff.models';
 export const DEFAULT_DIFF_OPTIONS: DiffOptions = {
   ignorePaths: [],
   normalizeNumbers: false,
-  normalizeTimestamps: true
+  normalizeTimestamps: true,
+  nullEqualsMissing: false
 };
 
 export type { DiffOptions };

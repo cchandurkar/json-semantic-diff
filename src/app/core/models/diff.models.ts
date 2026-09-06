@@ -153,6 +153,11 @@ export interface DiffOptions {
   normalizeNumbers: boolean;
   normalizeTimestamps: boolean;
   /**
+   * When true, a value that is `null` on one side and MISSING (the key/element
+   * absent) on the other side compares as unchanged instead of added/removed.
+   */
+  nullEqualsMissing: boolean;
+  /**
    * User overrides keyed by array path PATTERN (same glob syntax as
    * `ignorePaths`, e.g. `$.users[*].tags`). Exact keys win over patterns.
    */

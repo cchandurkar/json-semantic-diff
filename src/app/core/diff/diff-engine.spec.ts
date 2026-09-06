@@ -406,6 +406,63 @@ describe('J. numeric-string normalization', () => {
   });
 });
 
+describe('K. null-equals-missing normalization', () => {
+  it('is off by default, so a null property vs a missing one still reports removed', () => {
+    const result = run({ a: null }, {});
+
+    expect(byPath(result.root, '$.a')?.changeKind).toBe('removed');
+  });
+
+  it('treats null vs missing as unchanged when enabled, and excludes it from the summary', () => {
+    const result = run({ a: null }, {}, { nullEqualsMissing: true });
+
+    const node = byPath(result.root, '$.a');
+    expect(node?.changeKind).toBe('unchanged');
+    expect(node?.hasChanges).toBe(false);
+    expect(result.summary.added).toBe(0);
+    expect(result.summary.removed).toBe(0);
+    expect(result.summary.totalChanges).toBe(0);
+  });
+
+  it('treats missing vs null the same in the reverse direction', () => {
+    const result = run({}, { a: null }, { nullEqualsMissing: true });
+
+    const node = byPath(result.root, '$.a');
+    expect(node?.changeKind).toBe('unchanged');
+    expect(node?.hasChanges).toBe(false);
+    expect(result.summary.totalChanges).toBe(0);
+  });
+
+  it('does not affect null vs null, which was already unchanged', () => {
+    const result = run({ a: null }, { a: null }, { nullEqualsMissing: true });
+
+    expect(byPath(result.root, '$.a')?.changeKind).toBe('unchanged');
+  });
+
+  it('does not suppress a genuine non-null value vs missing', () => {
+    const result = run({ a: 5 }, {}, { nullEqualsMissing: true });
+
+    expect(byPath(result.root, '$.a')?.changeKind).toBe('removed');
+    expect(result.summary.removed).toBe(1);
+  });
+
+  it('applies at any depth: a nested null-vs-missing leaf is unchanged and does not move the summary', () => {
+    const result = run({ a: { b: null } }, { a: {} }, { nullEqualsMissing: true });
+
+    expect(byPath(result.root, '$.a.b')?.changeKind).toBe('unchanged');
+    expect(result.summary.totalChanges).toBe(0);
+  });
+
+  it('applies inside arrays too, since array elements funnel through the same compare() path', () => {
+    // Positional matching (no identity key here): the trailing element on the
+    // longer side has no counterpart on the shorter side, i.e. is compared
+    // against `undefined` exactly like a missing object key.
+    const result = run({ list: [1, null] }, { list: [1] }, { nullEqualsMissing: true });
+
+    expect(result.summary.totalChanges).toBe(0);
+  });
+});
+
 describe('result shape', () => {
   it('roots the tree at $ with the root label', () => {
     const result = run({ a: 1 }, { a: 1 });

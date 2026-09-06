@@ -36,6 +36,13 @@
       </span>
       <button type="button" class="hint-icon" appTooltip="Compare &quot;42&quot; and 42 as the same value." aria-label="What does treating numeric strings as numbers do?">?</button>
     </label>
+    <label class="toggle-row">
+      <input type="checkbox" [checked]="nullEqualsMissing()" (change)="nullEqualsMissingChange.emit(isChecked($event))">
+      <span class="toggle-text">
+        <span class="toggle-name">Treat null and missing as equal</span>
+      </span>
+      <button type="button" class="hint-icon" appTooltip="A null value and an absent field are treated as the same, so this difference is not reported." aria-label="What does treating null and missing as equal do?">?</button>
+    </label>
   </section>
 
   <section class="sidebar-section" aria-labelledby="sidebar-ignore-heading">

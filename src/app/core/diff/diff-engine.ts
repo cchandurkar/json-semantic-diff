@@ -66,6 +66,15 @@ function compare(
     return { ...base, ...raw, nodeKind: shapeOf(left ?? right), changeKind: 'unchanged', left, right, hasChanges: false, ignored: true };
   }
 
+  // A value that's `null` on one side and absent on the other is semantically
+  // "nothing" on both sides when this option is on. Deliberately does NOT
+  // touch cases where both sides already agree (null/null already compares
+  // unchanged via deepEqual below; both-undefined cannot occur since keys
+  // come from the union of the two objects' own keys).
+  if (options.nullEqualsMissing && isNullish(left) && isNullish(right)) {
+    return { ...base, ...raw, nodeKind: shapeOf(left ?? right), changeKind: 'unchanged', left, right, hasChanges: false };
+  }
+
   if (left === undefined) return { ...base, rightRaw: rawRight, nodeKind: shapeOf(right), changeKind: 'added', right, hasChanges: true };
   if (right === undefined) return { ...base, leftRaw: rawLeft, nodeKind: shapeOf(left), changeKind: 'removed', left, hasChanges: true };
 
@@ -164,6 +173,7 @@ function shapeOf(v: JsonValue | undefined): DiffNodeKind { return Array.isArray(
 function isObject(v: JsonValue | undefined): v is JsonObject { return !!v && typeof v === 'object' && !Array.isArray(v); }
 function jsonType(v: JsonValue): string { return Array.isArray(v) ? 'array' : v === null ? 'null' : typeof v === 'object' ? 'object' : typeof v; }
 function deepEqual(a: JsonValue, b: JsonValue): boolean { return JSON.stringify(a) === JSON.stringify(b); }
+function isNullish(v: JsonValue | undefined): boolean { return v === null || v === undefined; }
 
 /** The only host-provided capability the core needs; falls back to Date for non-browser hosts. */
 function now(): number { return typeof performance !== 'undefined' ? performance.now() : Date.now(); }

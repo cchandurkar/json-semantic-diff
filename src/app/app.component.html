@@ -15,6 +15,7 @@
   <app-sidebar
     [normalizeTimestamps]="options().normalizeTimestamps"
     [normalizeNumbers]="options().normalizeNumbers"
+    [nullEqualsMissing]="options().nullEqualsMissing"
     [ignorePaths]="options().ignorePaths"
     [arrays]="matchingContexts()"
     [selectedAnalysisPath]="selectedAnalysis()?.path ?? result()?.primaryAnalysis?.path ?? null"
@@ -22,6 +23,7 @@
     (exampleSelected)="loadExample($event)"
     (normalizeTimestampsChange)="patchOption('normalizeTimestamps', $event)"
     (normalizeNumbersChange)="patchOption('normalizeNumbers', $event)"
+    (nullEqualsMissingChange)="patchOption('nullEqualsMissing', $event)"
     (ignoreAdded)="addIgnore($event)"
     (ignoreRemoved)="removeIgnore($event)"
     (overrideChanged)="applyMatchingOverride($event)"
