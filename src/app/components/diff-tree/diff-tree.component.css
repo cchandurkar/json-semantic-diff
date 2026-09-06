@@ -1,5 +1,5 @@
 .tree { border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; background:var(--card); }
-.diff-row { --depth:0; display:grid; grid-template-columns:28px 24px minmax(220px,1.1fr) minmax(160px,1fr) 34px minmax(160px,1fr) 26px; align-items:center; min-height:40px; border-bottom:1px solid var(--border-subtle); font:12px/1.4 var(--mono); padding-left:calc(var(--depth) * 18px); }
+.diff-row { --depth:0; display:grid; grid-template-columns:28px 24px minmax(220px,1.1fr) minmax(160px,1fr) 34px minmax(160px,1fr) 26px; align-items:center; min-height:30px; border-bottom:1px solid var(--border-subtle); font:12px/1.4 var(--mono); padding-left:calc(var(--depth) * 18px); }
 .diff-row:last-child { border-bottom:0; }
 .diff-row:hover { background:var(--accent); }
 .expand { width:24px; height:24px; border:0; background:transparent; color:var(--muted-foreground); cursor:pointer; }
@@ -19,6 +19,9 @@
 .kind-removed .left { background:var(--diff-removed-bg); color:var(--foreground); }
 .kind-modified .left, .kind-type-changed .left { background:var(--diff-removed-bg); color:var(--foreground); }
 .kind-modified .right, .kind-type-changed .right { background:var(--diff-added-bg); color:var(--foreground); }
+.diff-mark { border-radius:2px; }
+.kind-modified .left .diff-mark, .kind-type-changed .left .diff-mark { background:color-mix(in srgb, var(--diff-removed) 40%, transparent); }
+.kind-modified .right .diff-mark, .kind-type-changed .right .diff-mark { background:color-mix(in srgb, var(--diff-added) 40%, transparent); }
 .arrow { text-align:center; color:var(--subtle-foreground); }
 .row-actions { width:22px; height:22px; border:0; border-radius:var(--radius); background:transparent; color:var(--subtle-foreground); font-size:13px; line-height:1; cursor:pointer; opacity:0; }
 .diff-row:hover .row-actions, .row-actions:focus-visible, .row-actions[aria-expanded="true"] { opacity:1; }

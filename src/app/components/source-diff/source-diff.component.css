@@ -18,6 +18,9 @@
 .kind-removed .left-marker { color:var(--diff-removed); }
 .kind-modified .left, .kind-type-changed .left { background:var(--diff-removed-bg); }
 .kind-modified .right, .kind-type-changed .right { background:var(--diff-added-bg); }
+.diff-mark { border-radius:2px; }
+.kind-modified .left .diff-mark, .kind-type-changed .left .diff-mark { background:color-mix(in srgb, var(--diff-removed) 40%, transparent); }
+.kind-modified .right .diff-mark, .kind-type-changed .right .diff-mark { background:color-mix(in srgb, var(--diff-added) 40%, transparent); }
 .kind-modified .left-marker, .kind-type-changed .left-marker { color:var(--diff-removed); }
 .kind-modified .right-marker, .kind-type-changed .right-marker { color:var(--diff-modified); }
 .is-ignored .code { color:var(--subtle-foreground); font-style:italic; }

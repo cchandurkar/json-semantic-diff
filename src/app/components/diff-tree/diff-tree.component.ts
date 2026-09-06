@@ -5,6 +5,12 @@ import { DiffNode, JsonValue } from '../../core/models/diff.models';
 import { percent } from '../../shared/format';
 import { ancestorPaths } from '../../shared/node-navigation';
 import { NodeActionEvent, NodeActionId, buildNodeMenu, deriveMatchingTarget } from '../../shared/node-actions';
+import { DiffSegment, diffText } from '../../shared/text-diff';
+
+/** Arrays/objects should never be char-diffed against their "Array(N)"/"{N keys}" summary strings. */
+function isContainer(value: JsonValue | undefined): boolean {
+  return value !== null && value !== undefined && typeof value === 'object';
+}
 
 @Component({
   selector: 'app-diff-tree',
@@ -71,6 +77,25 @@ export class DiffTreeComponent {
     if (Array.isArray(value)) return `Array(${value.length})`;
     if (value && typeof value === 'object') return `{${Object.keys(value).length} keys}`;
     return typeof value === 'string' ? `"${value}"` : JSON.stringify(value);
+  }
+
+  /**
+   * Word-level segments for one side of a modified/type-changed scalar row,
+   * so the row-level highlight can be layered with GitHub-style intra-line
+   * marks. Falls back to one unchanged segment (today's plain rendering) for
+   * every other row, and for container values whose "Array(N)"/"{N keys}"
+   * summaries would produce meaningless char-diffing.
+   */
+  valueSegments(node: DiffNode, side: 'left' | 'right'): DiffSegment[] {
+    const raw = side === 'left' ? node.left : node.right;
+    if (!this.canHighlight(node)) return [{ text: this.display(raw), changed: false }];
+    const { left, right } = diffText(this.display(node.left), this.display(node.right));
+    return side === 'left' ? left : right;
+  }
+
+  private canHighlight(node: DiffNode): boolean {
+    if (node.changeKind !== 'modified' && node.changeKind !== 'type-changed') return false;
+    return !isContainer(node.left) && !isContainer(node.right);
   }
 
   /**

@@ -30,9 +30,17 @@
           <button type="button" class="match-pill warning" (click)="analysisRequested.emit(node.path)">Matching uncertain</button>
         }
       </div>
-      <div class="value-cell left">{{ display(node.left) }}</div>
+      <div class="value-cell left">
+        @for (seg of valueSegments(node, 'left'); track $index) {
+          <span [class.diff-mark]="seg.changed">{{ seg.text }}</span>
+        }
+      </div>
       <div class="arrow">{{ node.changeKind === 'modified' || node.changeKind === 'type-changed' ? '→' : '' }}</div>
-      <div class="value-cell right">{{ display(node.right) }}</div>
+      <div class="value-cell right">
+        @for (seg of valueSegments(node, 'right'); track $index) {
+          <span [class.diff-mark]="seg.changed">{{ seg.text }}</span>
+        }
+      </div>
       <button
         type="button"
         class="row-actions"

@@ -4,7 +4,7 @@ import { DiffNode, DiffResult } from '../../core/diff';
 import { findNodeById } from '../../shared/node-navigation';
 import { NodeActionEvent, NodeActionId, NodeMenuGroup, buildNodeMenu } from '../../shared/node-actions';
 import { DEFAULT_CONTEXT_LINES, emitSourceRows, segmentRows } from '../../source';
-import { REORDER_TOOLTIP, buildItems, changeLabel, collapsedKeyContaining, leftMarker, matchSummary, rightMarker } from './source-view-model';
+import { REORDER_TOOLTIP, buildItems, changeLabel, collapsedKeyContaining, leftMarker, matchSummary, renderCell, rightMarker } from './source-view-model';
 
 @Component({
   selector: 'app-source-diff',
@@ -39,6 +39,7 @@ export class SourceDiffComponent {
   readonly rightMarker = rightMarker;
   readonly changeLabel = changeLabel;
   readonly matchSummary = matchSummary;
+  readonly renderCell = renderCell;
   readonly reorderTooltip = REORDER_TOOLTIP;
 
   constructor() {

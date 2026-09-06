@@ -1,6 +1,7 @@
 import { ArrayMatchAnalysis, DiffChangeKind } from '../../core/diff';
 import { SourceDiffRow, SourceSegment } from '../../source';
 import { percent } from '../../shared/format';
+import { DiffSegment, diffText } from '../../shared/text-diff';
 
 /**
  * Pure presentation logic for the Source view.
@@ -85,6 +86,28 @@ export const REORDER_TOOLTIP =
   'Only the presentation order changed so matching records line up. ' +
   'Your original input JSON was not modified. ' +
   'The matching key comes from the existing comparison result.';
+
+export interface CellRender { key?: string; segments: DiffSegment[]; tail: string; }
+
+/**
+ * Splits a source cell into key / diffed-value-segments / trailing-comma for
+ * rendering, but ONLY when both sides carry a `.value` and the row is a real
+ * modification - otherwise falls back to the cell's full `.text` as one
+ * unhighlighted segment (byte-identical to today's rendering for
+ * open/close/collapsed/added/removed rows).
+ */
+export function renderCell(row: SourceDiffRow, side: 'left' | 'right'): CellRender | undefined {
+  const cell = side === 'left' ? row.left : row.right;
+  if (!cell) return undefined;
+  const other = side === 'left' ? row.right : row.left;
+  const isModification = row.changeKind === 'modified' || row.changeKind === 'type-changed';
+  if (!isModification || cell.value === undefined || other?.value === undefined) {
+    return { segments: [{ text: cell.text, changed: false }], tail: '' };
+  }
+  const tail = cell.text.slice((cell.key?.length ?? 0) + cell.value.length);
+  const { left, right } = diffText(row.left!.value!, row.right!.value!);
+  return { key: cell.key, segments: side === 'left' ? left : right, tail };
+}
 
 function isRemovedSide(kind: DiffChangeKind): boolean {
   return kind === 'removed' || kind === 'modified' || kind === 'type-changed';
