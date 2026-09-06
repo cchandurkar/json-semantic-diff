@@ -12,3 +12,7 @@ npm-debug.log*
 
 # Deepwork orchestrator session state (local only)
 .slim/deepwork/
+
+# Playwright
+playwright-report/
+test-results/
