@@ -13,7 +13,10 @@
 .path-cell { min-width:0; display:flex; align-items:center; gap:8px; padding:8px 8px 8px 0; }
 .label { border:0; background:transparent; padding:0; font:inherit; color:var(--foreground); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; cursor:pointer; text-align:left; }
 .label:focus-visible { outline:2px solid var(--primary); outline-offset:2px; border-radius:var(--radius); }
-.is-selected { outline:2px solid var(--primary); outline-offset:-2px; }
+.in-range { border-left:2px solid var(--primary); border-right:2px solid var(--primary); }
+.in-range:not(.range-end) { border-bottom:0; }
+.range-start { border-top:2px solid var(--primary); }
+.diff-row.range-end { border-bottom:2px solid var(--primary); }
 .match-pill { border:1px solid var(--success-border); background:var(--success-bg); color:var(--success); border-radius:999px; padding:3px 7px; font:11px var(--sans); cursor:pointer; white-space:nowrap; }
 .match-pill.warning { border-color:var(--warning-border); background:var(--warning-bg); color:var(--warning); }
 .diff-row.kind-added { background:var(--diff-added-bg); }

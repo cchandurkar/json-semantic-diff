@@ -9,7 +9,7 @@ import { ArrayMatchingContext } from './components/array-matching/array-matching
 import { DEFAULT_DIFF_OPTIONS, diffJson } from './core/diff';
 import { formatJson } from './core/json/format';
 import { ArrayMatchAnalysis, DiffOptions, DiffResult, JsonValue } from './core/models/diff.models';
-import { findNodeByPath, stepChange } from './shared/node-navigation';
+import { findNodeByPath, stepChange, subtreeIds } from './shared/node-navigation';
 import { MatchingOverrideChange, NodeActionEvent, applyOverrideToOptions, ignoreFieldEverywhereRule, ignoreThisPathRule, matchingKeyOverride } from './shared/node-actions';
 import { ClipboardService } from './shared/clipboard/clipboard.service';
 import { formatChange, formatNewValue, formatOldValue, formatSemanticPath, formatSubtree } from './shared/clipboard/diff-clipboard';
@@ -75,6 +75,16 @@ export class AppComponent {
   readonly canCompare = computed(() => !!this.leftText().trim() && !!this.rightText().trim());
   /** DFS pre-order change ids: view-independent and invariant to collapse state. */
   readonly changeList = computed(() => { const r = this.result(); return r ? flattenChanges(r.root) : []; });
+  /**
+   * Ids of every row belonging to the selected node's subtree (inclusive), so
+   * Tree and Source can highlight a selected object/array as one cohesive
+   * block instead of only the single row whose id exactly matches.
+   */
+  readonly selectionRange = computed(() => {
+    const id = this.selectedNodeId();
+    const root = this.result()?.root;
+    return id && root ? subtreeIds(root, id) : new Set<string>();
+  });
   /**
    * Every array paired with its node, so the sidebar's matching section can
    * list key fields. Arrays whose node cannot be resolved are dropped rather

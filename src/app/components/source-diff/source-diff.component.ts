@@ -18,6 +18,8 @@ export class SourceDiffComponent {
   readonly result = input.required<DiffResult>();
   readonly changesOnly = input(true);
   readonly selectedNodeId = input<string | null>(null);
+  /** Every id in the selected node's subtree, so a container highlights as one block. */
+  readonly selectedRange = input<ReadonlySet<string>>(new Set());
   /** The canonical tree, so a row id can be resolved back to its node. */
   readonly root = input<DiffNode | null>(null);
   readonly nodeSelected = output<string>();
@@ -33,6 +35,27 @@ export class SourceDiffComponent {
   });
 
   readonly items = computed(() => buildItems(this.segments(), this.expanded()));
+
+  /**
+   * Index of the first and last VISIBLE row belonging to the selected range,
+   * so the Tree/Source highlight can draw one continuous border around the
+   * whole group instead of tinting every row's own background. Tracked by
+   * array index rather than nodeId: a container's opening and closing scaffold
+   * rows share one nodeId, and only the closing row is the true end.
+   */
+  readonly rangeEndpoints = computed(() => {
+    const range = this.selectedRange();
+    const items = this.items();
+    let start = -1;
+    let end = -1;
+    items.forEach((item, index) => {
+      if (item.kind === 'row' && range.has(item.row.nodeId)) {
+        if (start === -1) start = index;
+        end = index;
+      }
+    });
+    return { start, end };
+  });
 
   // Template delegates: all presentation logic lives in the pure view model.
   readonly leftMarker = leftMarker;

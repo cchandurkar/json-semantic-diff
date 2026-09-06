@@ -16,6 +16,9 @@
           [class]="'kind-' + item.row.changeKind"
           [class.is-ignored]="item.row.ignored"
           [class.is-selected]="item.row.nodeId === selectedNodeId()"
+          [class.in-range]="selectedRange().has(item.row.nodeId)"
+          [class.range-start]="$index === rangeEndpoints().start"
+          [class.range-end]="$index === rangeEndpoints().end"
           [attr.data-node-id]="item.row.nodeId"
           [cdkContextMenuTriggerFor]="rowActions"
           [cdkContextMenuTriggerData]="{ $implicit: item.row.nodeId }">

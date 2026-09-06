@@ -12,6 +12,16 @@ function isContainer(value: JsonValue | undefined): boolean {
   return value !== null && value !== undefined && typeof value === 'object';
 }
 
+/** Nodes in template render order, respecting the same `changesOnly`/collapse gating as the row template. */
+function flattenVisible(node: DiffNode, collapsed: ReadonlySet<string>, changesOnly: boolean): DiffNode[] {
+  if (changesOnly && !node.hasChanges) return [];
+  const out: DiffNode[] = [node];
+  if (node.children?.length && !collapsed.has(node.path)) {
+    for (const child of node.children) out.push(...flattenVisible(child, collapsed, changesOnly));
+  }
+  return out;
+}
+
 @Component({
   selector: 'app-diff-tree',
   standalone: true,
@@ -24,6 +34,8 @@ export class DiffTreeComponent {
   readonly root = input.required<DiffNode>();
   readonly changesOnly = input(true);
   readonly selectedNodeId = input<string | null>(null);
+  /** Every id in the selected node's subtree, so a container highlights as one block. */
+  readonly selectedRange = input<ReadonlySet<string>>(new Set());
   readonly analysisRequested = output<string>();
   readonly nodeSelected = output<string>();
   readonly nodeAction = output<NodeActionEvent>();
@@ -33,6 +45,28 @@ export class DiffTreeComponent {
    */
   readonly collapsed = signal(new Set<string>());
   readonly visibleNodes = computed(() => [this.root()]);
+
+  /**
+   * Every node currently rendered, in the exact order the template walks
+   * them - mirroring its `changesOnly`/expansion gating - so the selected
+   * range's start/end can be found without duplicating that logic in CSS.
+   */
+  private readonly visibleFlat = computed(() => flattenVisible(this.root(), this.collapsed(), this.changesOnly()));
+
+  /**
+   * First and last VISIBLE node id belonging to the selected range, so the
+   * highlight can draw one continuous border around the whole group instead
+   * of tinting every row's own background.
+   */
+  readonly rangeEndpoints = computed(() => {
+    const range = this.selectedRange();
+    let start: string | null = null;
+    let end: string | null = null;
+    for (const node of this.visibleFlat()) {
+      if (range.has(node.id)) { if (start === null) start = node.id; end = node.id; }
+    }
+    return { start, end };
+  });
 
   constructor() {
     // A new comparison starts fully expanded again.

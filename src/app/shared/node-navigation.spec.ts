@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { DEFAULT_DIFF_OPTIONS, DiffOptions, JsonValue, diffJson } from '../core/diff';
 import { EXAMPLE_LEFT, EXAMPLE_RIGHT } from '../core/diff/example-data.fixture';
 import { flattenChanges } from '../source';
-import { ancestorPaths, findNodeById, stepChange } from './node-navigation';
+import { ancestorPaths, findNodeById, stepChange, subtreeIds } from './node-navigation';
 
 function run(left: JsonValue, right: JsonValue, overrides: Partial<DiffOptions> = {}) {
   return diffJson(left, right, { ...DEFAULT_DIFF_OPTIONS, ...overrides });
@@ -105,5 +105,36 @@ describe('cross-view change-count agreement', () => {
 
   it('every navigable id resolves to a real node, so selection can never dangle', () => {
     for (const id of flattenChanges(EXAMPLE.root)) expect(findNodeById(EXAMPLE.root, id)).toBeDefined();
+  });
+});
+
+describe('subtreeIds', () => {
+  it('includes the node itself and every descendant id, for a container', () => {
+    const result = run({ a: { b: 1, c: 2 } }, { a: { b: 9, c: 2 } });
+
+    const ids = subtreeIds(result.root, '$.a');
+    expect(ids).toEqual(new Set(['$.a', '$.a.b', '$.a.c']));
+  });
+
+  it('is a single-element set for a leaf', () => {
+    const result = run({ a: 1 }, { a: 2 });
+
+    expect(subtreeIds(result.root, '$.a')).toEqual(new Set(['$.a']));
+  });
+
+  it('is empty for an id that is not in the tree', () => {
+    const result = run({ a: 1 }, { a: 2 });
+
+    expect(subtreeIds(result.root, '$.nope')).toEqual(new Set());
+  });
+
+  it('covers a real nested example: users array plus one of its elements', () => {
+    const usersIds = subtreeIds(EXAMPLE.root, '$.users');
+    expect(usersIds.has('$.users')).toBe(true);
+    // Every user element and its own fields must be included too.
+    for (const child of findNodeById(EXAMPLE.root, '$.users')!.children ?? []) {
+      expect(usersIds.has(child.id)).toBe(true);
+      for (const grandchild of child.children ?? []) expect(usersIds.has(grandchild.id)).toBe(true);
+    }
   });
 });

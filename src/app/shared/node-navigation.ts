@@ -74,3 +74,23 @@ export function findNodeByPath(root: DiffNode, path: string): DiffNode | undefin
   }
   return undefined;
 }
+
+/**
+ * Every id in the subtree rooted at `nodeId`, inclusive of the node itself.
+ * Empty when `nodeId` is not in this tree.
+ *
+ * Used to highlight a whole selected object/array as one cohesive block in
+ * Tree and Source, rather than only the single row whose id exactly matches
+ * the selection.
+ */
+export function subtreeIds(root: DiffNode, nodeId: string): ReadonlySet<string> {
+  const target = findNodeById(root, nodeId);
+  if (!target) return new Set();
+  const ids = new Set<string>();
+  const walk = (node: DiffNode): void => {
+    ids.add(node.id);
+    node.children?.forEach(walk);
+  };
+  walk(target);
+  return ids;
+}
