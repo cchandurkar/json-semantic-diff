@@ -85,16 +85,13 @@
 </div>
 
 <!-- Splits any rendered text around the current search query for inline <mark> highlighting;
-     shared by both sides' key/segment/tail so it isn't triplicated per row. -->
-<ng-template #highlighted let-text>
-  @for (part of matchSpans(text, searchQuery()); track $index) {
-    @if (part.hit) {
-      <mark class="search-hit">{{ part.text }}</mark>
-    } @else {
-      {{ part.text }}
-    }
-  }
-</ng-template>
+     shared by both sides' key/segment/tail so it isn't triplicated per row.
+     Kept on ONE line: `.code`/`.code-text` use `white-space:pre`, so any whitespace-only text
+     node this template introduces (e.g. from normal multi-line indentation around `{{ part.text }}`)
+     would render as a literal, word-breaking space - Angular's default whitespace stripping does
+     not reliably remove it right next to an interpolation the way it does between element tags. -->
+<!-- prettier-ignore -->
+<ng-template #highlighted let-text>@for (part of matchSpans(text, searchQuery()); track $index) {@if (part.hit) {<mark class="search-hit">{{ part.text }}</mark>} @else {<ng-container>{{ part.text }}</ng-container>}}</ng-template>
 
 <!-- Copy-only menu shared by the row right-click trigger and the "⋯" button. -->
 <ng-template #rowActions let-nodeId>
