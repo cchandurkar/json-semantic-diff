@@ -2,8 +2,11 @@
 .source { display:flex; flex-direction:column; height:100%; min-height:0; border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; background:var(--card); }
 .pane-note { flex:none; margin:0; padding:7px 14px; border-bottom:1px solid var(--border-subtle); background:var(--muted); color:var(--muted-foreground); font:11px/1.5 var(--sans); }
 .source-scroll { flex:1 1 auto; min-width:0; min-height:0; overflow:auto; display:grid; grid-template-columns:52px 18px minmax(240px,1fr) 52px 18px minmax(240px,1fr) 26px; align-content:start; }
-.src-row { display:grid; grid-template-columns:subgrid; grid-column:1 / -1; align-items:stretch; border-bottom:1px solid var(--border-subtle); font:12px/1.6 var(--mono); }
-.src-row:last-child { border-bottom:0; }
+/* Border is always 2px on every side, transparent by default: the range highlight below only
+   ever toggles border-*-color, never border-*-width, so a row can never resize (and shift its
+   siblings) when a highlight is added or removed. */
+.src-row { display:grid; grid-template-columns:subgrid; grid-column:1 / -1; align-items:stretch; border:2px solid transparent; border-bottom:2px solid var(--border-subtle); font:12px/1.6 var(--mono); }
+.src-row:last-child { border-bottom-color:transparent; }
 .src-row:hover { background:var(--accent); }
 .gutter { padding:3px 8px; text-align:right; color:var(--subtle-foreground); background:var(--muted); border-right:1px solid var(--border-subtle); user-select:none; font-variant-numeric:tabular-nums; }
 .marker { padding:3px 0; text-align:center; font-weight:800; color:var(--subtle-foreground); }
@@ -23,10 +26,10 @@
 .kind-modified .right-marker, .kind-type-changed .right-marker { color:var(--diff-modified); }
 .is-ignored .code { color:var(--subtle-foreground); font-style:italic; }
 .is-ignored .left, .is-ignored .right { background:transparent; }
-.in-range { border-left:2px solid var(--primary); border-right:2px solid var(--primary); }
-.in-range:not(.range-end) { border-bottom:0; }
-.range-start { border-top:2px solid var(--primary); }
-.src-row.range-end { border-bottom:2px solid var(--primary); }
+.in-range { border-left-color:var(--primary); border-right-color:var(--primary); }
+.in-range:not(.range-end) { border-bottom-color:transparent; }
+.range-start { border-top-color:var(--primary); }
+.src-row.range-end { border-bottom-color:var(--primary); }
 .search-match { background:color-mix(in srgb, var(--primary) 6%, transparent); }
 .reorder-pill, .match-pill { flex:none; margin:1px 0 1px 8px; border:1px solid var(--success-border); background:var(--success-bg); color:var(--success); border-radius:999px; padding:1px 7px; font:10px var(--sans); white-space:nowrap; cursor:help; }
 .reorder-pill { border-color:var(--border); background:var(--muted); color:var(--muted-foreground); }
