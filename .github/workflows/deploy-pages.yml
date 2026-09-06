@@ -33,13 +33,17 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build
+      - name: Build core
+        run: npm run build --workspace=packages/core
+
+      - name: Build UI
+        working-directory: packages/ui
         run: npx ng build --configuration production --base-href "/${{ github.event.repository.name }}/"
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: dist/difflens/browser
+          path: packages/ui/dist/json-semantic-diff-ui/browser
 
   deploy:
     needs: build

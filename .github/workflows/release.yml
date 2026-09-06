@@ -28,16 +28,16 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: Bump minor version
+      - name: Bump minor version (root + every workspace, kept in lockstep)
         id: bump
         run: |
-          npm version minor --no-git-tag-version --allow-same-version
+          npm version minor --workspaces --include-workspace-root --no-git-tag-version --allow-same-version
           VERSION=$(node -p "require('./package.json').version")
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Commit version bump
         run: |
-          git add package.json package-lock.json
+          git add package.json package-lock.json packages/*/package.json
           git commit -m "chore: release v${{ steps.bump.outputs.version }}"
           git push origin HEAD:${{ github.ref_name }}
 
@@ -57,9 +57,15 @@ jobs:
 
       # A release created with the default GITHUB_TOKEN does not itself
       # trigger other workflows' `on: release` listeners (GitHub's
-      # loop-prevention rule). Dispatch the deploy workflow explicitly so
-      # publishing to Pages still happens automatically after this run.
+      # loop-prevention rule). Dispatch both listeners explicitly so Pages
+      # deployment and the npm publish still happen automatically after this
+      # run - the same treatment, not just one of the two.
       - name: Trigger Pages deployment
         env:
           GH_TOKEN: ${{ github.token }}
         run: gh workflow run deploy-pages.yml --ref "${{ github.ref_name }}"
+
+      - name: Trigger npm publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run publish-npm.yml --ref "${{ github.ref_name }}"

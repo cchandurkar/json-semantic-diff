@@ -2,7 +2,26 @@
   "name": "json-semantic-diff",
   "version": "0.2.0",
   "description": "Framework-free JSON semantic diff engine with deterministic, explainable array identity matching.",
+  "keywords": [
+    "json",
+    "diff",
+    "semantic-diff",
+    "json-diff",
+    "array-matching",
+    "identity-matching"
+  ],
   "license": "MIT",
+  "author": "Chaitanya Chandurkar",
+  "homepage": "https://github.com/cchandurkar/json-semantic-diff#readme",
+  "bugs": "https://github.com/cchandurkar/json-semantic-diff/issues",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/cchandurkar/json-semantic-diff.git",
+    "directory": "packages/core"
+  },
+  "engines": {
+    "node": ">=18"
+  },
   "type": "module",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
@@ -14,11 +33,13 @@
     }
   },
   "files": [
-    "dist"
+    "dist",
+    "src"
   ],
   "sideEffects": false,
   "scripts": {
-    "build": "tsc -p tsconfig.json",
+    "build": "rm -rf dist && tsc -p tsconfig.json",
+    "prepack": "npm run build",
     "test": "vitest run"
   },
   "devDependencies": {

@@ -1,0 +1,41 @@
+name: Publish json-semantic-diff to npm
+
+# Runs when a release is published (either by the "Create Release" workflow's
+# explicit dispatch, or by a maintainer publishing a release by hand in the
+# GitHub UI), plus workflow_dispatch for manual re-runs/testing. Builds and
+# publishes packages/core only - the Angular app (packages/ui) is never
+# published to npm, it ships via GitHub Pages (see deploy-pages.yml).
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: publish-npm
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'npm'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Publish (prepack builds packages/core first)
+        working-directory: packages/core
+        run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
