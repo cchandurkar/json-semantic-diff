@@ -14,8 +14,10 @@ export default tseslint.config(
     processor: angular.processInlineTemplates,
     rules: {
       '@angular-eslint/prefer-standalone': 'error',
+      '@angular-eslint/prefer-inject': 'error',
       '@angular-eslint/prefer-on-push-component-change-detection': 'error',
-      '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }]
+      '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
+      '@angular-eslint/component-selector': ['error', { type: 'element', prefix: 'app', style: 'kebab-case' }]
     }
   },
 
