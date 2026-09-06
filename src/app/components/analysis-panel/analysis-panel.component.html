@@ -23,10 +23,10 @@
       <h3 class="panel-heading">Summary</h3>
       <div class="summary-card">
         <div class="stat-row">
+          <div class="stat-chip total"><b>{{ diff.summary.totalChanges }}</b><span>Total</span></div>
           <div class="stat-chip added"><b>+{{ diff.summary.added }}</b><span>Added</span></div>
           <div class="stat-chip removed"><b>−{{ diff.summary.removed }}</b><span>Removed</span></div>
-          <div class="stat-chip modified"><b>~{{ diff.summary.modified + diff.summary.typeChanged }}</b><span>Modified</span></div>
-          <div class="stat-chip total"><b>{{ diff.summary.totalChanges }}</b><span>Total</span></div>
+          <div class="stat-chip modified"><b>~{{ diff.summary.modified + diff.summary.typeChanged }}</b><span>Modified</span></div> 
         </div>
       </div>
     </section>
