@@ -18,8 +18,11 @@ import { DiffNode } from '../core/diff';
 export function ancestorPaths(root: DiffNode, nodeId: string): string[] {
   const trail: string[] = [];
   const walk = (node: DiffNode, ancestors: string[]): boolean => {
-    if (node.id === nodeId) { trail.push(...ancestors); return true; }
-    return (node.children ?? []).some(child => walk(child, [...ancestors, node.path]));
+    if (node.id === nodeId) {
+      trail.push(...ancestors);
+      return true;
+    }
+    return (node.children ?? []).some((child) => walk(child, [...ancestors, node.path]));
   };
   walk(root, []);
   return trail;

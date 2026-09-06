@@ -114,7 +114,7 @@ export class CodeEditorComponent implements AfterViewInit, OnDestroy {
    * already held by the signal, so the observer stops there.
    */
   private observeResize(): void {
-    this.resizeObserver = new ResizeObserver(entries => {
+    this.resizeObserver = new ResizeObserver((entries) => {
       const measured = Math.round(entries[0]?.borderBoxSize?.[0]?.blockSize ?? 0);
       if (measured <= 0 || measured === this.editorHeight()) return;
       this.editorHeight.set(measured);
@@ -161,7 +161,7 @@ export class CodeEditorComponent implements AfterViewInit, OnDestroy {
       EditorView.lineWrapping,
       EditorView.contentAttributes.of({ 'aria-label': this.ariaLabel() }),
       this.themeCompartment.of(this.themeExtension(this.darkMode())),
-      EditorView.updateListener.of(u => {
+      EditorView.updateListener.of((u) => {
         if (u.docChanged) this.value.set(u.state.doc.toString());
       })
     ];

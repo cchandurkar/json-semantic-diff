@@ -72,7 +72,7 @@ export class AnalysisPanelComponent {
   }
 
   toggle(): void {
-    this.open.update(value => !value);
+    this.open.update((value) => !value);
   }
 
   /**
@@ -95,10 +95,14 @@ export class AnalysisPanelComponent {
   /** Heading for the selected-key section, branching on provenance not mechanism. */
   selectionLabel(): string {
     switch (this.analysis()?.outcome) {
-      case 'manual-key': return 'MANUAL OVERRIDE';
-      case 'manual-position': return 'MANUAL · POSITION';
-      case 'identity-applied': return 'SELECTED';
-      default: return 'TOP CANDIDATE';
+      case 'manual-key':
+        return 'MANUAL OVERRIDE';
+      case 'manual-position':
+        return 'MANUAL · POSITION';
+      case 'identity-applied':
+        return 'SELECTED';
+      default:
+        return 'TOP CANDIDATE';
     }
   }
 

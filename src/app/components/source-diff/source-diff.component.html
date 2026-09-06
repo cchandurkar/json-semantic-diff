@@ -1,7 +1,7 @@
 <div class="source">
   <p class="pane-note">
-    Aligned for comparison: object keys are sorted and matched records are paired side by side, so this is a semantic
-    projection rather than a verbatim reproduction of your input.
+    Aligned for comparison: object keys are sorted and matched records are paired side by side, so this is a semantic projection rather than
+    a verbatim reproduction of your input.
   </p>
 
   <div class="source-scroll">
@@ -22,16 +22,36 @@
           [class.search-match]="rowMatchesQuery(item.row, searchQuery())"
           [attr.data-node-id]="item.row.nodeId"
           [cdkContextMenuTriggerFor]="rowActions"
-          [cdkContextMenuTriggerData]="{ $implicit: item.row.nodeId }">
-
+          [cdkContextMenuTriggerData]="{ $implicit: item.row.nodeId }"
+        >
           <span class="gutter">{{ item.row.left?.lineNumber }}</span>
           <span class="marker left-marker" aria-hidden="true">{{ leftMarker(item.row) }}</span>
-          <span class="code left" [style.--depth]="item.row.depth">@if (renderCell(item.row, 'left'); as cell) {<ng-container *ngTemplateOutlet="highlighted; context: { $implicit: cell.key ?? '' }"></ng-container>@for (seg of cell.segments; track $index) {<span [class.diff-mark]="seg.changed"><ng-container *ngTemplateOutlet="highlighted; context: { $implicit: seg.text }"></ng-container></span>}<ng-container *ngTemplateOutlet="highlighted; context: { $implicit: cell.tail }"></ng-container>}</span>
+          <span class="code left" [style.--depth]="item.row.depth">
+            @if (renderCell(item.row, 'left'); as cell) {
+              <ng-container *ngTemplateOutlet="highlighted; context: { $implicit: cell.key ?? '' }"></ng-container>
+              @for (seg of cell.segments; track $index) {
+                <span [class.diff-mark]="seg.changed"
+                  ><ng-container *ngTemplateOutlet="highlighted; context: { $implicit: seg.text }"></ng-container
+                ></span>
+              }
+              <ng-container *ngTemplateOutlet="highlighted; context: { $implicit: cell.tail }"></ng-container>
+            }
+          </span>
 
           <span class="gutter">{{ item.row.right?.lineNumber }}</span>
           <span class="marker right-marker" aria-hidden="true">{{ rightMarker(item.row) }}</span>
           <span class="code right" [style.--depth]="item.row.depth">
-            <button type="button" class="code-text" (click)="nodeSelected.emit(item.row.nodeId)">@if (renderCell(item.row, 'right'); as cell) {<ng-container *ngTemplateOutlet="highlighted; context: { $implicit: cell.key ?? '' }"></ng-container>@for (seg of cell.segments; track $index) {<span [class.diff-mark]="seg.changed"><ng-container *ngTemplateOutlet="highlighted; context: { $implicit: seg.text }"></ng-container></span>}<ng-container *ngTemplateOutlet="highlighted; context: { $implicit: cell.tail }"></ng-container>}</button>
+            <button type="button" class="code-text" (click)="nodeSelected.emit(item.row.nodeId)">
+              @if (renderCell(item.row, 'right'); as cell) {
+                <ng-container *ngTemplateOutlet="highlighted; context: { $implicit: cell.key ?? '' }"></ng-container>
+                @for (seg of cell.segments; track $index) {
+                  <span [class.diff-mark]="seg.changed"
+                    ><ng-container *ngTemplateOutlet="highlighted; context: { $implicit: seg.text }"></ng-container
+                  ></span>
+                }
+                <ng-container *ngTemplateOutlet="highlighted; context: { $implicit: cell.tail }"></ng-container>
+              }
+            </button>
             @if (item.row.arrayMatch; as match) {
               @if (item.row.reordered) {
                 <span class="reorder-pill" [title]="reorderTooltip">↕ Reordered for comparison</span>
@@ -50,7 +70,14 @@
             class="row-actions"
             [cdkMenuTriggerFor]="rowActions"
             [cdkMenuTriggerData]="{ $implicit: item.row.nodeId }"
-            aria-label="Row actions"><svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true" focusable="false"><circle cx="3" cy="7" r="1.4" fill="currentColor"/><circle cx="7" cy="7" r="1.4" fill="currentColor"/><circle cx="11" cy="7" r="1.4" fill="currentColor"/></svg></button>
+            aria-label="Row actions"
+          >
+            <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true" focusable="false">
+              <circle cx="3" cy="7" r="1.4" fill="currentColor" />
+              <circle cx="7" cy="7" r="1.4" fill="currentColor" />
+              <circle cx="11" cy="7" r="1.4" fill="currentColor" />
+            </svg>
+          </button>
         </div>
       }
     }

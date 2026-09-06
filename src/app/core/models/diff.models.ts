@@ -1,6 +1,8 @@
 export type JsonScalar = string | number | boolean | null;
 export type JsonValue = JsonScalar | JsonObject | JsonValue[];
-export interface JsonObject { [key: string]: JsonValue; }
+export interface JsonObject {
+  [key: string]: JsonValue;
+}
 
 /**
  * How a node's value changed between the two documents.

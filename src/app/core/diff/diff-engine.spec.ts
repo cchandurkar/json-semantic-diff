@@ -19,7 +19,10 @@ function byPath(root: DiffNode, path: string): DiffNode | undefined {
 
 function paths(root: DiffNode): string[] {
   const out: string[] = [];
-  const walk = (n: DiffNode) => { out.push(n.path); n.children?.forEach(walk); };
+  const walk = (n: DiffNode) => {
+    out.push(n.path);
+    n.children?.forEach(walk);
+  };
   walk(root);
   return out;
 }
@@ -72,7 +75,7 @@ describe('B. nested object change', () => {
   it('sorts object children alphabetically', () => {
     const result = run({ zeta: 1, alpha: 2, mid: 3 }, { zeta: 1, alpha: 2, mid: 3 });
 
-    expect(result.root.children?.map(c => c.label)).toEqual(['alpha', 'mid', 'zeta']);
+    expect(result.root.children?.map((c) => c.label)).toEqual(['alpha', 'mid', 'zeta']);
   });
 });
 
@@ -129,9 +132,7 @@ describe('D. array matched by id', () => {
   it('keys element paths by identity value and sorts them', () => {
     const result = run(left, right);
 
-    expect(result.root.children?.[0].children?.map(c => c.path)).toEqual([
-      '$.rows[r1]', '$.rows[r2]', '$.rows[r3]', '$.rows[r4]'
-    ]);
+    expect(result.root.children?.[0].children?.map((c) => c.path)).toEqual(['$.rows[r1]', '$.rows[r2]', '$.rows[r3]', '$.rows[r4]']);
     expect(byPath(result.root, '$.rows[r2].label')?.changeKind).toBe('modified');
     expect(byPath(result.root, '$.rows[r1]')?.changeKind).toBe('unchanged');
   });
@@ -165,16 +166,14 @@ describe('E. reordered array with one modified record', () => {
     const result = run(left, right);
 
     expect(result.arrays[0].strategy).toBe('identity');
-    expect(result.root.children?.[0].children?.map(c => c.path)).toEqual([
-      '$.rows[r1]', '$.rows[r2]', '$.rows[r3]', '$.rows[r4]'
-    ]);
+    expect(result.root.children?.[0].children?.map((c) => c.path)).toEqual(['$.rows[r1]', '$.rows[r2]', '$.rows[r3]', '$.rows[r4]']);
     expect(byPath(result.root, '$.rows[r2].label')?.changeKind).toBe('modified');
     expect(result.summary).toEqual({ added: 0, removed: 0, modified: 1, typeChanged: 0, unchanged: 7, totalChanges: 1 });
   });
 
   it('would report every position as changed if it fell back to positional matching', () => {
     // Guards the value of identity matching: positional pairing of the same data is noisy.
-    const positional = run({ rows: left.rows.map(r => r.label) }, { rows: right.rows.map(r => r.label) });
+    const positional = run({ rows: left.rows.map((r) => r.label) }, { rows: right.rows.map((r) => r.label) });
 
     expect(positional.arrays[0].strategy).toBe('position');
     expect(positional.summary.modified).toBe(4);
@@ -210,7 +209,7 @@ describe('F. composite key (store, sku)', () => {
 
   it('joins composite key values with a pipe in the node path', () => {
     const result = run(left, right);
-    const elementPaths = byPath(result.root, '$.stock')?.children?.map(c => c.path) ?? [];
+    const elementPaths = byPath(result.root, '$.stock')?.children?.map((c) => c.path) ?? [];
 
     expect(elementPaths).toHaveLength(4);
     for (const p of elementPaths) expect(p).toMatch(/^\$\.stock\[[^|\]]+\|[^|\]]+\]$/);
@@ -298,27 +297,33 @@ describe('H. ignore rules', () => {
   });
 
   it('supports a double-star wildcard that crosses segments', () => {
-    const result = run(
-      { c: { deep: { trace: 3 } } },
-      { c: { deep: { trace: 7 } } },
-      { ignorePaths: ['$.**.trace'] }
-    );
+    const result = run({ c: { deep: { trace: 3 } } }, { c: { deep: { trace: 7 } } }, { ignorePaths: ['$.**.trace'] });
 
     expect(byPath(result.root, '$.c.deep.trace')?.changeKind).toBe('unchanged');
     expect(result.summary.totalChanges).toBe(0);
   });
 
   it('supports [*] against both positional and identity bracket bodies', () => {
-    const positional = run(
-      { rows: [{ a: 1 }, { a: 2 }] },
-      { rows: [{ a: 9 }, { a: 8 }] },
-      { ignorePaths: ['$.rows[*].a'] }
-    );
+    const positional = run({ rows: [{ a: 1 }, { a: 2 }] }, { rows: [{ a: 9 }, { a: 8 }] }, { ignorePaths: ['$.rows[*].a'] });
     expect(positional.summary.totalChanges).toBe(0);
 
     const identity = run(
-      { rows: [{ id: 'r1', v: 1 }, { id: 'r2', v: 2 }, { id: 'r3', v: 3 }, { id: 'r4', v: 4 }] },
-      { rows: [{ id: 'r1', v: 9 }, { id: 'r2', v: 2 }, { id: 'r3', v: 3 }, { id: 'r4', v: 4 }] },
+      {
+        rows: [
+          { id: 'r1', v: 1 },
+          { id: 'r2', v: 2 },
+          { id: 'r3', v: 3 },
+          { id: 'r4', v: 4 }
+        ]
+      },
+      {
+        rows: [
+          { id: 'r1', v: 9 },
+          { id: 'r2', v: 2 },
+          { id: 'r3', v: 3 },
+          { id: 'r4', v: 4 }
+        ]
+      },
       { ignorePaths: ['$.rows[*].v'] }
     );
     expect(identity.arrays[0].strategy).toBe('identity');
@@ -341,11 +346,7 @@ describe('I. timestamp normalization', () => {
   });
 
   it('reports them as modified when disabled', () => {
-    const result = run(
-      { at: '2026-09-04T14:00:00Z' },
-      { at: '2026-09-04T10:00:00-04:00' },
-      { normalizeTimestamps: false }
-    );
+    const result = run({ at: '2026-09-04T14:00:00Z' }, { at: '2026-09-04T10:00:00-04:00' }, { normalizeTimestamps: false });
 
     expect(byPath(result.root, '$.at')?.changeKind).toBe('modified');
   });
@@ -365,10 +366,7 @@ describe('I. timestamp normalization', () => {
   });
 
   it('normalizes timestamps nested inside arrays and objects', () => {
-    const result = run(
-      { wrap: [{ at: '2026-09-04T14:00:00Z' }] },
-      { wrap: [{ at: '2026-09-04T10:00:00-04:00' }] }
-    );
+    const result = run({ wrap: [{ at: '2026-09-04T14:00:00Z' }] }, { wrap: [{ at: '2026-09-04T10:00:00-04:00' }] });
 
     expect(result.summary.totalChanges).toBe(0);
   });
@@ -389,11 +387,7 @@ describe('J. numeric-string normalization', () => {
   });
 
   it('handles surrounding whitespace, negatives and decimals', () => {
-    const result = run(
-      { a: ' -3 ', b: '2.50', c: '2.5' },
-      { a: -3, b: 2.5, c: 2.5 },
-      { normalizeNumbers: true }
-    );
+    const result = run({ a: ' -3 ', b: '2.50', c: '2.5' }, { a: -3, b: 2.5, c: 2.5 }, { normalizeNumbers: true });
 
     expect(result.summary.totalChanges).toBe(0);
   });
@@ -472,12 +466,9 @@ describe('result shape', () => {
   });
 
   it('collects one analysis entry per compared array in document order', () => {
-    const result = run(
-      { first: [1], nested: { second: [2] } },
-      { first: [1], nested: { second: [2] } }
-    );
+    const result = run({ first: [1], nested: { second: [2] } }, { first: [1], nested: { second: [2] } });
 
-    expect(result.arrays.map(a => a.path)).toEqual(['$.first', '$.nested.second']);
+    expect(result.arrays.map((a) => a.path)).toEqual(['$.first', '$.nested.second']);
   });
 
   it('reports elapsedMs as a number', () => {
@@ -513,15 +504,32 @@ describe('nodeKind', () => {
 describe('id', () => {
   it('equals path for every non-identity segment', () => {
     const result = run({ a: { b: [1] } }, { a: { b: [2] } });
-    const check = (n: DiffNode) => { expect(n.id).toBe(n.path); n.children?.forEach(check); };
+    const check = (n: DiffNode) => {
+      expect(n.id).toBe(n.path);
+      n.children?.forEach(check);
+    };
 
     check(result.root);
   });
 
   it('spells out the key path on identity-matched elements', () => {
     const result = run(
-      { users: [{ userId: 101, v: 1 }, { userId: 102, v: 2 }, { userId: 103, v: 3 }, { userId: 104, v: 4 }] },
-      { users: [{ userId: 101, v: 1 }, { userId: 102, v: 9 }, { userId: 103, v: 3 }, { userId: 104, v: 4 }] }
+      {
+        users: [
+          { userId: 101, v: 1 },
+          { userId: 102, v: 2 },
+          { userId: 103, v: 3 },
+          { userId: 104, v: 4 }
+        ]
+      },
+      {
+        users: [
+          { userId: 101, v: 1 },
+          { userId: 102, v: 9 },
+          { userId: 103, v: 3 },
+          { userId: 104, v: 4 }
+        ]
+      }
     );
 
     expect(byPath(result.root, '$.users[102]')?.id).toBe('$.users[userId=102]');
@@ -530,10 +538,24 @@ describe('id', () => {
 
   it('joins composite key paths with a semicolon', () => {
     const result = run(
-      { stock: [{ store: 'NYC', sku: 'A1', qty: 1 }, { store: 'NYC', sku: 'B2', qty: 2 }, { store: 'LAX', sku: 'A1', qty: 3 }, { store: 'LAX', sku: 'B2', qty: 4 }] },
-      { stock: [{ store: 'LAX', sku: 'B2', qty: 4 }, { store: 'NYC', sku: 'A1', qty: 1 }, { store: 'LAX', sku: 'A1', qty: 99 }, { store: 'NYC', sku: 'B2', qty: 2 }] }
+      {
+        stock: [
+          { store: 'NYC', sku: 'A1', qty: 1 },
+          { store: 'NYC', sku: 'B2', qty: 2 },
+          { store: 'LAX', sku: 'A1', qty: 3 },
+          { store: 'LAX', sku: 'B2', qty: 4 }
+        ]
+      },
+      {
+        stock: [
+          { store: 'LAX', sku: 'B2', qty: 4 },
+          { store: 'NYC', sku: 'A1', qty: 1 },
+          { store: 'LAX', sku: 'A1', qty: 99 },
+          { store: 'NYC', sku: 'B2', qty: 2 }
+        ]
+      }
     );
-    const ids = byPath(result.root, '$.stock')?.children?.map(c => c.id) ?? [];
+    const ids = byPath(result.root, '$.stock')?.children?.map((c) => c.id) ?? [];
 
     expect(ids).toHaveLength(4);
     for (const id of ids) expect(id).toMatch(/^\$\.stock\[\w+=[^;\]]+;\w+=[^;\]]+\]$/);
@@ -543,16 +565,16 @@ describe('id', () => {
 describe('hasChanges', () => {
   it('is false throughout a fully unchanged tree', () => {
     const result = run({ a: { b: { c: 1 } } }, { a: { b: { c: 1 } } });
-    const check = (n: DiffNode) => { expect(n.hasChanges).toBe(false); n.children?.forEach(check); };
+    const check = (n: DiffNode) => {
+      expect(n.hasChanges).toBe(false);
+      n.children?.forEach(check);
+    };
 
     check(result.root);
   });
 
   it('is true only along the path to a deep change', () => {
-    const result = run(
-      { a: { b: { c: 1 } }, sibling: { untouched: true } },
-      { a: { b: { c: 2 } }, sibling: { untouched: true } }
-    );
+    const result = run({ a: { b: { c: 1 } }, sibling: { untouched: true } }, { a: { b: { c: 2 } }, sibling: { untouched: true } });
 
     expect(result.root.hasChanges).toBe(true);
     expect(byPath(result.root, '$.a')?.hasChanges).toBe(true);
@@ -571,10 +593,7 @@ describe('hasChanges', () => {
   });
 
   it('agrees with changeKind on every node', () => {
-    const result = run(
-      { a: 1, b: { c: 2 }, d: [1, 2] },
-      { a: 9, b: { c: 2 }, d: [1, 3] }
-    );
+    const result = run({ a: 1, b: { c: 2 }, d: [1, 2] }, { a: 9, b: { c: 2 }, d: [1, 3] });
     const check = (n: DiffNode) => {
       if (n.changeKind !== 'unchanged') expect(n.hasChanges).toBe(true);
       if (!n.children?.length && n.changeKind === 'unchanged') expect(n.hasChanges).toBe(false);
@@ -617,7 +636,11 @@ describe('leftIndex / rightIndex', () => {
   });
 
   it('omits the index on the side where the record is absent', () => {
-    const three = [{ userId: 101, name: 'Alice' }, { userId: 102, name: 'Bob' }, { userId: 103, name: 'Cara' }];
+    const three = [
+      { userId: 101, name: 'Alice' },
+      { userId: 102, name: 'Bob' },
+      { userId: 103, name: 'Cara' }
+    ];
     const four = [...three, { userId: 104, name: 'Diego' }];
 
     const added = run({ users: three }, { users: four });
@@ -679,8 +702,21 @@ describe('reordered', () => {
 describe('ArrayMatchOutcome', () => {
   it('identity-applied when inference succeeded', () => {
     const result = run(
-      { users: [{ userId: 101, name: 'Alice' }, { userId: 102, name: 'Bob' }, { userId: 103, name: 'Cara' }] },
-      { users: [{ userId: 101, name: 'Alice' }, { userId: 102, name: 'Bobby' }, { userId: 103, name: 'Cara' }, { userId: 104, name: 'Diego' }] }
+      {
+        users: [
+          { userId: 101, name: 'Alice' },
+          { userId: 102, name: 'Bob' },
+          { userId: 103, name: 'Cara' }
+        ]
+      },
+      {
+        users: [
+          { userId: 101, name: 'Alice' },
+          { userId: 102, name: 'Bobby' },
+          { userId: 103, name: 'Cara' },
+          { userId: 104, name: 'Diego' }
+        ]
+      }
     );
 
     expect(result.arrays[0].outcome).toBe('identity-applied');
@@ -690,8 +726,20 @@ describe('ArrayMatchOutcome', () => {
 
   it('ambiguous when two candidates tie', () => {
     const result = run(
-      { rows: [{ uuid: 'u1', guid: 'g1', p: 'a' }, { uuid: 'u2', guid: 'g2', p: 'b' }, { uuid: 'u3', guid: 'g3', p: 'c' }] },
-      { rows: [{ uuid: 'u1', guid: 'g1', p: 'a' }, { uuid: 'u2', guid: 'g2', p: 'B' }, { uuid: 'u3', guid: 'g3', p: 'c' }] }
+      {
+        rows: [
+          { uuid: 'u1', guid: 'g1', p: 'a' },
+          { uuid: 'u2', guid: 'g2', p: 'b' },
+          { uuid: 'u3', guid: 'g3', p: 'c' }
+        ]
+      },
+      {
+        rows: [
+          { uuid: 'u1', guid: 'g1', p: 'a' },
+          { uuid: 'u2', guid: 'g2', p: 'B' },
+          { uuid: 'u3', guid: 'g3', p: 'c' }
+        ]
+      }
     );
 
     expect(result.arrays[0].inference?.ambiguous).toBe(true);
@@ -738,12 +786,22 @@ describe('DiffResult aggregates', () => {
   it('counts auto-matched and uncertain arrays', () => {
     const result = run(
       {
-        matched: [{ userId: 101, name: 'Alice' }, { userId: 102, name: 'Bob' }, { userId: 103, name: 'Cara' }, { userId: 104, name: 'Diego' }],
+        matched: [
+          { userId: 101, name: 'Alice' },
+          { userId: 102, name: 'Bob' },
+          { userId: 103, name: 'Cara' },
+          { userId: 104, name: 'Diego' }
+        ],
         weak: [{ a: 1 }, { a: 2 }],
         scalars: [1, 2]
       },
       {
-        matched: [{ userId: 104, name: 'Diego' }, { userId: 103, name: 'Cara' }, { userId: 102, name: 'Bobby' }, { userId: 101, name: 'Alice' }],
+        matched: [
+          { userId: 104, name: 'Diego' },
+          { userId: 103, name: 'Cara' },
+          { userId: 102, name: 'Bobby' },
+          { userId: 101, name: 'Alice' }
+        ],
         weak: [{ a: 1 }, { a: 3 }],
         scalars: [1, 3]
       }
@@ -756,18 +814,31 @@ describe('DiffResult aggregates', () => {
 
   it('prefers an identity-matched array as the primary analysis', () => {
     const result = run(
-      { weak: [{ a: 1 }, { a: 2 }], matched: [{ userId: 101, name: 'Alice' }, { userId: 102, name: 'Bob' }, { userId: 103, name: 'Cara' }, { userId: 104, name: 'Diego' }] },
-      { weak: [{ a: 1 }, { a: 3 }], matched: [{ userId: 104, name: 'Diego' }, { userId: 103, name: 'Cara' }, { userId: 102, name: 'Bobby' }, { userId: 101, name: 'Alice' }] }
+      {
+        weak: [{ a: 1 }, { a: 2 }],
+        matched: [
+          { userId: 101, name: 'Alice' },
+          { userId: 102, name: 'Bob' },
+          { userId: 103, name: 'Cara' },
+          { userId: 104, name: 'Diego' }
+        ]
+      },
+      {
+        weak: [{ a: 1 }, { a: 3 }],
+        matched: [
+          { userId: 104, name: 'Diego' },
+          { userId: 103, name: 'Cara' },
+          { userId: 102, name: 'Bobby' },
+          { userId: 101, name: 'Alice' }
+        ]
+      }
     );
 
     expect(result.primaryAnalysis?.path).toBe('$.matched');
   });
 
   it('falls back to an inferred-but-rejected array, then to the first array', () => {
-    const inferred = run(
-      { scalars: [1, 2], weak: [{ a: 1 }, { a: 2 }] },
-      { scalars: [1, 3], weak: [{ a: 1 }, { a: 3 }] }
-    );
+    const inferred = run({ scalars: [1, 2], weak: [{ a: 1 }, { a: 2 }] }, { scalars: [1, 3], weak: [{ a: 1 }, { a: 3 }] });
     expect(inferred.primaryAnalysis?.path).toBe('$.weak');
 
     const positionalOnly = run({ x: [1, 2], y: [3] }, { x: [1, 9], y: [4] });
@@ -782,8 +853,21 @@ describe('DiffResult aggregates', () => {
 describe('CandidateStats.completeness', () => {
   it('is the mean of the per-side completeness values', () => {
     const result = run(
-      { users: [{ userId: 101, name: 'Alice' }, { userId: 102, name: 'Bob' }, { userId: 103, name: 'Cara' }] },
-      { users: [{ userId: 101, name: 'Alice' }, { userId: 102, name: 'Bobby' }, { userId: 103, name: 'Cara' }, { userId: 104, name: 'Diego' }] }
+      {
+        users: [
+          { userId: 101, name: 'Alice' },
+          { userId: 102, name: 'Bob' },
+          { userId: 103, name: 'Cara' }
+        ]
+      },
+      {
+        users: [
+          { userId: 101, name: 'Alice' },
+          { userId: 102, name: 'Bobby' },
+          { userId: 103, name: 'Cara' },
+          { userId: 104, name: 'Diego' }
+        ]
+      }
     );
     const best = result.arrays[0].inference?.best;
 

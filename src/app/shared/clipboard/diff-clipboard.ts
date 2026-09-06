@@ -64,7 +64,7 @@ export function formatValue(value: JsonValue | undefined): string {
  * Added and removed subtrees are leaves and do carry raw, so those are exact.
  */
 export function readSide(node: DiffNode, side: DiffSide): JsonValue | undefined {
-  return side === 'left' ? node.leftRaw ?? node.left : node.rightRaw ?? node.right;
+  return side === 'left' ? (node.leftRaw ?? node.left) : (node.rightRaw ?? node.right);
 }
 
 /** The old (ORIGINAL) value. Empty string on an added node, which has no old side. */
@@ -151,7 +151,7 @@ export function diffNodeActions(node: DiffNode): Record<DiffNodeAction, boolean>
 /** The same rules as an ordered list, for menus that just iterate. */
 export function availableDiffNodeActions(node: DiffNode): DiffNodeAction[] {
   const actions = diffNodeActions(node);
-  return (Object.keys(actions) as DiffNodeAction[]).filter(action => actions[action]);
+  return (Object.keys(actions) as DiffNodeAction[]).filter((action) => actions[action]);
 }
 
 function isSingleLine(text: string): boolean {
@@ -159,5 +159,8 @@ function isSingleLine(text: string): boolean {
 }
 
 function prefixLines(text: string, prefix: string): string {
-  return text.split('\n').map(line => `${prefix}${line}`).join('\n');
+  return text
+    .split('\n')
+    .map((line) => `${prefix}${line}`)
+    .join('\n');
 }

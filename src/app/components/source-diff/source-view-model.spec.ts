@@ -2,7 +2,16 @@ import { describe, expect, it } from 'vitest';
 import { DEFAULT_DIFF_OPTIONS, DiffOptions, DiffResult, JsonValue, diffJson } from '../../core/diff';
 import { EXAMPLE_LEFT, EXAMPLE_RIGHT } from '../../core/diff/example-data.fixture';
 import { DEFAULT_CONTEXT_LINES, SourceDiffRow, SourceSegment, emitSourceRows, flattenChanges, segmentRows } from '../../source';
-import { REORDER_TOOLTIP, SourceViewItem, buildItems, changeLabel, collapsedKeyContaining, leftMarker, matchSummary, rightMarker } from './source-view-model';
+import {
+  REORDER_TOOLTIP,
+  SourceViewItem,
+  buildItems,
+  changeLabel,
+  collapsedKeyContaining,
+  leftMarker,
+  matchSummary,
+  rightMarker
+} from './source-view-model';
 
 function run(left: JsonValue, right: JsonValue, overrides: Partial<DiffOptions> = {}): DiffResult {
   return diffJson(left, right, { ...DEFAULT_DIFF_OPTIONS, ...overrides });
@@ -15,7 +24,7 @@ function view(result: DiffResult, changesOnly = false): SourceSegment[] {
 }
 
 function rowsOf(items: SourceViewItem[]): SourceDiffRow[] {
-  return items.flatMap(item => (item.kind === 'row' ? [item.row] : []));
+  return items.flatMap((item) => (item.kind === 'row' ? [item.row] : []));
 }
 
 const NONE: ReadonlySet<string> = new Set();
@@ -23,7 +32,7 @@ const NONE: ReadonlySet<string> = new Set();
 describe('A. scalar modification', () => {
   it('carries both values and the canonical node id on one row', () => {
     const rows = rowsOf(buildItems(view(run({ status: 'active' }, { status: 'inactive' })), NONE));
-    const modified = rows.find(r => r.changeKind === 'modified');
+    const modified = rows.find((r) => r.changeKind === 'modified');
 
     expect(modified?.nodeId).toBe('$.status');
     expect(modified?.left?.text).toBe('"status": "active"');
@@ -37,7 +46,7 @@ describe('A. scalar modification', () => {
 describe('B. added property', () => {
   it('has no left cell, so the left gutter renders blank', () => {
     const rows = rowsOf(buildItems(view(run({ a: 1 }, { a: 1, b: 2 })), NONE));
-    const added = rows.find(r => r.changeKind === 'added');
+    const added = rows.find((r) => r.changeKind === 'added');
 
     expect(added?.left).toBeUndefined();
     expect(added?.right).toMatchObject({ lineNumber: 3, text: '"b": 2' });
@@ -50,7 +59,7 @@ describe('B. added property', () => {
 describe('C. removed property', () => {
   it('has no right cell, so the right gutter renders blank', () => {
     const rows = rowsOf(buildItems(view(run({ a: 1, b: 2 }, { a: 1 })), NONE));
-    const removed = rows.find(r => r.changeKind === 'removed');
+    const removed = rows.find((r) => r.changeKind === 'removed');
 
     expect(removed?.right).toBeUndefined();
     expect(removed?.left).toMatchObject({ lineNumber: 3, text: '"b": 2' });
@@ -61,16 +70,28 @@ describe('C. removed property', () => {
 });
 
 describe('D. reordered array matched by id', () => {
-  const left = { users: [{ userId: 101, name: 'Alice' }, { userId: 102, name: 'Bob' }, { userId: 103, name: 'Cara' }] };
-  const right = { users: [{ userId: 103, name: 'Cara' }, { userId: 102, name: 'Bobby' }, { userId: 101, name: 'Alice' }] };
+  const left = {
+    users: [
+      { userId: 101, name: 'Alice' },
+      { userId: 102, name: 'Bob' },
+      { userId: 103, name: 'Cara' }
+    ]
+  };
+  const right = {
+    users: [
+      { userId: 103, name: 'Cara' },
+      { userId: 102, name: 'Bobby' },
+      { userId: 101, name: 'Alice' }
+    ]
+  };
 
   it('produces no reorder noise and exactly one highlighted change', () => {
     const rows = rowsOf(buildItems(view(run(left, right)), NONE));
 
-    expect(rows.filter(r => r.changeKind === 'added')).toHaveLength(0);
-    expect(rows.filter(r => r.changeKind === 'removed')).toHaveLength(0);
+    expect(rows.filter((r) => r.changeKind === 'added')).toHaveLength(0);
+    expect(rows.filter((r) => r.changeKind === 'removed')).toHaveLength(0);
 
-    const modified = rows.filter(r => r.changeKind === 'modified');
+    const modified = rows.filter((r) => r.changeKind === 'modified');
     expect(modified).toHaveLength(1);
     expect(modified[0].left?.text).toBe('"name": "Bob",');
     expect(modified[0].right?.text).toBe('"name": "Bobby",');
@@ -79,13 +100,13 @@ describe('D. reordered array matched by id', () => {
   it('aligns both gutters line for line', () => {
     const rows = rowsOf(buildItems(view(run(left, right)), NONE));
 
-    expect(rows.every(r => r.left && r.right)).toBe(true);
-    expect(rows.every(r => r.left!.lineNumber === r.right!.lineNumber)).toBe(true);
+    expect(rows.every((r) => r.left && r.right)).toBe(true);
+    expect(rows.every((r) => r.left!.lineNumber === r.right!.lineNumber)).toBe(true);
   });
 
   it('renders the matching metadata from the core analysis without recomputing it', () => {
     const rows = rowsOf(buildItems(view(run(left, right)), NONE));
-    const arrayOpen = rows.find(r => r.arrayMatch);
+    const arrayOpen = rows.find((r) => r.arrayMatch);
 
     expect(arrayOpen?.reordered).toBe(true);
     expect(matchSummary(arrayOpen!.arrayMatch!)).toMatch(/^Matched by userId · \d+% · reordered$/);
@@ -100,30 +121,34 @@ describe('D. reordered array matched by id', () => {
   it('is not flagged as reordered when the order already matches', () => {
     const rows = rowsOf(buildItems(view(run(left, left)), NONE));
 
-    expect(rows.some(r => r.reordered)).toBe(false);
+    expect(rows.some((r) => r.reordered)).toBe(false);
   });
 });
 
 describe('E. composite key (store, sku)', () => {
   const left = {
     stock: [
-      { store: 'NYC', sku: 'A1', qty: 1 }, { store: 'NYC', sku: 'B2', qty: 2 },
-      { store: 'LAX', sku: 'A1', qty: 3 }, { store: 'LAX', sku: 'B2', qty: 4 }
+      { store: 'NYC', sku: 'A1', qty: 1 },
+      { store: 'NYC', sku: 'B2', qty: 2 },
+      { store: 'LAX', sku: 'A1', qty: 3 },
+      { store: 'LAX', sku: 'B2', qty: 4 }
     ]
   };
   const right = {
     stock: [
-      { store: 'LAX', sku: 'B2', qty: 4 }, { store: 'NYC', sku: 'A1', qty: 1 },
-      { store: 'LAX', sku: 'A1', qty: 99 }, { store: 'NYC', sku: 'B2', qty: 2 }
+      { store: 'LAX', sku: 'B2', qty: 4 },
+      { store: 'NYC', sku: 'A1', qty: 1 },
+      { store: 'LAX', sku: 'A1', qty: 99 },
+      { store: 'NYC', sku: 'B2', qty: 2 }
     ]
   };
 
   it('highlights only the one matched record property that changed', () => {
     const rows = rowsOf(buildItems(view(run(left, right)), NONE));
-    const modified = rows.filter(r => r.changeKind === 'modified');
+    const modified = rows.filter((r) => r.changeKind === 'modified');
 
-    expect(rows.filter(r => r.changeKind === 'added')).toHaveLength(0);
-    expect(rows.filter(r => r.changeKind === 'removed')).toHaveLength(0);
+    expect(rows.filter((r) => r.changeKind === 'added')).toHaveLength(0);
+    expect(rows.filter((r) => r.changeKind === 'removed')).toHaveLength(0);
     expect(modified).toHaveLength(1);
     expect(modified[0].left?.value).toBe('3');
     expect(modified[0].right?.value).toBe('99');
@@ -131,7 +156,7 @@ describe('E. composite key (store, sku)', () => {
 
   it('advertises both key paths in the match pill', () => {
     const rows = rowsOf(buildItems(view(run(left, right)), NONE));
-    const arrayOpen = rows.find(r => r.arrayMatch);
+    const arrayOpen = rows.find((r) => r.arrayMatch);
 
     expect(matchSummary(arrayOpen!.arrayMatch!)).toMatch(/Matched by (store \+ sku|sku \+ store)/);
   });
@@ -142,17 +167,17 @@ describe('F. ignore rule', () => {
 
   it('marks ignored rows as unchanged and labels them Ignored', () => {
     const rows = rowsOf(buildItems(view(result), NONE));
-    const ignored = rows.filter(r => r.ignored);
+    const ignored = rows.filter((r) => r.ignored);
 
     expect(ignored.length).toBeGreaterThan(0);
-    expect(ignored.every(r => r.changeKind === 'unchanged')).toBe(true);
-    expect(ignored.every(r => changeLabel(r) === 'Ignored')).toBe(true);
-    expect(ignored.every(r => leftMarker(r) === '' && rightMarker(r) === '')).toBe(true);
+    expect(ignored.every((r) => r.changeKind === 'unchanged')).toBe(true);
+    expect(ignored.every((r) => changeLabel(r) === 'Ignored')).toBe(true);
+    expect(ignored.every((r) => leftMarker(r) === '' && rightMarker(r) === '')).toBe(true);
   });
 
   it('still shows both sides of the ignored value as context', () => {
     const rows = rowsOf(buildItems(view(result), NONE));
-    const inner = rows.find(r => r.ignored && r.role === 'value');
+    const inner = rows.find((r) => r.ignored && r.role === 'value');
 
     expect(inner?.left?.text).toBe('"x": 1');
     expect(inner?.right?.text).toBe('"x": 9');
@@ -163,7 +188,7 @@ describe('F. ignore rule', () => {
 
     expect(flattenChanges(result.root)).toEqual(['$.a']);
     expect(result.summary.totalChanges).toBe(1);
-    expect(rows.filter(r => r.changeKind !== 'unchanged')).toHaveLength(1);
+    expect(rows.filter((r) => r.changeKind !== 'unchanged')).toHaveLength(1);
   });
 });
 
@@ -178,13 +203,13 @@ describe('G. changes-only collapse', () => {
   it('collapses unchanged runs and keeps the change visible', () => {
     const items = buildItems(view(result, true), NONE);
 
-    expect(items.some(i => i.kind === 'collapsed')).toBe(true);
-    expect(rowsOf(items).some(r => r.right?.text === '"k15": 999,')).toBe(true);
+    expect(items.some((i) => i.kind === 'collapsed')).toBe(true);
+    expect(rowsOf(items).some((r) => r.right?.text === '"k15": 999,')).toBe(true);
   });
 
   it('reports hiddenLines matching the rows revealed on expansion', () => {
     const segments = view(result, true);
-    const collapsed = buildItems(segments, NONE).filter(i => i.kind === 'collapsed');
+    const collapsed = buildItems(segments, NONE).filter((i) => i.kind === 'collapsed');
 
     for (const placeholder of collapsed) {
       if (placeholder.kind !== 'collapsed') continue;
@@ -196,19 +221,19 @@ describe('G. changes-only collapse', () => {
 
   it('expands one region without disturbing the others', () => {
     const segments = view(result, true);
-    const first = buildItems(segments, NONE).find(i => i.kind === 'collapsed');
+    const first = buildItems(segments, NONE).find((i) => i.kind === 'collapsed');
     expect(first?.kind).toBe('collapsed');
     if (first?.kind !== 'collapsed') return;
 
     const after = buildItems(segments, new Set([first.key]));
-    expect(after.some(i => i.kind === 'collapsed')).toBe(true);
-    expect(after.some(i => i.kind === 'collapsed' && i.key === first.key)).toBe(false);
+    expect(after.some((i) => i.kind === 'collapsed')).toBe(true);
+    expect(after.some((i) => i.kind === 'collapsed' && i.key === first.key)).toBe(false);
   });
 
   it('shows every row and no placeholders when changes-only is off', () => {
     const items = buildItems(view(result, false), NONE);
 
-    expect(items.every(i => i.kind === 'row')).toBe(true);
+    expect(items.every((i) => i.kind === 'row')).toBe(true);
     expect(rowsOf(items)).toHaveLength(emitSourceRows(result).length);
   });
 
@@ -221,10 +246,7 @@ describe('G. changes-only collapse', () => {
   });
 
   it('keeps each pane balanced, never splitting a brace pair', () => {
-    const nested = run(
-      { outer: build(20), tail: 1 } as JsonValue,
-      { outer: { ...build(20), k10: 999 }, tail: 1 } as JsonValue
-    );
+    const nested = run({ outer: build(20), tail: 1 } as JsonValue, { outer: { ...build(20), k10: 999 }, tail: 1 } as JsonValue);
 
     let depth = 0;
     for (const row of rowsOf(buildItems(view(nested, true), NONE))) {
@@ -247,11 +269,11 @@ describe('H/I. selection sync', () => {
     const rows = rowsOf(buildItems(view(result), NONE));
     const target = '$.users[userId=102].status';
 
-    expect(rows.filter(r => r.nodeId === target).length).toBeGreaterThan(0);
+    expect(rows.filter((r) => r.nodeId === target).length).toBeGreaterThan(0);
   });
 
   it('Source -> Tree: every emitted row id is navigable from the change list or the tree', () => {
-    const ids = new Set(rowsOf(buildItems(view(result), NONE)).map(r => r.nodeId));
+    const ids = new Set(rowsOf(buildItems(view(result), NONE)).map((r) => r.nodeId));
 
     for (const changeId of flattenChanges(result.root)) expect(ids.has(changeId)).toBe(true);
   });
@@ -259,11 +281,11 @@ describe('H/I. selection sync', () => {
   it('finds the collapsed region holding a node that is not currently rendered', () => {
     const segments = view(result, true);
     const target = '$.users[userId=101].name';
-    expect(rowsOf(buildItems(segments, NONE)).some(r => r.nodeId === target)).toBe(false);
+    expect(rowsOf(buildItems(segments, NONE)).some((r) => r.nodeId === target)).toBe(false);
 
     const key = collapsedKeyContaining(segments, target, NONE);
     expect(key).toBeDefined();
-    expect(rowsOf(buildItems(segments, new Set([key!]))).some(r => r.nodeId === target)).toBe(true);
+    expect(rowsOf(buildItems(segments, new Set([key!]))).some((r) => r.nodeId === target)).toBe(true);
   });
 
   it('returns undefined when the node is already visible or unknown', () => {
@@ -288,6 +310,6 @@ describe('accessibility labels', () => {
   it('leaves unchanged rows unlabelled', () => {
     const rows = rowsOf(buildItems(view(run({ a: 1 }, { a: 1 })), NONE));
 
-    expect(rows.every(r => changeLabel(r) === '')).toBe(true);
+    expect(rows.every((r) => changeLabel(r) === '')).toBe(true);
   });
 });

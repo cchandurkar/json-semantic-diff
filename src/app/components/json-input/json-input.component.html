@@ -6,11 +6,31 @@
     </div>
     <div class="header-actions">
       <button type="button" class="file-button" [disabled]="!value().trim()" (click)="format()" aria-label="Format JSON" title="Format">
-        <svg width="15" height="15" viewBox="0 0 512 512" aria-hidden="true" focusable="false"><path d="M 0,32 v 64 h 416 v -64 z M 160,160 v 64 h 352 v -64 z M 160,288 v 64 h 288 v -64 z M 0,416 v 64 h 320 v -64 z" fill="currentColor"/></svg>
+        <svg width="15" height="15" viewBox="0 0 512 512" aria-hidden="true" focusable="false">
+          <path
+            d="M 0,32 v 64 h 416 v -64 z M 160,160 v 64 h 352 v -64 z M 160,288 v 64 h 288 v -64 z M 0,416 v 64 h 320 v -64 z"
+            fill="currentColor"
+          />
+        </svg>
       </button>
       <label class="file-button" aria-label="Open file" title="Open file">
-        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-upload"><path d="M12 3v12"/><path d="m17 8-5-5-5 5"/><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/></svg>
-        <input type="file" accept=".json,application/json" (change)="fileSelected($event)" hidden>
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="15"
+          height="15"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          class="lucide lucide-upload"
+        >
+          <path d="M12 3v12" />
+          <path d="m17 8-5-5-5 5" />
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+        </svg>
+        <input type="file" accept=".json,application/json" (change)="fileSelected($event)" hidden />
       </label>
     </div>
   </div>
@@ -23,7 +43,8 @@
     [ariaLabel]="label() + ' JSON'"
     placeholder="Paste JSON here, or drop a .json file"
     (dragover)="$event.preventDefault()"
-    (drop)="dropFile($event)"></app-code-editor>
+    (drop)="dropFile($event)"
+  ></app-code-editor>
   @if (error()) {
     <div class="parse-error">{{ error() }}</div>
   }

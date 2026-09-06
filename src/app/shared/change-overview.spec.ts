@@ -10,7 +10,7 @@ function totalCount(areas: ChangeAreaNode[]): number {
 
 /** Flattens every area (at any depth) into a single list, for lookups by path. */
 function flatten(areas: ChangeAreaNode[]): ChangeAreaNode[] {
-  return areas.flatMap(area => [area, ...flatten(area.children)]);
+  return areas.flatMap((area) => [area, ...flatten(area.children)]);
 }
 
 describe('buildChangeOverview', () => {
@@ -21,8 +21,8 @@ describe('buildChangeOverview', () => {
 
     const areas = buildChangeOverview(root);
 
-    expect(areas.map(a => a.label)).toEqual(['zebra', 'apple']);
-    expect(areas.map(a => a.count)).toEqual([1, 1]);
+    expect(areas.map((a) => a.label)).toEqual(['zebra', 'apple']);
+    expect(areas.map((a) => a.count)).toEqual([1, 1]);
   });
 
   it('groups nested changes under one top-level area, in natural (not alphabetical) order', () => {
@@ -36,7 +36,7 @@ describe('buildChangeOverview', () => {
     const [users] = areas;
     expect(users.label).toBe('users');
     expect(users.count).toBe(users.children.reduce((sum, c) => sum + c.count, 0));
-    expect(users.children.map(c => c.label)).toEqual(['zebra', 'apple']);
+    expect(users.children.map((c) => c.label)).toEqual(['zebra', 'apple']);
   });
 
   it('gives every level a count equal to its actual number of leaf changes, summing to the summary total', () => {
@@ -62,10 +62,10 @@ describe('buildChangeOverview', () => {
     const areas = buildChangeOverview(result.root);
     const all = flatten(areas);
 
-    expect(all.some(a => a.path === '$.user.secret')).toBe(false);
-    const user = areas.find(a => a.path === '$.user');
+    expect(all.some((a) => a.path === '$.user.secret')).toBe(false);
+    const user = areas.find((a) => a.path === '$.user');
     expect(user?.count).toBe(1);
-    expect(user?.children.map(c => c.path)).toEqual(['$.user.name']);
+    expect(user?.children.map((c) => c.path)).toEqual(['$.user.name']);
   });
 
   it('every area nodeId resolves back to the canonical diff node it describes', () => {

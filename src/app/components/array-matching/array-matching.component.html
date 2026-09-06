@@ -2,7 +2,7 @@
   <app-array-picker [arrays]="arrayAnalyses()" [selectedPath]="context.analysis.path" (pathSelected)="chooseArray($event)" />
 
   <label class="toggle-row" [class.is-active]="strategy() === 'auto'">
-    <input type="radio" name="matching-strategy" [checked]="strategy() === 'auto'" (change)="strategy.set('auto')">
+    <input type="radio" name="matching-strategy" [checked]="strategy() === 'auto'" (change)="strategy.set('auto')" />
     <span class="toggle-text">
       <span class="toggle-name">Auto</span>
       <span class="toggle-hint">DiffLens chooses the best identity.</span>
@@ -10,7 +10,7 @@
   </label>
 
   <label class="toggle-row" [class.is-active]="strategy() === 'key'">
-    <input type="radio" name="matching-strategy" [checked]="strategy() === 'key'" (change)="strategy.set('key')">
+    <input type="radio" name="matching-strategy" [checked]="strategy() === 'key'" (change)="strategy.set('key')" />
     <span class="toggle-text">
       <span class="toggle-name">Match by fields</span>
       <span class="toggle-hint">Pick one or more fields that identify a record.</span>
@@ -22,7 +22,7 @@
       <div class="field-list" role="group" aria-label="Matching fields">
         @for (field of eligibleFields(); track field) {
           <label class="field">
-            <input type="checkbox" [checked]="isSelected(field)" (change)="toggleField(field)">
+            <input type="checkbox" [checked]="isSelected(field)" (change)="toggleField(field)" />
             <span class="field-name">{{ field }}</span>
             @if (fieldScores()[field] !== undefined) {
               <span class="field-score">{{ percent(fieldScores()[field]) }}</span>
@@ -35,13 +35,10 @@
       </div>
 
       @if (draftStats(); as stats) {
-        <p class="draft-stats">
-          Unique: {{ percent(meanUniqueness(stats)) }} · Complete: {{ percent(stats.completeness) }}
-        </p>
+        <p class="draft-stats">Unique: {{ percent(meanUniqueness(stats)) }} · Complete: {{ percent(stats.completeness) }}</p>
         @if (isNotUnique(stats)) {
           <p class="matching-warning">
-            ⚠ This key is not unique for all records. Rows sharing a key are matched in document order within
-            that key.
+            ⚠ This key is not unique for all records. Rows sharing a key are matched in document order within that key.
           </p>
         }
       }
@@ -51,7 +48,7 @@
   }
 
   <label class="toggle-row" [class.is-active]="strategy() === 'position'">
-    <input type="radio" name="matching-strategy" [checked]="strategy() === 'position'" (change)="strategy.set('position')">
+    <input type="radio" name="matching-strategy" [checked]="strategy() === 'position'" (change)="strategy.set('position')" />
     <span class="toggle-text">
       <span class="toggle-name">Position</span>
       <span class="toggle-hint">Compare elements by array position.</span>
@@ -60,9 +57,8 @@
 
   @if (context.analysis.duplicateKeyCount) {
     <p class="matching-warning">
-      ⚠ {{ context.analysis.duplicateKeyCount }}
-      duplicate {{ context.analysis.duplicateKeyCount === 1 ? 'key' : 'keys' }} in the applied match — rows
-      sharing a key are paired in document order.
+      ⚠ {{ context.analysis.duplicateKeyCount }} duplicate {{ context.analysis.duplicateKeyCount === 1 ? 'key' : 'keys' }} in the applied
+      match — rows sharing a key are paired in document order.
     </p>
   }
 
@@ -73,7 +69,6 @@
     <button type="button" class="ghost-action" (click)="cancel()">Cancel</button>
     <button type="button" class="primary-action" [disabled]="!canApply()" (click)="apply()">Apply</button>
   </div>
-
 } @else {
   <p class="array-name">No arrays in this comparison.</p>
 }

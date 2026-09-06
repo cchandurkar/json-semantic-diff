@@ -2,14 +2,14 @@ import { describe, expect, it } from 'vitest';
 import { DiffSegment, diffText } from './text-diff';
 
 function joined(segments: DiffSegment[]): string {
-  return segments.map(s => s.text).join('');
+  return segments.map((s) => s.text).join('');
 }
 
 describe('diffText', () => {
   it('returns one unchanged segment per side for identical strings, invariant holds', () => {
     const { left, right } = diffText('same', 'same');
-    expect(left.every(s => !s.changed)).toBe(true);
-    expect(right.every(s => !s.changed)).toBe(true);
+    expect(left.every((s) => !s.changed)).toBe(true);
+    expect(right.every((s) => !s.changed)).toBe(true);
     expect(joined(left)).toBe('same');
     expect(joined(right)).toBe('same');
   });
@@ -36,12 +36,12 @@ describe('diffText', () => {
     // whitespace) are merged into one segment (step 6), so "quick"/"fox" may
     // appear padded by unchanged whitespace rather than as an isolated token -
     // `includes` proves the word itself was never marked changed.
-    expect(left.some(s => !s.changed && s.text.includes('quick'))).toBe(true);
-    expect(right.some(s => !s.changed && s.text.includes('quick'))).toBe(true);
-    expect(left.some(s => !s.changed && s.text.includes('fox'))).toBe(true);
-    expect(right.some(s => !s.changed && s.text.includes('fox'))).toBe(true);
-    expect(left.some(s => s.changed)).toBe(true);
-    expect(right.some(s => s.changed)).toBe(true);
+    expect(left.some((s) => !s.changed && s.text.includes('quick'))).toBe(true);
+    expect(right.some((s) => !s.changed && s.text.includes('quick'))).toBe(true);
+    expect(left.some((s) => !s.changed && s.text.includes('fox'))).toBe(true);
+    expect(right.some((s) => !s.changed && s.text.includes('fox'))).toBe(true);
+    expect(left.some((s) => s.changed)).toBe(true);
+    expect(right.some((s) => s.changed)).toBe(true);
   });
 
   it('marks a numeric-string change as a single fully-changed segment per side, invariant holds', () => {

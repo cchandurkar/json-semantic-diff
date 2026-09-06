@@ -1,4 +1,13 @@
-import { ArrayMatchAnalysis, DiffNode, DiffNodeKind, DiffOptions, DiffResult, DiffSummary, JsonObject, JsonValue } from '../models/diff.models';
+import {
+  ArrayMatchAnalysis,
+  DiffNode,
+  DiffNodeKind,
+  DiffOptions,
+  DiffResult,
+  DiffSummary,
+  JsonObject,
+  JsonValue
+} from '../models/diff.models';
 import { shouldIgnore } from './ignore/ignore-rules';
 import { MatchedPair, matchArrays } from './matching/matching';
 import { normalize } from './normalization/normalization';
@@ -19,14 +28,15 @@ export function diffJson(left: JsonValue, right: JsonValue, options: DiffOptions
     root,
     summary,
     arrays,
-    autoMatchedCount: arrays.filter(a => a.outcome === 'identity-applied').length,
-    uncertainCount: arrays.filter(a => a.outcome === 'ambiguous' || a.outcome === 'below-threshold' || a.outcome === 'no-candidates').length,
+    autoMatchedCount: arrays.filter((a) => a.outcome === 'identity-applied').length,
+    uncertainCount: arrays.filter((a) => a.outcome === 'ambiguous' || a.outcome === 'below-threshold' || a.outcome === 'no-candidates')
+      .length,
     // Manual decisions outrank inferred ones: if the user pinned something, that
     // is the array they are looking at.
     primaryAnalysis:
-      arrays.find(a => a.outcome === 'manual-key' || a.outcome === 'manual-position') ??
-      arrays.find(a => a.outcome === 'identity-applied') ??
-      arrays.find(a => a.outcome !== 'positional') ??
+      arrays.find((a) => a.outcome === 'manual-key' || a.outcome === 'manual-position') ??
+      arrays.find((a) => a.outcome === 'identity-applied') ??
+      arrays.find((a) => a.outcome !== 'positional') ??
       arrays[0],
     elapsedMs: Math.round((now() - started) * 10) / 10
   };
@@ -80,7 +90,8 @@ function compare(
 
   const l = normalize(left, options);
   const r = normalize(right, options);
-  const lt = jsonType(l), rt = jsonType(r);
+  const lt = jsonType(l),
+    rt = jsonType(r);
   if (lt !== rt) return { ...base, ...raw, nodeKind: shapeOf(l), changeKind: 'type-changed', left, right, hasChanges: true };
 
   if (Array.isArray(l) && Array.isArray(r)) return compareArrays(l, r, rawLeft, rawRight, base, options, arrays);
@@ -89,9 +100,9 @@ function compare(
     const keys = new Set([...Object.keys(l), ...Object.keys(r)]);
     const rawL = isObject(rawLeft) ? rawLeft : undefined;
     const rawR = isObject(rawRight) ? rawRight : undefined;
-    const children = [...keys].sort().map(key =>
-      compare(l[key], r[key], rawL?.[key], rawR?.[key], path, id, { kind: 'key', name: key }, options, arrays, {})
-    );
+    const children = [...keys]
+      .sort()
+      .map((key) => compare(l[key], r[key], rawL?.[key], rawR?.[key], path, id, { kind: 'key', name: key }, options, arrays, {}));
     return { ...base, nodeKind: 'object', changeKind: aggregateKind(children), left, right, children, hasChanges: anyChanges(children) };
   }
 
@@ -166,14 +177,30 @@ function summarize(root: DiffNode): DiffSummary {
 }
 
 /** A parent is modified when any descendant changed, unchanged only when all are. */
-function aggregateKind(children: DiffNode[]): DiffNode['changeKind'] { return children.every(c => c.changeKind === 'unchanged') ? 'unchanged' : 'modified'; }
+function aggregateKind(children: DiffNode[]): DiffNode['changeKind'] {
+  return children.every((c) => c.changeKind === 'unchanged') ? 'unchanged' : 'modified';
+}
 /** Rolls the subtree change flag up during construction, so no second walk is needed. */
-function anyChanges(children: DiffNode[]): boolean { return children.some(c => c.hasChanges); }
-function shapeOf(v: JsonValue | undefined): DiffNodeKind { return Array.isArray(v) ? 'array' : isObject(v) ? 'object' : 'scalar'; }
-function isObject(v: JsonValue | undefined): v is JsonObject { return !!v && typeof v === 'object' && !Array.isArray(v); }
-function jsonType(v: JsonValue): string { return Array.isArray(v) ? 'array' : v === null ? 'null' : typeof v === 'object' ? 'object' : typeof v; }
-function deepEqual(a: JsonValue, b: JsonValue): boolean { return JSON.stringify(a) === JSON.stringify(b); }
-function isNullish(v: JsonValue | undefined): boolean { return v === null || v === undefined; }
+function anyChanges(children: DiffNode[]): boolean {
+  return children.some((c) => c.hasChanges);
+}
+function shapeOf(v: JsonValue | undefined): DiffNodeKind {
+  return Array.isArray(v) ? 'array' : isObject(v) ? 'object' : 'scalar';
+}
+function isObject(v: JsonValue | undefined): v is JsonObject {
+  return !!v && typeof v === 'object' && !Array.isArray(v);
+}
+function jsonType(v: JsonValue): string {
+  return Array.isArray(v) ? 'array' : v === null ? 'null' : typeof v === 'object' ? 'object' : typeof v;
+}
+function deepEqual(a: JsonValue, b: JsonValue): boolean {
+  return JSON.stringify(a) === JSON.stringify(b);
+}
+function isNullish(v: JsonValue | undefined): boolean {
+  return v === null || v === undefined;
+}
 
 /** The only host-provided capability the core needs; falls back to Date for non-browser hosts. */
-function now(): number { return typeof performance !== 'undefined' ? performance.now() : Date.now(); }
+function now(): number {
+  return typeof performance !== 'undefined' ? performance.now() : Date.now();
+}

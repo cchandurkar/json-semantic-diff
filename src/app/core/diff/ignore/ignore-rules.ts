@@ -8,7 +8,7 @@
  *            and identity (`[102]`) element paths
  */
 export function shouldIgnore(path: string, rules: string[]): boolean {
-  return rules.some(rule => matchesPathPattern(path, rule));
+  return rules.some((rule) => matchesPathPattern(path, rule));
 }
 
 /**

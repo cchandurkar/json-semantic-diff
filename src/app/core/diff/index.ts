@@ -11,16 +11,7 @@ export { matchArrays, selectArrayStrategy, resolveOverride, pairByIdentity, pair
 export type { ArrayMatchResult, MatchedPair } from './matching/matching';
 export { normalize, looksLikeTimestamp } from './normalization/normalization';
 export { shouldIgnore, matchesPathPattern } from './ignore/ignore-rules';
-export {
-  ROOT_SEGMENT,
-  keySegment,
-  indexSegment,
-  identitySegment,
-  appendPath,
-  appendId,
-  segmentLabel,
-  stableValue
-} from './path';
+export { ROOT_SEGMENT, keySegment, indexSegment, identitySegment, appendPath, appendId, segmentLabel, stableValue } from './path';
 export type { PathSegment } from './path';
 export type {
   ArrayMatchAnalysis,

@@ -1,13 +1,12 @@
-@import "tailwindcss";
-@import "@angular/cdk/overlay-prebuilt.css";
+@import 'tailwindcss';
+@import '@angular/cdk/overlay-prebuilt.css';
 
 /* #E6FFED */
 
-
 :root {
   color-scheme: light;
-  --sans: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  --mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  --sans: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --mono: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
   --radius: 4px;
   --background: #f8fafc;
   --foreground: #0f172a;
@@ -29,13 +28,13 @@
   --primary-foreground: #ffffff;
   --accent: #eff6ff;
   --accent-foreground: #1d4ed8;
-  --focus-ring: rgba(37, 99, 235, .16);
+  --focus-ring: rgba(37, 99, 235, 0.16);
   --selection: #dbeafe;
   --selection-border: #93c5fd;
   --diff-added: #15803d;
-  --diff-added-bg: #E6FFED;
+  --diff-added-bg: #e6ffed;
   --diff-removed: #dc2626;
-  --diff-removed-bg: #FFEEF0;
+  --diff-removed-bg: #ffeef0;
   --diff-modified: #b45309;
   --diff-modified-bg: #fffbeb;
   --success: var(--diff-added);
@@ -54,7 +53,7 @@
   --json-null: #64748b;
   --json-punctuation: #475569;
 }
-:root[data-theme="dark"] {
+:root[data-theme='dark'] {
   color-scheme: dark;
   --background: #0d1117;
   --foreground: #e6edf3;
@@ -76,7 +75,7 @@
   --primary-foreground: #ffffff;
   --accent: #12294d;
   --accent-foreground: #79c0ff;
-  --focus-ring: rgba(31, 111, 235, .35);
+  --focus-ring: rgba(31, 111, 235, 0.35);
   --selection: #1a3a5c;
   --selection-border: #388bfd;
   --diff-added: #3fb950;
@@ -101,27 +100,119 @@
   --json-null: #8b949e;
   --json-punctuation: #c9d1d9;
 }
-* { box-sizing:border-box; }
-html,body { height:100%; }
-html { background:var(--background); color:var(--foreground); font-family:var(--sans); }
-body { margin:0; min-width:320px; overflow:hidden; background:radial-gradient(circle at 50% -20%, color-mix(in srgb, var(--card) 70%, transparent), transparent 38%), var(--background); }
-button,input,textarea { font:inherit; }
-button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible { outline:2px solid var(--primary); outline-offset:2px; }
-::selection { background:var(--selection); }
+* {
+  box-sizing: border-box;
+}
+html,
+body {
+  height: 100%;
+}
+html {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--sans);
+}
+body {
+  margin: 0;
+  min-width: 320px;
+  overflow: hidden;
+  background: radial-gradient(circle at 50% -20%, color-mix(in srgb, var(--card) 70%, transparent), transparent 38%), var(--background);
+}
+button,
+input,
+textarea {
+  font: inherit;
+}
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+::selection {
+  background: var(--selection);
+}
 
 /* Tooltip panel. Global because the CDK overlay pane lives outside every component. */
-.difflens-tooltip { max-width:240px; padding:5px 9px; border:1px solid var(--border); border-radius:var(--radius); background:var(--card); color:var(--foreground); font:11px/1.4 var(--sans); box-shadow:0 6px 18px rgba(10,14,22,.14); pointer-events:none; }
+.difflens-tooltip {
+  max-width: 240px;
+  padding: 5px 9px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--card);
+  color: var(--foreground);
+  font: 11px/1.4 var(--sans);
+  box-shadow: 0 6px 18px rgba(10, 14, 22, 0.14);
+  pointer-events: none;
+}
 
 /* CDK menu panels. Global because menus render in the body-level `.cdk-overlay-container`,
    which component-scoped styles cannot reach. Matches the house panel look used by
    `.picker-panel` and `.settings-panel`. */
-.cdk-menu { min-width:210px; max-width:min(300px,calc(100vw - 24px)); display:flex; flex-direction:column; padding:5px; border:1px solid var(--border); border-radius:var(--radius); background:var(--card); box-shadow:0 12px 32px rgba(10,14,22,.14); }
-.cdk-menu:focus, .cdk-menu:focus-visible { outline:none; }
-.cdk-menu-group { display:flex; flex-direction:column; }
-.node-menu-title { margin:4px 0 2px; padding:0 9px; color:var(--subtle-foreground); font:600 10px var(--sans); letter-spacing:.07em; text-transform:uppercase; }
-.cdk-menu-item { display:block; width:100%; border:0; border-radius:var(--radius); background:transparent; color:var(--foreground); font:12px var(--sans); padding:7px 9px; text-align:left; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; cursor:pointer; }
-.cdk-menu-item:hover { background:var(--accent); }
-.cdk-menu-item:focus, .cdk-menu-item:focus-visible { outline:2px solid var(--primary); outline-offset:-2px; background:var(--accent); }
-.cdk-menu-item-disabled, .cdk-menu-item:disabled { color:var(--subtle-foreground); cursor:not-allowed; }
-.cdk-menu-item-disabled:hover, .cdk-menu-item:disabled:hover { background:transparent; }
-.node-menu-separator { height:0; margin:4px 6px; border:0; border-top:1px solid var(--border-subtle); }
+.cdk-menu {
+  min-width: 210px;
+  max-width: min(300px, calc(100vw - 24px));
+  display: flex;
+  flex-direction: column;
+  padding: 5px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--card);
+  box-shadow: 0 12px 32px rgba(10, 14, 22, 0.14);
+}
+.cdk-menu:focus,
+.cdk-menu:focus-visible {
+  outline: none;
+}
+.cdk-menu-group {
+  display: flex;
+  flex-direction: column;
+}
+.node-menu-title {
+  margin: 4px 0 2px;
+  padding: 0 9px;
+  color: var(--subtle-foreground);
+  font: 600 10px var(--sans);
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+.cdk-menu-item {
+  display: block;
+  width: 100%;
+  border: 0;
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--foreground);
+  font: 12px var(--sans);
+  padding: 7px 9px;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+}
+.cdk-menu-item:hover {
+  background: var(--accent);
+}
+.cdk-menu-item:focus,
+.cdk-menu-item:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: -2px;
+  background: var(--accent);
+}
+.cdk-menu-item-disabled,
+.cdk-menu-item:disabled {
+  color: var(--subtle-foreground);
+  cursor: not-allowed;
+}
+.cdk-menu-item-disabled:hover,
+.cdk-menu-item:disabled:hover {
+  background: transparent;
+}
+.node-menu-separator {
+  height: 0;
+  margin: 4px 6px;
+  border: 0;
+  border-top: 1px solid var(--border-subtle);
+}

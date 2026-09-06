@@ -10,7 +10,7 @@ function compare(example: DiffExample): DiffResult {
 }
 
 function example(id: string): DiffExample {
-  const found = DIFF_EXAMPLES.find(e => e.id === id);
+  const found = DIFF_EXAMPLES.find((e) => e.id === id);
   expect(found, `example '${id}' is missing`).toBeDefined();
   return found!;
 }
@@ -19,23 +19,31 @@ function example(id: string): DiffExample {
 function changedLeaves(root: DiffNode): string[] {
   const out: string[] = [];
   const walk = (node: DiffNode) => {
-    if (node.children) { node.children.forEach(walk); return; }
-    if (node.changeKind !== 'unchanged') out.push(`${node.id} ${node.changeKind} ${JSON.stringify(node.left)}->${JSON.stringify(node.right)}`);
+    if (node.children) {
+      node.children.forEach(walk);
+      return;
+    }
+    if (node.changeKind !== 'unchanged')
+      out.push(`${node.id} ${node.changeKind} ${JSON.stringify(node.left)}->${JSON.stringify(node.right)}`);
   };
   walk(root);
   return out;
 }
 
 function arrayAt(result: DiffResult, path: string): ArrayMatchAnalysis {
-  const analysis = result.arrays.find(a => a.path === path);
+  const analysis = result.arrays.find((a) => a.path === path);
   expect(analysis, `no array analysis at ${path}`).toBeDefined();
   return analysis!;
 }
 
 describe('example catalogue', () => {
   it('exposes the five documented examples in picker order', () => {
-    expect(DIFF_EXAMPLES.map(e => e.id)).toEqual([
-      'api-response', 'reordered-users', 'inventory-by-store', 'noisy-api-response', 'teams-and-projects'
+    expect(DIFF_EXAMPLES.map((e) => e.id)).toEqual([
+      'api-response',
+      'reordered-users',
+      'inventory-by-store',
+      'noisy-api-response',
+      'teams-and-projects'
     ]);
   });
 
@@ -48,7 +56,7 @@ describe('example catalogue', () => {
   });
 
   it('uses unique ids', () => {
-    expect(new Set(DIFF_EXAMPLES.map(e => e.id)).size).toBe(DIFF_EXAMPLES.length);
+    expect(new Set(DIFF_EXAMPLES.map((e) => e.id)).size).toBe(DIFF_EXAMPLES.length);
   });
 
   it('produces a real change in every example, so no example demos nothing', () => {
@@ -91,7 +99,7 @@ describe('Example 1 - API Response', () => {
   });
 
   it('leaves the untouched customer block entirely unchanged', () => {
-    const customer = result.root.children?.find(c => c.label === 'customer');
+    const customer = result.root.children?.find((c) => c.label === 'customer');
     expect(customer?.changeKind).toBe('unchanged');
     expect(customer?.hasChanges).toBe(false);
   });
@@ -132,8 +140,8 @@ describe('Example 2 - Reordered Users', () => {
   });
 
   it('leaves Alice and Carol untouched despite both moving position', () => {
-    const alice = result.root.children?.find(c => c.label === 'users')?.children?.find(c => c.path === '$.users[101]');
-    const carol = result.root.children?.find(c => c.label === 'users')?.children?.find(c => c.path === '$.users[103]');
+    const alice = result.root.children?.find((c) => c.label === 'users')?.children?.find((c) => c.path === '$.users[101]');
+    const carol = result.root.children?.find((c) => c.label === 'users')?.children?.find((c) => c.path === '$.users[103]');
 
     expect(alice?.changeKind).toBe('unchanged');
     expect(alice?.leftIndex).toBe(0);
@@ -151,14 +159,14 @@ describe('Example 3 - Inventory by Store', () => {
 
   it('holds the premise: neither field is unique on its own', () => {
     const rows = (subject.original as { inventory: { store: string; sku: string }[] }).inventory;
-    expect(new Set(rows.map(r => r.store)).size).toBeLessThan(rows.length);
-    expect(new Set(rows.map(r => r.sku)).size).toBeLessThan(rows.length);
-    expect(new Set(rows.map(r => `${r.store}|${r.sku}`)).size).toBe(rows.length);
+    expect(new Set(rows.map((r) => r.store)).size).toBeLessThan(rows.length);
+    expect(new Set(rows.map((r) => r.sku)).size).toBeLessThan(rows.length);
+    expect(new Set(rows.map((r) => `${r.store}|${r.sku}`)).size).toBe(rows.length);
   });
 
   it('keeps both key fields stable across the two payloads', () => {
     const key = (doc: unknown) =>
-      (doc as { inventory: { store: string; sku: string }[] }).inventory.map(r => `${r.store}|${r.sku}`).sort();
+      (doc as { inventory: { store: string; sku: string }[] }).inventory.map((r) => `${r.store}|${r.sku}`).sort();
     expect(key(subject.changed)).toEqual(key(subject.original));
   });
 
@@ -172,7 +180,7 @@ describe('Example 3 - Inventory by Store', () => {
   });
 
   it('beats both single-field candidates, which is why the composite is needed', () => {
-    const singles = inventory.inference?.alternatives?.filter(c => c.paths.length === 1) ?? [];
+    const singles = inventory.inference?.alternatives?.filter((c) => c.paths.length === 1) ?? [];
     const best = inventory.inference!.best!.score;
     for (const single of singles) expect(best).toBeGreaterThan(single.score);
   });
@@ -206,8 +214,8 @@ describe('Example 4 - Noisy API Response', () => {
     expect(ids).not.toContain('$.requestId');
     expect(ids).not.toContain('$.generatedAt');
 
-    const requestId = result.root.children?.find(c => c.label === 'requestId');
-    const generatedAt = result.root.children?.find(c => c.label === 'generatedAt');
+    const requestId = result.root.children?.find((c) => c.label === 'requestId');
+    const generatedAt = result.root.children?.find((c) => c.label === 'generatedAt');
     expect(requestId?.ignored).toBe(true);
     expect(requestId?.changeKind).toBe('unchanged');
     expect(generatedAt?.ignored).toBe(true);
@@ -288,8 +296,8 @@ describe('Example 5 - Teams & Projects', () => {
   });
 
   it('keeps every array membership stable across the two payloads', () => {
-    const teamIds = (doc: unknown) => (doc as { teams: { teamId: string }[] }).teams.map(t => t.teamId).sort();
-    const projectIds = (doc: unknown) => (doc as { projects: { projectId: string }[] }).projects.map(p => p.projectId).sort();
+    const teamIds = (doc: unknown) => (doc as { teams: { teamId: string }[] }).teams.map((t) => t.teamId).sort();
+    const projectIds = (doc: unknown) => (doc as { projects: { projectId: string }[] }).projects.map((p) => p.projectId).sort();
 
     expect(teamIds(subject.changed)).toEqual(teamIds(subject.original));
     expect(projectIds(subject.changed)).toEqual(projectIds(subject.original));
@@ -303,7 +311,7 @@ describe('example loading path', () => {
   }
 
   it('leaves the defaults intact for examples that need no settings', () => {
-    for (const e of DIFF_EXAMPLES.filter(e => !e.options)) {
+    for (const e of DIFF_EXAMPLES.filter((e) => !e.options)) {
       expect(optionsFor(e)).toEqual(DEFAULT_DIFF_OPTIONS);
     }
   });
@@ -338,11 +346,10 @@ describe('example loading path', () => {
 
   it('produces the same result from the formatted editor text as from the raw payload', () => {
     for (const e of DIFF_EXAMPLES) {
-      const viaEditor = diffJson(
-        JSON.parse(formatJson(JSON.stringify(e.original))),
-        JSON.parse(formatJson(JSON.stringify(e.changed))),
-        { ...DEFAULT_DIFF_OPTIONS, ...e.options }
-      );
+      const viaEditor = diffJson(JSON.parse(formatJson(JSON.stringify(e.original))), JSON.parse(formatJson(JSON.stringify(e.changed))), {
+        ...DEFAULT_DIFF_OPTIONS,
+        ...e.options
+      });
       expect(viaEditor.summary).toEqual(compare(e).summary);
     }
   });

@@ -4,11 +4,14 @@
   class="sidebar-toggle"
   aria-controls="app-sidebar-panel"
   [attr.aria-expanded]="open()"
-  (click)="toggle()">
+  (click)="toggle()"
+>
   <span aria-hidden="true">☰</span> Setup
 </button>
 
 @if (open()) {
+  <!-- Click-outside-to-dismiss only; Escape is already handled at the document level (see onEscape). -->
+  <!-- eslint-disable-next-line @angular-eslint/template/click-events-have-key-events, @angular-eslint/template/interactive-supports-focus -->
   <div class="sidebar-backdrop" (click)="close()"></div>
 }
 
@@ -23,25 +26,46 @@
   <section class="sidebar-section" aria-labelledby="sidebar-comparison-heading">
     <h3 id="sidebar-comparison-heading" class="sidebar-heading">Comparison</h3>
     <label class="toggle-row">
-      <input type="checkbox" [checked]="normalizeTimestamps()" (change)="normalizeTimestampsChange.emit(isChecked($event))">
+      <input type="checkbox" [checked]="normalizeTimestamps()" (change)="normalizeTimestampsChange.emit(isChecked($event))" />
       <span class="toggle-text">
         <span class="toggle-name">Normalize timestamps</span>
       </span>
-      <button type="button" class="hint-icon" appTooltip="Treat equivalent instants in different zones as equal." aria-label="What does normalizing timestamps do?">?</button>
+      <button
+        type="button"
+        class="hint-icon"
+        appTooltip="Treat equivalent instants in different zones as equal."
+        aria-label="What does normalizing timestamps do?"
+      >
+        ?
+      </button>
     </label>
     <label class="toggle-row">
-      <input type="checkbox" [checked]="normalizeNumbers()" (change)="normalizeNumbersChange.emit(isChecked($event))">
+      <input type="checkbox" [checked]="normalizeNumbers()" (change)="normalizeNumbersChange.emit(isChecked($event))" />
       <span class="toggle-text">
         <span class="toggle-name">Numeric strings as numbers</span>
       </span>
-      <button type="button" class="hint-icon" appTooltip="Compare &quot;42&quot; and 42 as the same value." aria-label="What does treating numeric strings as numbers do?">?</button>
+      <button
+        type="button"
+        class="hint-icon"
+        appTooltip='Compare "42" and 42 as the same value.'
+        aria-label="What does treating numeric strings as numbers do?"
+      >
+        ?
+      </button>
     </label>
     <label class="toggle-row">
-      <input type="checkbox" [checked]="nullEqualsMissing()" (change)="nullEqualsMissingChange.emit(isChecked($event))">
+      <input type="checkbox" [checked]="nullEqualsMissing()" (change)="nullEqualsMissingChange.emit(isChecked($event))" />
       <span class="toggle-text">
         <span class="toggle-name">Treat null and missing as equal</span>
       </span>
-      <button type="button" class="hint-icon" appTooltip="A null value and an absent field are treated as the same, so this difference is not reported." aria-label="What does treating null and missing as equal do?">?</button>
+      <button
+        type="button"
+        class="hint-icon"
+        appTooltip="A null value and an absent field are treated as the same, so this difference is not reported."
+        aria-label="What does treating null and missing as equal do?"
+      >
+        ?
+      </button>
     </label>
   </section>
 
@@ -60,7 +84,7 @@
       </ul>
     }
     <div class="ignore-row">
-      <input #ignoreRule placeholder="$.metadata.requestId" aria-label="Ignore path pattern" (keyup.enter)="addIgnoreRule(ignoreRule)">
+      <input #ignoreRule placeholder="$.metadata.requestId" aria-label="Ignore path pattern" (keyup.enter)="addIgnoreRule(ignoreRule)" />
       <button type="button" class="ghost-action" (click)="addIgnoreRule(ignoreRule)">Add</button>
     </div>
   </section>
@@ -72,7 +96,8 @@
         [arrays]="arrays()"
         [selectedPath]="selectedAnalysisPath()"
         (overrideChanged)="overrideChanged.emit($event)"
-        (arraySelected)="arraySelected.emit($event)" />
+        (arraySelected)="arraySelected.emit($event)"
+      />
     </section>
   }
 </aside>

@@ -5,7 +5,7 @@ import { DiffOptions, JsonObject, JsonValue } from '../../models/diff.models';
  * enabled normalization options. Moved verbatim from the original engine.
  */
 export function normalize(value: JsonValue, options: DiffOptions): JsonValue {
-  if (Array.isArray(value)) return value.map(v => normalize(v, options));
+  if (Array.isArray(value)) return value.map((v) => normalize(v, options));
   if (isPlainObject(value)) {
     const out: JsonObject = {};
     for (const [k, v] of Object.entries(value)) out[k] = normalize(v, options);

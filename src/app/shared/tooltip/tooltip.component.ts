@@ -13,7 +13,7 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './tooltip.component.html',
   host: {
-    'role': 'tooltip',
+    role: 'tooltip',
     '[id]': 'tooltipId()'
   }
 })

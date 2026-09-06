@@ -1,4 +1,18 @@
-import { ChangeDetectionStrategy, Component, ElementRef, OnDestroy, TemplateRef, ViewContainerRef, computed, effect, inject, input, output, signal, viewChild } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  OnDestroy,
+  TemplateRef,
+  ViewContainerRef,
+  computed,
+  effect,
+  inject,
+  input,
+  output,
+  signal,
+  viewChild
+} from '@angular/core';
 import { ConnectedPosition, Overlay, OverlayRef } from '@angular/cdk/overlay';
 import { TemplatePortal } from '@angular/cdk/portal';
 import { ArrayMatchAnalysis } from '../../core/diff';
@@ -107,7 +121,7 @@ export class ArrayPickerComponent implements OnDestroy {
   }
 
   toggle(): void {
-    this.open.update(value => !value);
+    this.open.update((value) => !value);
   }
 
   close(restoreFocus = false): void {

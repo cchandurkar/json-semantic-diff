@@ -5,8 +5,8 @@ import { pairByIdentity } from './matching';
 
 const row = (store: string, sku: string, qty: number): JsonObject => ({ store, sku, qty });
 
-const paths = (pairs: ReturnType<typeof pairByIdentity>) => pairs.map(p => appendPath('$.inventory', p.segment));
-const ids = (pairs: ReturnType<typeof pairByIdentity>) => pairs.map(p => appendId('$.inventory', p.segment));
+const paths = (pairs: ReturnType<typeof pairByIdentity>) => pairs.map((p) => appendPath('$.inventory', p.segment));
+const ids = (pairs: ReturnType<typeof pairByIdentity>) => pairs.map((p) => appendId('$.inventory', p.segment));
 
 describe('pairByIdentity bucketing', () => {
   it('never drops duplicate-keyed rows present on both sides', () => {
@@ -21,7 +21,7 @@ describe('pairByIdentity bucketing', () => {
     expect(pairs[0].right).toBe(right[0]);
     expect(pairs[1].left).toBe(left[1]);
     expect(pairs[1].right).toBe(right[1]);
-    expect(pairs.every(p => p.left && p.right)).toBe(true);
+    expect(pairs.every((p) => p.left && p.right)).toBe(true);
   });
 
   it('emits the #k suffix only from occurrence 1 onward', () => {
@@ -30,16 +30,8 @@ describe('pairByIdentity bucketing', () => {
 
     const pairs = pairByIdentity(left, right, ['store', 'sku']);
 
-    expect(paths(pairs)).toEqual([
-      '$.inventory[BOS|123]',
-      '$.inventory[BOS|123#1]',
-      '$.inventory[BOS|123#2]'
-    ]);
-    expect(ids(pairs)).toEqual([
-      '$.inventory[store=BOS;sku=123]',
-      '$.inventory[store=BOS;sku=123#1]',
-      '$.inventory[store=BOS;sku=123#2]'
-    ]);
+    expect(paths(pairs)).toEqual(['$.inventory[BOS|123]', '$.inventory[BOS|123#1]', '$.inventory[BOS|123#2]']);
+    expect(ids(pairs)).toEqual(['$.inventory[store=BOS;sku=123]', '$.inventory[store=BOS;sku=123#1]', '$.inventory[store=BOS;sku=123#2]']);
   });
 
   it('keeps every path/id unique inside a duplicated bucket', () => {
@@ -84,10 +76,10 @@ describe('pairByIdentity bucketing', () => {
 
     const pairs = pairByIdentity(left, right, ['store', 'sku']);
 
-    expect(pairs.filter(p => p.left).length).toBe(left.length);
-    expect(pairs.filter(p => p.right).length).toBe(right.length);
-    expect(new Set(pairs.map(p => p.leftIndex).filter(i => i !== undefined)).size).toBe(left.length);
-    expect(new Set(pairs.map(p => p.rightIndex).filter(i => i !== undefined)).size).toBe(right.length);
+    expect(pairs.filter((p) => p.left).length).toBe(left.length);
+    expect(pairs.filter((p) => p.right).length).toBe(right.length);
+    expect(new Set(pairs.map((p) => p.leftIndex).filter((i) => i !== undefined)).size).toBe(left.length);
+    expect(new Set(pairs.map((p) => p.rightIndex).filter((i) => i !== undefined)).size).toBe(right.length);
   });
 
   it('pairs rows missing the key field instead of dropping them', () => {
@@ -97,8 +89,8 @@ describe('pairByIdentity bucketing', () => {
     const pairs = pairByIdentity(left, right, ['store', 'sku']);
 
     // Two '∅' rows on the left, one on the right -> one pair plus one removal.
-    expect(pairs.filter(p => p.left).length).toBe(3);
-    expect(pairs.filter(p => p.right).length).toBe(2);
+    expect(pairs.filter((p) => p.left).length).toBe(3);
+    expect(pairs.filter((p) => p.right).length).toBe(2);
     expect(paths(pairs)).toContain('$.inventory[∅|1]');
     expect(paths(pairs)).toContain('$.inventory[∅|1#1]');
   });

@@ -14,10 +14,15 @@ import { ArrayMatchAnalysis } from '../../core/diff';
 export function describeArrayMatch(analysis: ArrayMatchAnalysis): string {
   if (analysis.keyPaths?.length) return `Match by ${analysis.keyPaths.join(' + ')}`;
   switch (analysis.outcome) {
-    case 'manual-position': return 'Position · Manual';
-    case 'ambiguous': return 'Ambiguous match — using position';
-    case 'below-threshold': return 'No confident match — using position';
-    case 'no-candidates': return 'No identity candidates — using position';
-    default: return 'Compared by position';
+    case 'manual-position':
+      return 'Position · Manual';
+    case 'ambiguous':
+      return 'Ambiguous match — using position';
+    case 'below-threshold':
+      return 'No confident match — using position';
+    case 'no-candidates':
+      return 'No identity candidates — using position';
+    default:
+      return 'Compared by position';
   }
 }

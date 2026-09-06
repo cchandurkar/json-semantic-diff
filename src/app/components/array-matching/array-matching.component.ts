@@ -1,5 +1,13 @@
 import { ChangeDetectionStrategy, Component, computed, effect, input, output, signal } from '@angular/core';
-import { ArrayMatchAnalysis, ArrayMatchOverride, CandidateStats, DiffNode, JsonObject, eligibleKeyPaths, evaluateKey } from '../../core/diff';
+import {
+  ArrayMatchAnalysis,
+  ArrayMatchOverride,
+  CandidateStats,
+  DiffNode,
+  JsonObject,
+  eligibleKeyPaths,
+  evaluateKey
+} from '../../core/diff';
 import { percent } from '../../shared/format';
 import { MatchingOverrideChange, overridePatternFor } from '../../shared/node-actions';
 import { ArrayPickerComponent } from '../array-picker/array-picker.component';
@@ -47,11 +55,11 @@ export class ArrayMatchingComponent {
     const list = this.arrays();
     if (!list.length) return null;
     const path = this.chosenPath();
-    return list.find(context => context.analysis.path === path) ?? list[0];
+    return list.find((context) => context.analysis.path === path) ?? list[0];
   });
 
   /** Plain analyses for `ArrayPickerComponent`, which doesn't need the draft-editing `node`. */
-  readonly arrayAnalyses = computed(() => this.arrays().map(context => context.analysis));
+  readonly arrayAnalyses = computed(() => this.arrays().map((context) => context.analysis));
 
   constructor() {
     // An externally-driven selection (Tree match-pill, analysis panel default)
@@ -109,17 +117,14 @@ export class ArrayMatchingComponent {
   }
 
   toggleField(field: string): void {
-    this.selectedFields.update(fields =>
-      fields.includes(field) ? fields.filter(f => f !== field) : [...fields, field]
-    );
+    this.selectedFields.update((fields) => (fields.includes(field) ? fields.filter((f) => f !== field) : [...fields, field]));
   }
 
   apply(): void {
     const analysis = this.selected()?.analysis;
     if (!analysis || !this.canApply()) return;
     const strategy = this.strategy();
-    const override: ArrayMatchOverride =
-      strategy === 'key' ? { strategy: 'key', fields: [...this.selectedFields()] } : { strategy };
+    const override: ArrayMatchOverride = strategy === 'key' ? { strategy: 'key', fields: [...this.selectedFields()] } : { strategy };
     this.overrideChanged.emit({ pattern: overridePatternFor(analysis), override });
   }
 

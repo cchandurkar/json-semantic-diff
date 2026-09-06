@@ -75,7 +75,10 @@ export class DiffTreeComponent {
     let start: string | null = null;
     let end: string | null = null;
     for (const node of this.visibleFlat()) {
-      if (range.has(node.id)) { if (start === null) start = node.id; end = node.id; }
+      if (range.has(node.id)) {
+        if (start === null) start = node.id;
+        end = node.id;
+      }
     }
     return { start, end };
   });
@@ -96,7 +99,7 @@ export class DiffTreeComponent {
       if (!id) return;
       const ancestors = ancestorPaths(this.root(), id);
       if (!ancestors.length) return;
-      this.collapsed.update(current => {
+      this.collapsed.update((current) => {
         const next = new Set(current);
         for (const path of ancestors) next.delete(path);
         return next;
@@ -110,12 +113,19 @@ export class DiffTreeComponent {
 
   toggle(path: string): void {
     const next = new Set(this.collapsed());
-    next.has(path) ? next.delete(path) : next.add(path);
+    if (next.has(path)) next.delete(path);
+    else next.add(path);
     this.collapsed.set(next);
   }
 
   marker(changeKind: DiffNode['changeKind']): string {
-    return changeKind === 'added' ? '+' : changeKind === 'removed' ? '−' : changeKind === 'modified' || changeKind === 'type-changed' ? '~' : '';
+    return changeKind === 'added'
+      ? '+'
+      : changeKind === 'removed'
+        ? '−'
+        : changeKind === 'modified' || changeKind === 'type-changed'
+          ? '~'
+          : '';
   }
 
   display(value: JsonValue | undefined): string {

@@ -1,10 +1,8 @@
 <div class="overview" role="tree">
-  @if (!areas().length) {
+  @for (area of areas(); track area.nodeId) {
+    <ng-container *ngTemplateOutlet="row; context: { $implicit: area, depth: 0 }"></ng-container>
+  } @empty {
     <p class="panel-empty">No changes to show.</p>
-  } @else {
-    @for (area of areas(); track area.nodeId) {
-      <ng-container *ngTemplateOutlet="row; context: { $implicit: area, depth: 0 }"></ng-container>
-    }
   }
 </div>
 
@@ -15,9 +13,20 @@
       class="expand"
       (click)="toggle(area.nodeId)"
       [disabled]="!area.children.length"
-      [attr.aria-label]="'Toggle ' + area.label">
+      [attr.aria-label]="'Toggle ' + area.label"
+    >
       @if (area.children.length) {
-        <svg class="chevron" [class.is-collapsed]="!isExpanded(area.nodeId)" width="10" height="10" viewBox="0 0 10 10" aria-hidden="true" focusable="false"><path d="M2 3.5l3 3 3-3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <svg
+          class="chevron"
+          [class.is-collapsed]="!isExpanded(area.nodeId)"
+          width="10"
+          height="10"
+          viewBox="0 0 10 10"
+          aria-hidden="true"
+          focusable="false"
+        >
+          <path d="M2 3.5l3 3 3-3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
       }
     </button>
     <button type="button" class="area-main" (click)="nodeSelected.emit(area.nodeId)">

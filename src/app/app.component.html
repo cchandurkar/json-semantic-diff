@@ -6,7 +6,9 @@
     </a>
     <nav>
       <a class="link-button" href="https://github.com" target="_blank" rel="noreferrer">GitHub</a>
-      <button class="theme-toggle" (click)="toggleTheme()" [attr.aria-label]="darkMode() ? 'Use light theme' : 'Use dark theme'">{{ darkMode() ? '☀' : '◐' }}</button>
+      <button class="theme-toggle" (click)="toggleTheme()" [attr.aria-label]="darkMode() ? 'Use light theme' : 'Use dark theme'">
+        {{ darkMode() ? '☀' : '◐' }}
+      </button>
     </nav>
   </div>
 </header>
@@ -27,13 +29,14 @@
     (ignoreAdded)="addIgnore($event)"
     (ignoreRemoved)="removeIgnore($event)"
     (overrideChanged)="applyMatchingOverride($event)"
-    (arraySelected)="openAnalysis($event)" />
+    (arraySelected)="openAnalysis($event)"
+  />
 
   <main class="main-column">
     @if (!result()) {
       <section class="hero" animate.leave="hero-leave">
         <div class="privacy-badge"><span class="dot"></span> Runs entirely in your browser</div>
-        <h1>Understand what changed,<br><span>not just where.</span></h1>
+        <h1>Understand what changed,<br /><span>not just where.</span></h1>
         <p>JSON comparison with smart array matching, noise reduction, and explainable identity detection.</p>
       </section>
     }
@@ -52,7 +55,8 @@
           [statusText]="inputStatus(leftText(), leftError())"
           [darkMode]="darkMode()"
           [(editorHeight)]="editorHeight"
-          (valueChange)="leftText.set($event); markDirty()" />
+          (valueChange)="leftText.set($event); markDirty()"
+        />
         <app-json-input
           label="CHANGED"
           [value]="rightText()"
@@ -60,14 +64,17 @@
           [statusText]="inputStatus(rightText(), rightError())"
           [darkMode]="darkMode()"
           [(editorHeight)]="editorHeight"
-          (valueChange)="rightText.set($event); markDirty()" />
+          (valueChange)="rightText.set($event); markDirty()"
+        />
       </div>
 
       <div class="compare-row">
-        @if (dirty() && result()) { <span class="dirty-note">Inputs changed</span> }
+        @if (dirty() && result()) {
+          <span class="dirty-note">Inputs changed</span>
+        }
         <button class="primary-button" [disabled]="!canCompare()" (click)="compare()">
           <!-- {{ result() ? (dirty() ? 'Recompare' : 'Compare again') : 'Compare JSON' }} -->
-            Compare JSON
+          Compare JSON
         </button>
       </div>
     </section>
@@ -75,20 +82,56 @@
     @if (result(); as diff) {
       <div class="main-toolbar">
         <div class="toolbar-group" role="tablist" aria-label="Diff view">
-          <button type="button" class="segmented" role="tab" [class.active]="view() === 'tree'" [attr.aria-selected]="view() === 'tree'" (click)="view.set('tree')">Tree</button>
-          <button type="button" class="segmented" role="tab" [class.active]="view() === 'source'" [attr.aria-selected]="view() === 'source'" (click)="view.set('source')">Source</button>
+          <button
+            type="button"
+            class="segmented"
+            role="tab"
+            [class.active]="view() === 'tree'"
+            [attr.aria-selected]="view() === 'tree'"
+            (click)="view.set('tree')"
+          >
+            Tree
+          </button>
+          <button
+            type="button"
+            class="segmented"
+            role="tab"
+            [class.active]="view() === 'source'"
+            [attr.aria-selected]="view() === 'source'"
+            (click)="view.set('source')"
+          >
+            Source
+          </button>
         </div>
         <label class="toolbar-toggle">
-          <input type="checkbox" [checked]="changesOnly()" (change)="changesOnly.set(isChecked($event))">
+          <input type="checkbox" [checked]="changesOnly()" (change)="changesOnly.set(isChecked($event))" />
           Changes only
         </label>
         @if (changeList().length) {
           <div class="toolbar-group nav-group" role="group" aria-label="Change navigation">
             <button type="button" class="segmented" (click)="stepChange(-1)" aria-label="Previous change">
-              <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true" focusable="false"><path d="M9 2L4 7l5 5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true" focusable="false">
+                <path
+                  d="M9 2L4 7l5 5"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.6"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
             </button>
             <button type="button" class="segmented" (click)="stepChange(1)" aria-label="Next change">
-              <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true" focusable="false"><path d="M5 2l5 5-5 5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true" focusable="false">
+                <path
+                  d="M5 2l5 5-5 5"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.6"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
             </button>
           </div>
         }
@@ -99,7 +142,8 @@
           (queryChange)="onSearchQueryChange($event)"
           (next)="stepSearchResult(1)"
           (previous)="stepSearchResult(-1)"
-          (clear)="clearSearch()" />
+          (clear)="clearSearch()"
+        />
       </div>
 
       <div class="results-scroll">
@@ -113,7 +157,8 @@
             [searchQuery]="searchQuery()"
             (nodeSelected)="selectNode($event)"
             (nodeAction)="handleNodeAction($event)"
-            (analysisRequested)="openAnalysis($event)" />
+            (analysisRequested)="openAnalysis($event)"
+          />
         } @else {
           <app-source-diff
             [result]="diff"
@@ -123,7 +168,8 @@
             [searchQuery]="searchQuery()"
             [root]="diff.root"
             (nodeSelected)="selectNode($event)"
-            (nodeAction)="handleNodeAction($event)" />
+            (nodeAction)="handleNodeAction($event)"
+          />
         }
       </div>
     }
@@ -135,7 +181,8 @@
     (pointerdown)="startPanelResize($event)"
     (pointermove)="onPanelResizeMove($event)"
     (pointerup)="endPanelResize($event)"
-    (pointercancel)="endPanelResize($event)"></div>
+    (pointercancel)="endPanelResize($event)"
+  ></div>
 
   <app-analysis-panel
     [style.width.px]="analysisPanelWidth()"
@@ -144,7 +191,8 @@
     [selectedPath]="selectedAnalysis()?.path ?? result()?.primaryAnalysis?.path ?? null"
     [selectedNodeId]="selectedNodeId()"
     (arraySelected)="openAnalysis($event)"
-    (nodeSelected)="selectNode($event)" />
+    (nodeSelected)="selectNode($event)"
+  />
 </div>
 
 <app-toast [message]="toast()" (undo)="runUndo()" (dismissed)="dismissToast()" />

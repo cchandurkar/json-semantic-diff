@@ -27,8 +27,11 @@ export class ChangeOverviewComponent {
   readonly selectedNodeId = input<string | null>(null);
   readonly nodeSelected = output<string>();
 
-  readonly areas = computed(() => { const r = this.root(); return r ? buildChangeOverview(r) : []; });
-  readonly maxCount = computed(() => Math.max(1, ...this.areas().map(a => a.count)));
+  readonly areas = computed(() => {
+    const r = this.root();
+    return r ? buildChangeOverview(r) : [];
+  });
+  readonly maxCount = computed(() => Math.max(1, ...this.areas().map((a) => a.count)));
 
   /** Collapsed-by-default outline: a compact table of contents, expanded on demand. */
   readonly collapsed = signal(new Set<string>());
@@ -39,7 +42,8 @@ export class ChangeOverviewComponent {
 
   toggle(nodeId: string): void {
     const next = new Set(this.collapsed());
-    next.has(nodeId) ? next.delete(nodeId) : next.add(nodeId);
+    if (next.has(nodeId)) next.delete(nodeId);
+    else next.add(nodeId);
     this.collapsed.set(next);
   }
 

@@ -23,7 +23,9 @@ export function buildChangeOverview(root: DiffNode): ChangeAreaNode[] {
 
 function toAreaNode(node: DiffNode): ChangeAreaNode | null {
   if (!node.hasChanges) return null;
-  const children = naturalOrderChildren(node).map(toAreaNode).filter((a): a is ChangeAreaNode => a !== null);
+  const children = naturalOrderChildren(node)
+    .map(toAreaNode)
+    .filter((a): a is ChangeAreaNode => a !== null);
   return { nodeId: node.id, path: node.path, label: node.label, count: countChangedLeaves(node), children };
 }
 
@@ -57,7 +59,10 @@ function naturalOrderChildren(node: DiffNode): DiffNode[] {
   if (node.nodeKind === 'object') {
     const value = (node.left ?? node.right) as JsonObject | undefined;
     const order = value ? Object.keys(value) : [];
-    const indexOf = (label: string) => { const i = order.indexOf(label); return i === -1 ? order.length : i; };
+    const indexOf = (label: string) => {
+      const i = order.indexOf(label);
+      return i === -1 ? order.length : i;
+    };
     return [...children].sort((a, b) => indexOf(a.label) - indexOf(b.label));
   }
   return children;

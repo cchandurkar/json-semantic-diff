@@ -37,16 +37,26 @@ describe('buildSearchIndex / searchDiff', () => {
 
   it('finds an array element by its identity label/value', () => {
     const result = run(
-      { items: [{ sku: 'SKU-1001', qty: 1 }, { sku: 'SKU-1002', qty: 2 }] },
-      { items: [{ sku: 'SKU-1001', qty: 5 }, { sku: 'SKU-1002', qty: 2 }] },
+      {
+        items: [
+          { sku: 'SKU-1001', qty: 1 },
+          { sku: 'SKU-1002', qty: 2 }
+        ]
+      },
+      {
+        items: [
+          { sku: 'SKU-1001', qty: 5 },
+          { sku: 'SKU-1002', qty: 2 }
+        ]
+      },
       { arrayMatching: { '$.items': { strategy: 'key', fields: ['sku'] } } }
     );
     const index = buildSearchIndex(result.root);
 
     const ids = searchDiff(index, 'SKU-1001');
     expect(ids.length).toBeGreaterThan(0);
-    expect(ids.every(id => id.includes('sku=SKU-1001'))).toBe(true);
-    expect(searchDiff(index, 'sku-1002').some(id => id.includes('sku=SKU-1002'))).toBe(true);
+    expect(ids.every((id) => id.includes('sku=SKU-1001'))).toBe(true);
+    expect(searchDiff(index, 'sku-1002').some((id) => id.includes('sku=SKU-1002'))).toBe(true);
   });
 
   it('matches case-insensitively regardless of query or value casing', () => {
@@ -59,11 +69,7 @@ describe('buildSearchIndex / searchDiff', () => {
   });
 
   it('excludes nodes under an ignored path from every result, even by value', () => {
-    const result = run(
-      { a: 1, secret: { value: 'classified' } },
-      { a: 2, secret: { value: 'classified' } },
-      { ignorePaths: ['$.secret'] }
-    );
+    const result = run({ a: 1, secret: { value: 'classified' } }, { a: 2, secret: { value: 'classified' } }, { ignorePaths: ['$.secret'] });
     const index = buildSearchIndex(result.root);
 
     expect(searchDiff(index, 'secret')).toEqual([]);
@@ -83,8 +89,8 @@ describe('buildSearchIndex / searchDiff', () => {
     const result = run({ a: 1, b: 1 }, { a: 2, b: 1 });
     const index = buildSearchIndex(result.root);
 
-    expect(index.find(e => e.nodeId === '$.a')?.hasChanges).toBe(true);
-    expect(index.find(e => e.nodeId === '$.b')?.hasChanges).toBe(false);
+    expect(index.find((e) => e.nodeId === '$.a')?.hasChanges).toBe(true);
+    expect(index.find((e) => e.nodeId === '$.b')?.hasChanges).toBe(false);
   });
 });
 

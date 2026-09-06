@@ -161,9 +161,7 @@ describe('formatSubtree', () => {
   });
 
   it('matches the shape shown in the spec', () => {
-    expect(formatSubtree(productNode, 'right')).toBe(
-      '{\n  "sku": "ABC123",\n  "price": 14.99,\n  "available": false\n}'
-    );
+    expect(formatSubtree(productNode, 'right')).toBe('{\n  "sku": "ABC123",\n  "price": 14.99,\n  "available": false\n}');
   });
 
   it('copies each side independently', () => {
@@ -273,9 +271,7 @@ describe('formatChange', () => {
       right: { method: 'express' }
     });
 
-    expect(formatChange(shipping)).toBe(
-      '$.shipping\n- {\n-   "method": "standard"\n- }\n+ {\n+   "method": "express"\n+ }'
-    );
+    expect(formatChange(shipping)).toBe('$.shipping\n- {\n-   "method": "standard"\n- }\n+ {\n+   "method": "express"\n+ }');
   });
 
   it('copies the value the user typed, not the normalized one', () => {
@@ -289,9 +285,7 @@ describe('formatChange', () => {
       rightRaw: '2026-09-05T10:00:00-04:00'
     });
 
-    expect(formatChange(updatedAt)).toBe(
-      `$.updatedAt\n"2026-09-04T14:00:00Z" ${ARROW} "2026-09-05T10:00:00-04:00"`
-    );
+    expect(formatChange(updatedAt)).toBe(`$.updatedAt\n"2026-09-04T14:00:00Z" ${ARROW} "2026-09-05T10:00:00-04:00"`);
   });
 
   it('emits plain text only, never HTML', () => {

@@ -24,7 +24,8 @@ export class SearchControlComponent {
   onKeydown(event: KeyboardEvent): void {
     if (event.key === 'Enter') {
       event.preventDefault();
-      event.shiftKey ? this.previous.emit() : this.next.emit();
+      if (event.shiftKey) this.previous.emit();
+      else this.next.emit();
     } else if (event.key === 'Escape') {
       event.preventDefault();
       this.clear.emit();

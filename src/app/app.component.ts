@@ -12,7 +12,14 @@ import { formatJson } from './core/json/format';
 import { ArrayMatchAnalysis, DiffOptions, DiffResult, JsonValue } from './core/models/diff.models';
 import { findNodeByPath, stepChange, subtreeIds } from './shared/node-navigation';
 import { buildSearchIndex, searchDiff, stepSearchResult } from './shared/search-index';
-import { MatchingOverrideChange, NodeActionEvent, applyOverrideToOptions, ignoreFieldEverywhereRule, ignoreThisPathRule, matchingKeyOverride } from './shared/node-actions';
+import {
+  MatchingOverrideChange,
+  NodeActionEvent,
+  applyOverrideToOptions,
+  ignoreFieldEverywhereRule,
+  ignoreThisPathRule,
+  matchingKeyOverride
+} from './shared/node-actions';
 import { ClipboardService } from './shared/clipboard/clipboard.service';
 import { formatChange, formatNewValue, formatOldValue, formatSemanticPath, formatSubtree } from './shared/clipboard/diff-clipboard';
 import { ToastMessage, createToast } from './shared/toast';
@@ -37,7 +44,15 @@ const TOAST_UNDO_MS = 5000;
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [JsonInputComponent, DiffTreeComponent, SourceDiffComponent, SidebarComponent, AnalysisPanelComponent, ToastComponent, SearchControlComponent],
+  imports: [
+    JsonInputComponent,
+    DiffTreeComponent,
+    SourceDiffComponent,
+    SidebarComponent,
+    AnalysisPanelComponent,
+    ToastComponent,
+    SearchControlComponent
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './app.component.html',
   styleUrl: './app.component.css'
@@ -78,7 +93,10 @@ export class AppComponent {
 
   readonly canCompare = computed(() => !!this.leftText().trim() && !!this.rightText().trim());
   /** DFS pre-order change ids: view-independent and invariant to collapse state. */
-  readonly changeList = computed(() => { const r = this.result(); return r ? flattenChanges(r.root) : []; });
+  readonly changeList = computed(() => {
+    const r = this.result();
+    return r ? flattenChanges(r.root) : [];
+  });
   /**
    * Ids of every row belonging to the selected node's subtree (inclusive), so
    * Tree and Source can highlight a selected object/array as one cohesive
@@ -111,7 +129,7 @@ export class AppComponent {
     const result = this.result();
     if (!result) return [];
     return result.arrays
-      .map(analysis => ({ analysis, node: findNodeByPath(result.root, analysis.path) }))
+      .map((analysis) => ({ analysis, node: findNodeByPath(result.root, analysis.path) }))
       .filter((context): context is ArrayMatchingContext => !!context.node);
   });
   /**
@@ -139,7 +157,9 @@ export class AppComponent {
     // view rather than below a page fold.
   }
 
-  selectNode(nodeId: string): void { this.selectedNodeId.set(nodeId); }
+  selectNode(nodeId: string): void {
+    this.selectedNodeId.set(nodeId);
+  }
 
   stepChange(delta: 1 | -1): void {
     this.selectedNodeId.set(stepChange(this.changeList(), this.selectedNodeId(), delta));
@@ -152,7 +172,7 @@ export class AppComponent {
   }
 
   stepSearchResult(delta: 1 | -1): void {
-    this.searchResultIndex.update(i => stepSearchResult(this.searchResults().length, i, delta));
+    this.searchResultIndex.update((i) => stepSearchResult(this.searchResults().length, i, delta));
     this.navigateToSearchResult();
   }
 
@@ -170,25 +190,25 @@ export class AppComponent {
   private navigateToSearchResult(): void {
     const nodeId = this.currentSearchNodeId();
     if (!nodeId) return;
-    const entry = this.searchIndex().find(e => e.nodeId === nodeId);
+    const entry = this.searchIndex().find((e) => e.nodeId === nodeId);
     if (this.changesOnly() && entry && !entry.hasChanges) this.changesOnly.set(false);
     this.selectedNodeId.set(nodeId);
   }
 
   patchOption<K extends keyof DiffOptions>(key: K, value: DiffOptions[K]): void {
-    this.options.update(o => ({ ...o, [key]: value }));
+    this.options.update((o) => ({ ...o, [key]: value }));
     if (this.result()) this.recompareSilently();
   }
 
   addIgnore(rule: string): void {
     const trimmed = rule.trim();
     if (!trimmed || this.options().ignorePaths.includes(trimmed)) return;
-    this.options.update(o => ({ ...o, ignorePaths: [...o.ignorePaths, trimmed] }));
+    this.options.update((o) => ({ ...o, ignorePaths: [...o.ignorePaths, trimmed] }));
     this.recompareSilently();
   }
 
   removeIgnore(rule: string): void {
-    this.options.update(o => ({ ...o, ignorePaths: o.ignorePaths.filter(r => r !== rule) }));
+    this.options.update((o) => ({ ...o, ignorePaths: o.ignorePaths.filter((r) => r !== rule) }));
     this.recompareSilently();
   }
 
@@ -215,15 +235,21 @@ export class AppComponent {
   }
 
   reset(): void {
-    this.leftText.set(''); this.rightText.set('');
-    this.leftError.set(null); this.rightError.set(null);
-    this.result.set(null); this.dirty.set(false);
-    this.selectedNodeId.set(null); this.view.set('tree');
+    this.leftText.set('');
+    this.rightText.set('');
+    this.leftError.set(null);
+    this.rightError.set(null);
+    this.result.set(null);
+    this.dirty.set(false);
+    this.selectedNodeId.set(null);
+    this.view.set('tree');
     this.selectedAnalysis.set(null);
     this.editorHeight.set(EDITOR_HEIGHT_DEFAULT);
   }
 
-  markDirty(): void { if (this.result()) this.dirty.set(true); }
+  markDirty(): void {
+    if (this.result()) this.dirty.set(true);
+  }
 
   /**
    * Right-panel resize drag. Uses pointer capture rather than document-level
@@ -268,12 +294,14 @@ export class AppComponent {
       if (Array.isArray(parsed)) return `Valid · ${parsed.length} records`;
       if (parsed && typeof parsed === 'object') return `Valid · ${Object.keys(parsed).length} top-level keys`;
       return 'Valid JSON';
-    } catch { return 'Ready to validate'; }
+    } catch {
+      return 'Ready to validate';
+    }
   }
 
   /** Fired by the Tree's match pill: selects that array in the (always-visible) analysis panel. */
   openAnalysis(path: string): void {
-    const analysis = this.result()?.arrays.find(a => a.path === path) ?? null;
+    const analysis = this.result()?.arrays.find((a) => a.path === path) ?? null;
     this.selectedAnalysis.set(analysis);
   }
 
@@ -281,13 +309,20 @@ export class AppComponent {
   handleNodeAction(event: NodeActionEvent): void {
     const { action, node, target } = event;
     switch (action) {
-      case 'copy-path': return this.copy(formatSemanticPath(node), 'Copied DiffLens path');
-      case 'copy-old-value': return this.copy(formatOldValue(node), 'Copied old value');
-      case 'copy-new-value': return this.copy(formatNewValue(node), 'Copied new value');
-      case 'copy-subtree': return this.copy(formatSubtree(node, 'right'), 'Copied subtree');
-      case 'copy-change': return this.copy(formatChange(node), 'Copied change');
-      case 'ignore-path': return this.applyIgnore(ignoreThisPathRule(node));
-      case 'ignore-field-everywhere': return this.applyIgnore(ignoreFieldEverywhereRule(node));
+      case 'copy-path':
+        return this.copy(formatSemanticPath(node), 'Copied DiffLens path');
+      case 'copy-old-value':
+        return this.copy(formatOldValue(node), 'Copied old value');
+      case 'copy-new-value':
+        return this.copy(formatNewValue(node), 'Copied new value');
+      case 'copy-subtree':
+        return this.copy(formatSubtree(node, 'right'), 'Copied subtree');
+      case 'copy-change':
+        return this.copy(formatChange(node), 'Copied change');
+      case 'ignore-path':
+        return this.applyIgnore(ignoreThisPathRule(node));
+      case 'ignore-field-everywhere':
+        return this.applyIgnore(ignoreFieldEverywhereRule(node));
       case 'use-as-key':
       case 'add-to-key':
         if (!target) return;
@@ -309,9 +344,9 @@ export class AppComponent {
    */
   applyMatchingOverride(change: MatchingOverrideChange, message?: string): void {
     const openPath = this.selectedAnalysis()?.path;
-    this.options.update(current => applyOverrideToOptions(current, change.pattern, change.override));
+    this.options.update((current) => applyOverrideToOptions(current, change.pattern, change.override));
     this.recompareSilently();
-    if (openPath) this.selectedAnalysis.set(this.result()?.arrays.find(a => a.path === openPath) ?? null);
+    if (openPath) this.selectedAnalysis.set(this.result()?.arrays.find((a) => a.path === openPath) ?? null);
     this.showToast(message ?? (change.override ? 'Array matching updated' : 'Matching reset to Auto'));
   }
 
@@ -328,7 +363,7 @@ export class AppComponent {
   }
 
   toggleTheme(): void {
-    this.darkMode.update(v => !v);
+    this.darkMode.update((v) => !v);
     const theme: Theme = this.darkMode() ? 'dark' : 'light';
     applyTheme(theme);
     storeTheme(theme);
@@ -371,6 +406,10 @@ export class AppComponent {
   }
 
   private safeParse(text: string): JsonValue | undefined {
-    try { return JSON.parse(text) as JsonValue; } catch { return undefined; }
+    try {
+      return JSON.parse(text) as JsonValue;
+    } catch {
+      return undefined;
+    }
   }
 }

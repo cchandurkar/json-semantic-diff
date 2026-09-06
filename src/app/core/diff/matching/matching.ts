@@ -39,7 +39,7 @@ export function matchArrays(
     const r = right as JsonObject[];
     const pairs = pairByIdentity(l, r, analysis.keyPaths);
     if (pairs.length) {
-      analysis.reordered = pairs.some(p => p.leftIndex !== undefined && p.rightIndex !== undefined && p.leftIndex !== p.rightIndex);
+      analysis.reordered = pairs.some((p) => p.leftIndex !== undefined && p.rightIndex !== undefined && p.leftIndex !== p.rightIndex);
       analysis.duplicateKeyCount = countDuplicateKeyBuckets(l, r, analysis.keyPaths);
       return { analysis, pairs };
     }
@@ -84,9 +84,7 @@ export function selectArrayStrategy(
 
   // Inference is hoisted above the override branches on purpose: even when the
   // user has pinned a key, a renderer still wants to show what auto WOULD pick.
-  const inference = objectArrays && left.length && right.length
-    ? inferIdentity(left as JsonObject[], right as JsonObject[])
-    : undefined;
+  const inference = objectArrays && left.length && right.length ? inferIdentity(left as JsonObject[], right as JsonObject[]) : undefined;
 
   if (override?.strategy === 'position') {
     return {
@@ -132,10 +130,13 @@ export function selectArrayStrategy(
 
 /** Number of key buckets holding more than one record on either side. */
 function countDuplicateKeyBuckets(left: JsonObject[], right: JsonObject[], keyPaths: string[]): number {
-  const keyOf = (row: JsonObject) => keyPaths.map(p => stableValue(readPath(row, p))).join('|');
+  const keyOf = (row: JsonObject) => keyPaths.map((p) => stableValue(readPath(row, p))).join('|');
   const count = (rows: JsonObject[]) => {
     const tally = new Map<string, number>();
-    rows.forEach(row => { const k = keyOf(row); tally.set(k, (tally.get(k) ?? 0) + 1); });
+    rows.forEach((row) => {
+      const k = keyOf(row);
+      tally.set(k, (tally.get(k) ?? 0) + 1);
+    });
     return tally;
   };
   const l = count(left);
@@ -166,7 +167,7 @@ function rejectedOutcome(inference: { ambiguous: boolean; best?: unknown }): Arr
  * affects the result.
  */
 export function pairByIdentity(left: JsonObject[], right: JsonObject[], keyPaths: string[]): MatchedPair[] {
-  const valuesOf = (row: JsonObject) => keyPaths.map(p => stableValue(readPath(row, p)));
+  const valuesOf = (row: JsonObject) => keyPaths.map((p) => stableValue(readPath(row, p)));
   const keyOf = (row: JsonObject) => valuesOf(row).join('|');
 
   const groupL = bucket(left, keyOf);

@@ -81,11 +81,20 @@ describe('deriveMatchingTarget', () => {
 
   it('joins a nested field path with dots', () => {
     const nested = run(
-      { rows: [{ id: 1, location: { store: 'BOS' } }, { id: 2, location: { store: 'NYC' } }] },
-      { rows: [{ id: 2, location: { store: 'NYC' } }, { id: 1, location: { store: 'LAX' } }] }
+      {
+        rows: [
+          { id: 1, location: { store: 'BOS' } },
+          { id: 2, location: { store: 'NYC' } }
+        ]
+      },
+      {
+        rows: [
+          { id: 2, location: { store: 'NYC' } },
+          { id: 1, location: { store: 'LAX' } }
+        ]
+      }
     );
-    const store = findNodeByPath(nested.root, '$.rows[1].location.store')
-      ?? findNodeByPath(nested.root, '$.rows[0].location.store');
+    const store = findNodeByPath(nested.root, '$.rows[1].location.store') ?? findNodeByPath(nested.root, '$.rows[0].location.store');
     expect(store).toBeDefined();
 
     const target = deriveMatchingTarget(nested.root, store!.id);
@@ -96,11 +105,30 @@ describe('deriveMatchingTarget', () => {
 
   it('generalizes ancestor element brackets in the pattern for a nested array', () => {
     const nested = run(
-      { orgs: [{ orgId: 'a', users: [{ userId: 1, email: 'x@a.com' }, { userId: 2, email: 'y@a.com' }] }] },
-      { orgs: [{ orgId: 'a', users: [{ userId: 2, email: 'y@a.com' }, { userId: 1, email: 'z@a.com' }] }] }
+      {
+        orgs: [
+          {
+            orgId: 'a',
+            users: [
+              { userId: 1, email: 'x@a.com' },
+              { userId: 2, email: 'y@a.com' }
+            ]
+          }
+        ]
+      },
+      {
+        orgs: [
+          {
+            orgId: 'a',
+            users: [
+              { userId: 2, email: 'y@a.com' },
+              { userId: 1, email: 'z@a.com' }
+            ]
+          }
+        ]
+      }
     );
-    const email = findNodeByPath(nested.root, '$.orgs[0].users[0].email')
-      ?? findNodeByPath(nested.root, '$.orgs[a].users[1].email');
+    const email = findNodeByPath(nested.root, '$.orgs[0].users[0].email') ?? findNodeByPath(nested.root, '$.orgs[a].users[1].email');
     expect(email, 'expected an email node somewhere under a nested array').toBeDefined();
 
     const target = deriveMatchingTarget(nested.root, email!.id);
@@ -142,8 +170,18 @@ describe('deriveMatchingTarget', () => {
   it('is offered even while the array is still matched positionally', () => {
     // Exactly the case where pinning a key is most useful.
     const weak = run(
-      { rows: [{ a: 1, b: 'x' }, { a: 2, b: 'y' }] },
-      { rows: [{ a: 1, b: 'x' }, { a: 3, b: 'z' }] }
+      {
+        rows: [
+          { a: 1, b: 'x' },
+          { a: 2, b: 'y' }
+        ]
+      },
+      {
+        rows: [
+          { a: 1, b: 'x' },
+          { a: 3, b: 'z' }
+        ]
+      }
     );
     expect(weak.arrays[0].strategy).toBe('position');
 
@@ -158,7 +196,7 @@ describe('deriveMatchingTarget', () => {
     const pinned = run(INVENTORY, INVENTORY_CHANGED, {
       arrayMatching: { '$.inventory': { strategy: 'key', fields: ['sku'] } }
     });
-    const skuNode = findNodeByPath(pinned.root, '$.inventory[SKU-1001]')?.children?.find(c => c.label === 'sku');
+    const skuNode = findNodeByPath(pinned.root, '$.inventory[SKU-1001]')?.children?.find((c) => c.label === 'sku');
     expect(skuNode).toBeDefined();
 
     const target = deriveMatchingTarget(pinned.root, skuNode!.id);
@@ -172,7 +210,7 @@ describe('deriveMatchingTarget', () => {
     const pinned = run(INVENTORY, INVENTORY_CHANGED, {
       arrayMatching: { '$.inventory': { strategy: 'key', fields: ['sku'] } }
     });
-    const storeNode = findNodeByPath(pinned.root, '$.inventory[SKU-1001]')?.children?.find(c => c.label === 'store');
+    const storeNode = findNodeByPath(pinned.root, '$.inventory[SKU-1001]')?.children?.find((c) => c.label === 'store');
 
     const target = deriveMatchingTarget(pinned.root, storeNode!.id);
 
@@ -205,8 +243,10 @@ describe('matchingKeyOverride', () => {
   });
 
   it('produces an override the core actually honours', () => {
-    const target = deriveMatchingTarget(run(INVENTORY, INVENTORY_CHANGED).root,
-      findNodeById(run(INVENTORY, INVENTORY_CHANGED).root, '$.inventory[sku=SKU-1001;store=BOS].sku')!.id)!;
+    const target = deriveMatchingTarget(
+      run(INVENTORY, INVENTORY_CHANGED).root,
+      findNodeById(run(INVENTORY, INVENTORY_CHANGED).root, '$.inventory[sku=SKU-1001;store=BOS].sku')!.id
+    )!;
     const override = matchingKeyOverride(target, 'use-as-key');
     const applied = run(INVENTORY, INVENTORY_CHANGED, { arrayMatching: { [target.pattern]: override } });
 
@@ -264,13 +304,13 @@ describe('buildNodeMenu', () => {
   const price = findNodeById(result.root, '$.inventory[sku=SKU-2004;store=NYC].price')!;
 
   function itemIds(node: DiffNode, target?: ReturnType<typeof deriveMatchingTarget>) {
-    return buildNodeMenu(node, target).flatMap(group => group.items.map(item => item.id));
+    return buildNodeMenu(node, target).flatMap((group) => group.items.map((item) => item.id));
   }
 
   it('groups Copy, Comparison and Array matching in order', () => {
     const target = deriveMatchingTarget(result.root, price.id);
 
-    expect(buildNodeMenu(price, target).map(g => g.title)).toEqual(['Copy', 'Comparison', 'Array matching']);
+    expect(buildNodeMenu(price, target).map((g) => g.title)).toEqual(['Copy', 'Comparison', 'Array matching']);
   });
 
   it('omits "copy old value" on an added node', () => {
@@ -316,12 +356,12 @@ describe('buildNodeMenu', () => {
   });
 
   it('omits the Array matching group entirely when there is no target', () => {
-    expect(buildNodeMenu(price).map(g => g.title)).toEqual(['Copy', 'Comparison']);
+    expect(buildNodeMenu(price).map((g) => g.title)).toEqual(['Copy', 'Comparison']);
   });
 
   it('labels the matching action with the field name', () => {
     const target = deriveMatchingTarget(result.root, price.id);
-    const group = buildNodeMenu(price, target).find(g => g.title === 'Array matching');
+    const group = buildNodeMenu(price, target).find((g) => g.title === 'Array matching');
 
     expect(group?.items[0]).toEqual({ id: 'use-as-key', label: 'Use "price" as matching key' });
   });
@@ -330,9 +370,9 @@ describe('buildNodeMenu', () => {
     const pinned = run(INVENTORY, INVENTORY_CHANGED, {
       arrayMatching: { '$.inventory': { strategy: 'key', fields: ['sku'] } }
     });
-    const store = findNodeByPath(pinned.root, '$.inventory[SKU-1001]')?.children?.find(c => c.label === 'store')!;
-    const target = deriveMatchingTarget(pinned.root, store.id);
-    const group = buildNodeMenu(store, target).find(g => g.title === 'Array matching');
+    const store = findNodeByPath(pinned.root, '$.inventory[SKU-1001]')?.children?.find((c) => c.label === 'store');
+    const target = deriveMatchingTarget(pinned.root, store!.id);
+    const group = buildNodeMenu(store!, target).find((g) => g.title === 'Array matching');
 
     expect(group?.items[0]).toEqual({ id: 'add-to-key', label: 'Add "store" to matching key' });
   });
@@ -341,10 +381,10 @@ describe('buildNodeMenu', () => {
     const pinned = run(INVENTORY, INVENTORY_CHANGED, {
       arrayMatching: { '$.inventory': { strategy: 'key', fields: ['sku'] } }
     });
-    const sku = findNodeByPath(pinned.root, '$.inventory[SKU-1001]')?.children?.find(c => c.label === 'sku')!;
-    const target = deriveMatchingTarget(pinned.root, sku.id);
+    const sku = findNodeByPath(pinned.root, '$.inventory[SKU-1001]')?.children?.find((c) => c.label === 'sku');
+    const target = deriveMatchingTarget(pinned.root, sku!.id);
 
-    expect(buildNodeMenu(sku, target).map(g => g.title)).not.toContain('Array matching');
+    expect(buildNodeMenu(sku!, target).map((g) => g.title)).not.toContain('Array matching');
   });
 });
 
@@ -354,7 +394,7 @@ describe('nodeChain / findNodeByPath', () => {
   it('returns root-first chain ending at the requested node', () => {
     const chain = nodeChain(result.root, '$.inventory[sku=SKU-1001;store=BOS].sku');
 
-    expect(chain.map(n => n.label)).toEqual(['root', 'inventory', '[sku+store=SKU-1001|BOS]', 'sku']);
+    expect(chain.map((n) => n.label)).toEqual(['root', 'inventory', '[sku+store=SKU-1001|BOS]', 'sku']);
     expect(chain[0]).toBe(result.root);
   });
 
@@ -429,7 +469,7 @@ describe('overridePatternFor', () => {
       { orgs: [{ orgId: 'a', users: [{ userId: 1 }, { userId: 2 }] }] },
       { orgs: [{ orgId: 'a', users: [{ userId: 2 }, { userId: 1 }] }] }
     );
-    const users = nested.arrays.find(a => a.path.endsWith('.users'))!;
+    const users = nested.arrays.find((a) => a.path.endsWith('.users'))!;
 
     expect(overridePatternFor(users)).toBe('$.orgs[*].users');
   });

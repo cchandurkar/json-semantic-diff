@@ -11,9 +11,7 @@ import { DiffSegment, diffText } from '../../shared/text-diff';
  */
 
 /** One entry in the rendered stream: either a real row or a collapsed-region placeholder. */
-export type SourceViewItem =
-  | { kind: 'row'; row: SourceDiffRow }
-  | { kind: 'collapsed'; key: string; hiddenLines: number };
+export type SourceViewItem = { kind: 'row'; row: SourceDiffRow } | { kind: 'collapsed'; key: string; hiddenLines: number };
 
 /**
  * Flattens segments into the rendered stream, expanding only the regions whose
@@ -21,9 +19,9 @@ export type SourceViewItem =
  * until that specific region is opened, so expanding one never costs the others.
  */
 export function buildItems(segments: SourceSegment[], expanded: ReadonlySet<string>): SourceViewItem[] {
-  return segments.flatMap<SourceViewItem>(segment => {
-    if (segment.kind === 'rows') return segment.rows.map(row => ({ kind: 'row', row }));
-    if (expanded.has(segment.key)) return segment.rows().map(row => ({ kind: 'row', row }));
+  return segments.flatMap<SourceViewItem>((segment) => {
+    if (segment.kind === 'rows') return segment.rows.map((row) => ({ kind: 'row', row }));
+    if (expanded.has(segment.key)) return segment.rows().map((row) => ({ kind: 'row', row }));
     return [{ kind: 'collapsed', key: segment.key, hiddenLines: segment.hiddenLines }];
   });
 }
@@ -34,14 +32,10 @@ export function buildItems(segments: SourceSegment[], expanded: ReadonlySet<stri
  * Only consulted when a selection arrives for a node that is not currently
  * rendered, so the thunks of unrelated regions are touched at most once.
  */
-export function collapsedKeyContaining(
-  segments: SourceSegment[],
-  nodeId: string,
-  expanded: ReadonlySet<string>
-): string | undefined {
+export function collapsedKeyContaining(segments: SourceSegment[], nodeId: string, expanded: ReadonlySet<string>): string | undefined {
   for (const segment of segments) {
     if (segment.kind !== 'collapsed' || expanded.has(segment.key)) continue;
-    if (segment.rows().some(row => row.nodeId === nodeId)) return segment.key;
+    if (segment.rows().some((row) => row.nodeId === nodeId)) return segment.key;
   }
   return undefined;
 }
@@ -61,11 +55,16 @@ export function rightMarker(row: SourceDiffRow): string {
 export function changeLabel(row: SourceDiffRow): string {
   if (row.ignored) return 'Ignored';
   switch (row.changeKind) {
-    case 'added': return 'Added';
-    case 'removed': return 'Removed';
-    case 'modified': return 'Modified';
-    case 'type-changed': return 'Type changed';
-    default: return '';
+    case 'added':
+      return 'Added';
+    case 'removed':
+      return 'Removed';
+    case 'modified':
+      return 'Modified';
+    case 'type-changed':
+      return 'Type changed';
+    default:
+      return '';
   }
 }
 
@@ -87,7 +86,11 @@ export const REORDER_TOOLTIP =
   'Your original input JSON was not modified. ' +
   'The matching key comes from the existing comparison result.';
 
-export interface CellRender { key?: string; segments: DiffSegment[]; tail: string; }
+export interface CellRender {
+  key?: string;
+  segments: DiffSegment[];
+  tail: string;
+}
 
 /**
  * Splits a source cell into key / diffed-value-segments / trailing-comma for
@@ -144,7 +147,10 @@ export function matchSpans(text: string, query: string): { text: string; hit: bo
   let i = 0;
   while (i < text.length) {
     const idx = lower.indexOf(qLower, i);
-    if (idx === -1) { out.push({ text: text.slice(i), hit: false }); break; }
+    if (idx === -1) {
+      out.push({ text: text.slice(i), hit: false });
+      break;
+    }
     if (idx > i) out.push({ text: text.slice(i, idx), hit: false });
     out.push({ text: text.slice(idx, idx + q.length), hit: true });
     i = idx + q.length;

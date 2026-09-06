@@ -6,8 +6,7 @@ import { selectArrayStrategy } from './matching';
 
 const opts = (arrayMatching?: Record<string, ArrayMatchOverride>): DiffOptions => ({ ...DEFAULT_DIFF_OPTIONS, arrayMatching });
 
-const elementPaths = (node: DiffNode, path: string): string[] =>
-  (findArray(node, path)?.children ?? []).map(c => c.path);
+const elementPaths = (node: DiffNode, path: string): string[] => (findArray(node, path)?.children ?? []).map((c) => c.path);
 
 function findArray(node: DiffNode, path: string): DiffNode | undefined {
   if (node.path === path) return node;
@@ -47,14 +46,18 @@ describe('manual array matching overrides', () => {
   });
 
   it('keeps a manual composite key stable across a reorder', () => {
-    const left: JsonValue = { inventory: [
-      { store: 'BOS', sku: '1', qty: 5 },
-      { store: 'NYC', sku: '2', qty: 7 }
-    ] };
-    const right: JsonValue = { inventory: [
-      { store: 'NYC', sku: '2', qty: 7 },
-      { store: 'BOS', sku: '1', qty: 6 }
-    ] };
+    const left: JsonValue = {
+      inventory: [
+        { store: 'BOS', sku: '1', qty: 5 },
+        { store: 'NYC', sku: '2', qty: 7 }
+      ]
+    };
+    const right: JsonValue = {
+      inventory: [
+        { store: 'NYC', sku: '2', qty: 7 },
+        { store: 'BOS', sku: '1', qty: 6 }
+      ]
+    };
 
     const result = diffJson(left, right, opts({ '$.inventory': { strategy: 'key', fields: ['store', 'sku'] } }));
     const analysis = result.arrays[0];
@@ -70,8 +73,18 @@ describe('manual array matching overrides', () => {
   });
 
   it('forces physical positions with a manual position override', () => {
-    const left: JsonValue = { users: [{ id: 1, name: 'a' }, { id: 2, name: 'b' }] };
-    const right: JsonValue = { users: [{ id: 2, name: 'b' }, { id: 1, name: 'a' }] };
+    const left: JsonValue = {
+      users: [
+        { id: 1, name: 'a' },
+        { id: 2, name: 'b' }
+      ]
+    };
+    const right: JsonValue = {
+      users: [
+        { id: 2, name: 'b' },
+        { id: 1, name: 'a' }
+      ]
+    };
 
     const auto = diffJson(left, right, opts());
     const manual = diffJson(left, right, opts({ '$.users': { strategy: 'position' } }));
@@ -88,16 +101,20 @@ describe('manual array matching overrides', () => {
   });
 
   it('pairs a non-unique manual key deterministically and flags the duplication', () => {
-    const left: JsonValue = { rows: [
-      { region: 'EU', v: 1 },
-      { region: 'EU', v: 2 },
-      { region: 'US', v: 3 }
-    ] };
-    const right: JsonValue = { rows: [
-      { region: 'EU', v: 10 },
-      { region: 'EU', v: 20 },
-      { region: 'US', v: 3 }
-    ] };
+    const left: JsonValue = {
+      rows: [
+        { region: 'EU', v: 1 },
+        { region: 'EU', v: 2 },
+        { region: 'US', v: 3 }
+      ]
+    };
+    const right: JsonValue = {
+      rows: [
+        { region: 'EU', v: 10 },
+        { region: 'EU', v: 20 },
+        { region: 'US', v: 3 }
+      ]
+    };
 
     const result = diffJson(left, right, opts({ '$.rows': { strategy: 'key', fields: ['region'] } }));
     const analysis = result.arrays[0];
@@ -113,8 +130,18 @@ describe('manual array matching overrides', () => {
   });
 
   it("treats strategy 'auto' exactly like no override", () => {
-    const left: JsonValue = { users: [{ id: 1, name: 'a' }, { id: 2, name: 'b' }] };
-    const right: JsonValue = { users: [{ id: 2, name: 'b' }, { id: 1, name: 'a' }] };
+    const left: JsonValue = {
+      users: [
+        { id: 1, name: 'a' },
+        { id: 2, name: 'b' }
+      ]
+    };
+    const right: JsonValue = {
+      users: [
+        { id: 2, name: 'b' },
+        { id: 1, name: 'a' }
+      ]
+    };
 
     const none = diffJson(left, right, opts());
     const auto = diffJson(left, right, opts({ '$.users': { strategy: 'auto' } }));
@@ -126,23 +153,39 @@ describe('manual array matching overrides', () => {
   });
 
   it('applies a wildcard pattern to a nested array', () => {
-    const left: JsonValue = { users: [
-      { id: 1, tags: [{ name: 'x', w: 1 }, { name: 'y', w: 2 }] },
-      { id: 2, tags: [{ name: 'z', w: 3 }] }
-    ] };
-    const right: JsonValue = { users: [
-      { id: 1, tags: [{ name: 'y', w: 2 }, { name: 'x', w: 5 }] },
-      { id: 2, tags: [{ name: 'z', w: 3 }] }
-    ] };
+    const left: JsonValue = {
+      users: [
+        {
+          id: 1,
+          tags: [
+            { name: 'x', w: 1 },
+            { name: 'y', w: 2 }
+          ]
+        },
+        { id: 2, tags: [{ name: 'z', w: 3 }] }
+      ]
+    };
+    const right: JsonValue = {
+      users: [
+        {
+          id: 1,
+          tags: [
+            { name: 'y', w: 2 },
+            { name: 'x', w: 5 }
+          ]
+        },
+        { id: 2, tags: [{ name: 'z', w: 3 }] }
+      ]
+    };
 
     const result = diffJson(left, right, opts({ '$.users[*].tags': { strategy: 'key', fields: ['name'] } }));
-    const tagArrays = result.arrays.filter(a => a.path.endsWith('.tags'));
+    const tagArrays = result.arrays.filter((a) => a.path.endsWith('.tags'));
 
     expect(tagArrays).toHaveLength(2);
-    expect(tagArrays.every(a => a.outcome === 'manual-key')).toBe(true);
-    expect(tagArrays.every(a => a.override?.pattern === '$.users[*].tags')).toBe(true);
+    expect(tagArrays.every((a) => a.outcome === 'manual-key')).toBe(true);
+    expect(tagArrays.every((a) => a.override?.pattern === '$.users[*].tags')).toBe(true);
     // The users array itself is untouched by the pattern.
-    expect(result.arrays.find(a => a.path === '$.users')?.override).toBeUndefined();
+    expect(result.arrays.find((a) => a.path === '$.users')?.override).toBeUndefined();
   });
 
   it('prefers an exact path key over a matching wildcard', () => {
@@ -159,8 +202,18 @@ describe('manual array matching overrides', () => {
   });
 
   it('leaves autoMatchedCount and uncertainCount untouched by manual outcomes', () => {
-    const left: JsonValue = { users: [{ id: 1, name: 'a' }, { id: 2, name: 'b' }] };
-    const right: JsonValue = { users: [{ id: 2, name: 'b' }, { id: 1, name: 'a' }] };
+    const left: JsonValue = {
+      users: [
+        { id: 1, name: 'a' },
+        { id: 2, name: 'b' }
+      ]
+    };
+    const right: JsonValue = {
+      users: [
+        { id: 2, name: 'b' },
+        { id: 1, name: 'a' }
+      ]
+    };
 
     const manual = diffJson(left, right, opts({ '$.users': { strategy: 'key', fields: ['name'] } }));
 

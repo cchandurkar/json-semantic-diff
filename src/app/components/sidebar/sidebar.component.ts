@@ -63,7 +63,7 @@ export class SidebarComponent {
   }
 
   toggle(): void {
-    this.open.update(value => !value);
+    this.open.update((value) => !value);
   }
 
   /**

@@ -6,12 +6,15 @@
     [value]="query()"
     (input)="onInput($event)"
     (keydown)="onKeydown($event)"
-    aria-label="Search diff" />
+    aria-label="Search diff"
+  />
   @if (query()) {
     <span class="search-count" [class.no-results]="resultCount() === 0" aria-live="polite">
-      {{ resultCount() === 0 ? '0 / 0' : (currentIndex() + 1) + ' / ' + resultCount() }}
+      {{ resultCount() === 0 ? '0 / 0' : currentIndex() + 1 + ' / ' + resultCount() }}
     </span>
-    <button type="button" class="search-nav-btn" (click)="previous.emit()" [disabled]="resultCount() === 0" aria-label="Previous result">↑</button>
+    <button type="button" class="search-nav-btn" (click)="previous.emit()" [disabled]="resultCount() === 0" aria-label="Previous result">
+      ↑
+    </button>
     <button type="button" class="search-nav-btn" (click)="next.emit()" [disabled]="resultCount() === 0" aria-label="Next result">↓</button>
   }
 </div>

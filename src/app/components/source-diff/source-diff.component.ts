@@ -5,7 +5,18 @@ import { DiffNode, DiffResult } from '../../core/diff';
 import { findNodeById } from '../../shared/node-navigation';
 import { NodeActionEvent, NodeActionId, NodeMenuGroup, buildNodeMenu } from '../../shared/node-actions';
 import { DEFAULT_CONTEXT_LINES, emitSourceRows, segmentRows } from '../../source';
-import { REORDER_TOOLTIP, buildItems, changeLabel, collapsedKeyContaining, leftMarker, matchSpans, matchSummary, renderCell, rightMarker, rowMatchesQuery } from './source-view-model';
+import {
+  REORDER_TOOLTIP,
+  buildItems,
+  changeLabel,
+  collapsedKeyContaining,
+  leftMarker,
+  matchSpans,
+  matchSummary,
+  renderCell,
+  rightMarker,
+  rowMatchesQuery
+} from './source-view-model';
 
 @Component({
   selector: 'app-source-diff',
@@ -91,7 +102,7 @@ export class SourceDiffComponent {
   rowMenu(nodeId: string): NodeMenuGroup[] {
     const node = this.nodeFor(nodeId);
     if (!node) return [];
-    return buildNodeMenu(node).filter(group => group.title === 'Copy');
+    return buildNodeMenu(node).filter((group) => group.title === 'Copy');
   }
 
   emitAction(action: NodeActionId, nodeId: string): void {
@@ -105,7 +116,7 @@ export class SourceDiffComponent {
   }
 
   expand(key: string): void {
-    this.expanded.update(current => new Set(current).add(key));
+    this.expanded.update((current) => new Set(current).add(key));
   }
 }
 

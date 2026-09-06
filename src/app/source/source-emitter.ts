@@ -51,8 +51,12 @@ class RowBuilder {
 }
 
 /** `added` nodes have no left side; `removed` nodes have no right side. */
-function presentLeft(node: DiffNode): boolean { return node.changeKind !== 'added'; }
-function presentRight(node: DiffNode): boolean { return node.changeKind !== 'removed'; }
+function presentLeft(node: DiffNode): boolean {
+  return node.changeKind !== 'added';
+}
+function presentRight(node: DiffNode): boolean {
+  return node.changeKind !== 'removed';
+}
 
 function emitNode(node: DiffNode, builder: RowBuilder, ctx: EmitContext): void {
   // `children` is defined (possibly empty) exactly for paired containers. The
@@ -185,13 +189,21 @@ function positionOf(node: DiffNode): { leftIndex?: number; rightIndex?: number }
 
 function lastIndexWhere(children: DiffNode[], predicate: (node: DiffNode) => boolean): number {
   let last = -1;
-  children.forEach((child, i) => { if (predicate(child)) last = i; });
+  children.forEach((child, i) => {
+    if (predicate(child)) last = i;
+  });
   return last;
 }
 
-function keyPrefix(key?: string): string { return key === undefined ? '' : `${JSON.stringify(key)}: `; }
-function render(value: JsonValue | undefined): string { return value === undefined ? '' : JSON.stringify(value); }
-function isObject(v: JsonValue | undefined): v is JsonObject { return !!v && typeof v === 'object' && !Array.isArray(v); }
+function keyPrefix(key?: string): string {
+  return key === undefined ? '' : `${JSON.stringify(key)}: `;
+}
+function render(value: JsonValue | undefined): string {
+  return value === undefined ? '' : JSON.stringify(value);
+}
+function isObject(v: JsonValue | undefined): v is JsonObject {
+  return !!v && typeof v === 'object' && !Array.isArray(v);
+}
 
 /**
  * DFS pre-order ids of nodes that represent a real change: changed leaves and
@@ -203,7 +215,10 @@ function isObject(v: JsonValue | undefined): v is JsonObject { return !!v && typ
 export function flattenChanges(root: DiffNode): string[] {
   const ids: string[] = [];
   const walk = (node: DiffNode) => {
-    if (node.children) { node.children.forEach(walk); return; }
+    if (node.children) {
+      node.children.forEach(walk);
+      return;
+    }
     if (node.changeKind !== 'unchanged') ids.push(node.id);
   };
   walk(root);

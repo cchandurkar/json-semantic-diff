@@ -15,21 +15,26 @@ function rowsFor(left: JsonValue, right: JsonValue, overrides: Partial<DiffOptio
 
 /** Renders the row list as a side-by-side table, so a snapshot failure is readable. */
 function table(rows: SourceDiffRow[]): string {
-  return rows.map(r => {
-    const L = r.left ? `${String(r.left.lineNumber).padStart(3)} ${'  '.repeat(r.depth)}${r.left.text}` : '    ';
-    const R = r.right ? `${String(r.right.lineNumber).padStart(3)} ${'  '.repeat(r.depth)}${r.right.text}` : '';
-    return `${L.padEnd(52)}|${R.padEnd(52)}| ${r.changeKind}/${r.role}${r.reordered ? ' REORD' : ''}${r.ignored ? ' IGN' : ''}`;
-  }).join('\n');
+  return rows
+    .map((r) => {
+      const L = r.left ? `${String(r.left.lineNumber).padStart(3)} ${'  '.repeat(r.depth)}${r.left.text}` : '    ';
+      const R = r.right ? `${String(r.right.lineNumber).padStart(3)} ${'  '.repeat(r.depth)}${r.right.text}` : '';
+      return `${L.padEnd(52)}|${R.padEnd(52)}| ${r.changeKind}/${r.role}${r.reordered ? ' REORD' : ''}${r.ignored ? ' IGN' : ''}`;
+    })
+    .join('\n');
 }
 
 /** Re-assembles one pane's text, to prove the emitted document is still valid JSON. */
 function pane(rows: SourceDiffRow[], side: 'left' | 'right'): string {
-  return rows.filter(r => r[side]).map(r => '  '.repeat(r.depth) + r[side]!.text).join('\n');
+  return rows
+    .filter((r) => r[side])
+    .map((r) => '  '.repeat(r.depth) + r[side]!.text)
+    .join('\n');
 }
 
 function assertMonotonic(rows: SourceDiffRow[]): void {
   for (const side of ['left', 'right'] as const) {
-    const numbers = rows.filter(r => r[side]).map(r => r[side]!.lineNumber);
+    const numbers = rows.filter((r) => r[side]).map((r) => r[side]!.lineNumber);
     expect(numbers).toEqual(numbers.map((_, i) => i + 1));
   }
 }
@@ -45,7 +50,7 @@ describe('golden - built-in example', () => {
   it('shows the RAW timestamps the user typed, not the normalized comparison form', () => {
     // normalizeTimestamps is on by default, so left/right both normalize to
     // 2026-09-04T14:00:00.000Z. A pane labelled ORIGINAL must not show that.
-    const updatedAt = rows.find(r => r.left?.text.includes('updatedAt'));
+    const updatedAt = rows.find((r) => r.left?.text.includes('updatedAt'));
     expect(updatedAt?.left?.text).toContain('2026-09-04T14:00:00Z');
     expect(updatedAt?.right?.text).toContain('2026-09-04T10:00:00-04:00');
     expect(updatedAt?.changeKind).toBe('unchanged');
@@ -70,10 +75,14 @@ describe('golden - built-in example', () => {
   });
 
   it('preserves the original array positions on the rows despite the re-ordering', () => {
-    const elementOpens = rows.filter(r => r.role === 'open' && r.arrayMatch === undefined && r.leftIndex !== undefined);
+    const elementOpens = rows.filter((r) => r.role === 'open' && r.arrayMatch === undefined && r.leftIndex !== undefined);
 
     // user 103 sits at left index 2 but right index 0 - the input was not rewritten.
-    expect(elementOpens.map(r => [r.leftIndex, r.rightIndex])).toEqual([[0, 1], [1, 2], [2, 0]]);
+    expect(elementOpens.map((r) => [r.leftIndex, r.rightIndex])).toEqual([
+      [0, 1],
+      [1, 2],
+      [2, 0]
+    ]);
   });
 
   it('numbers each side independently and monotonically', () => {
@@ -131,7 +140,7 @@ const GOLDEN_EXAMPLE = `  1 {                                               |  1
 describe('A. scalar modification', () => {
   it('produces one modified value row with the key and value split out', () => {
     const rows = rowsFor({ status: 'active' }, { status: 'inactive' });
-    const changed = rows.filter(r => r.changeKind !== 'unchanged');
+    const changed = rows.filter((r) => r.changeKind !== 'unchanged');
 
     expect(changed).toHaveLength(1);
     expect(changed[0]).toMatchObject({ role: 'value', changeKind: 'modified', nodeId: '$.status', depth: 1 });
@@ -143,7 +152,7 @@ describe('A. scalar modification', () => {
 describe('B. added property', () => {
   it('leaves the left cell absent and advances only the right counter', () => {
     const rows = rowsFor({ a: 1 }, { a: 1, b: 2 });
-    const added = rows.find(r => r.changeKind === 'added');
+    const added = rows.find((r) => r.changeKind === 'added');
 
     expect(added?.left).toBeUndefined();
     expect(added?.right).toMatchObject({ lineNumber: 3, text: '"b": 2' });
@@ -154,18 +163,18 @@ describe('B. added property', () => {
 
   it('expands a whole added object subtree rather than collapsing it', () => {
     const rows = rowsFor({ a: 1 }, { a: 1, nested: { x: 1, y: [2] } });
-    const added = rows.filter(r => r.changeKind === 'added');
+    const added = rows.filter((r) => r.changeKind === 'added');
 
-    expect(added.map(r => r.right?.text)).toEqual(['"nested": {', '"x": 1,', '"y": [', '2', ']', '}']);
-    expect(added.every(r => r.nodeId === '$.nested')).toBe(true);
-    expect(added.every(r => r.left === undefined)).toBe(true);
+    expect(added.map((r) => r.right?.text)).toEqual(['"nested": {', '"x": 1,', '"y": [', '2', ']', '}']);
+    expect(added.every((r) => r.nodeId === '$.nested')).toBe(true);
+    expect(added.every((r) => r.left === undefined)).toBe(true);
   });
 });
 
 describe('C. removed property', () => {
   it('leaves the right cell absent and advances only the left counter', () => {
     const rows = rowsFor({ a: 1, b: 2 }, { a: 1 });
-    const removed = rows.find(r => r.changeKind === 'removed');
+    const removed = rows.find((r) => r.changeKind === 'removed');
 
     expect(removed?.right).toBeUndefined();
     expect(removed?.left).toMatchObject({ lineNumber: 3, text: '"b": 2' });
@@ -182,7 +191,7 @@ describe('trailing commas are decided per side', () => {
   it('emits no comma when the only element is added on one side', () => {
     const rows = rowsFor({}, { only: 1 });
 
-    expect(rows.find(r => r.changeKind === 'added')?.right?.text).toBe('"only": 1');
+    expect(rows.find((r) => r.changeKind === 'added')?.right?.text).toBe('"only": 1');
   });
 
   it('keeps both panes parseable when the boundaries differ', () => {
@@ -201,18 +210,30 @@ describe('trailing commas are decided per side', () => {
 });
 
 describe('D. reordered array matched by id', () => {
-  const left = { users: [{ userId: 101, name: 'Alice' }, { userId: 102, name: 'Bob' }, { userId: 103, name: 'Cara' }] };
-  const right = { users: [{ userId: 103, name: 'Cara' }, { userId: 102, name: 'Bobby' }, { userId: 101, name: 'Alice' }] };
+  const left = {
+    users: [
+      { userId: 101, name: 'Alice' },
+      { userId: 102, name: 'Bob' },
+      { userId: 103, name: 'Cara' }
+    ]
+  };
+  const right = {
+    users: [
+      { userId: 103, name: 'Cara' },
+      { userId: 102, name: 'Bobby' },
+      { userId: 101, name: 'Alice' }
+    ]
+  };
 
   it('produces zero added/removed rows and exactly one modified row', () => {
     const result = run(left, right);
     const rows = emitSourceRows(result);
 
     expect(result.arrays[0].outcome).toBe('identity-applied');
-    expect(rows.filter(r => r.changeKind === 'added')).toHaveLength(0);
-    expect(rows.filter(r => r.changeKind === 'removed')).toHaveLength(0);
+    expect(rows.filter((r) => r.changeKind === 'added')).toHaveLength(0);
+    expect(rows.filter((r) => r.changeKind === 'removed')).toHaveLength(0);
 
-    const modified = rows.filter(r => r.changeKind === 'modified');
+    const modified = rows.filter((r) => r.changeKind === 'modified');
     expect(modified).toHaveLength(1);
     expect(modified[0].left?.text).toBe('"name": "Bob",');
     expect(modified[0].right?.text).toBe('"name": "Bobby",');
@@ -221,13 +242,13 @@ describe('D. reordered array matched by id', () => {
   it('aligns the two sides line for line, so the counters never diverge', () => {
     const rows = emitSourceRows(run(left, right));
 
-    expect(rows.every(r => r.left && r.right)).toBe(true);
-    expect(rows.every(r => r.left!.lineNumber === r.right!.lineNumber)).toBe(true);
+    expect(rows.every((r) => r.left && r.right)).toBe(true);
+    expect(rows.every((r) => r.left!.lineNumber === r.right!.lineNumber)).toBe(true);
   });
 
   it('stamps the reorder flag and the core matching metadata on the array open row', () => {
     const rows = emitSourceRows(run(left, right));
-    const arrayOpen = rows.find(r => r.role === 'open' && r.arrayMatch);
+    const arrayOpen = rows.find((r) => r.role === 'open' && r.arrayMatch);
 
     expect(arrayOpen?.reordered).toBe(true);
     expect(arrayOpen?.arrayMatch?.keyPaths).toEqual(['userId']);
@@ -237,15 +258,19 @@ describe('D. reordered array matched by id', () => {
 
   it('records each element true position in the original arrays', () => {
     const rows = emitSourceRows(run(left, right));
-    const elementOpens = rows.filter(r => r.role === 'open' && r.leftIndex !== undefined);
+    const elementOpens = rows.filter((r) => r.role === 'open' && r.leftIndex !== undefined);
 
-    expect(elementOpens.map(r => [r.leftIndex, r.rightIndex])).toEqual([[0, 2], [1, 1], [2, 0]]);
+    expect(elementOpens.map((r) => [r.leftIndex, r.rightIndex])).toEqual([
+      [0, 2],
+      [1, 1],
+      [2, 0]
+    ]);
   });
 
   it('is not flagged as reordered when the order already matches', () => {
     const rows = emitSourceRows(run(left, left));
 
-    expect(rows.some(r => r.reordered)).toBe(false);
+    expect(rows.some((r) => r.reordered)).toBe(false);
   });
 });
 
@@ -273,17 +298,17 @@ describe('E. composite key (store, sku)', () => {
 
     expect(result.arrays[0].strategy).toBe('identity');
     expect(result.arrays[0].keyPaths).toHaveLength(2);
-    expect(rows.filter(r => r.changeKind === 'added')).toHaveLength(0);
-    expect(rows.filter(r => r.changeKind === 'removed')).toHaveLength(0);
+    expect(rows.filter((r) => r.changeKind === 'added')).toHaveLength(0);
+    expect(rows.filter((r) => r.changeKind === 'removed')).toHaveLength(0);
 
-    const modified = rows.filter(r => r.changeKind === 'modified');
+    const modified = rows.filter((r) => r.changeKind === 'modified');
     expect(modified).toHaveLength(1);
     expect(modified[0].left?.value).toBe('3');
     expect(modified[0].right?.value).toBe('99');
   });
 
   it('attributes the changed row to the composite canonical id', () => {
-    const modified = emitSourceRows(run(left, right)).filter(r => r.changeKind === 'modified');
+    const modified = emitSourceRows(run(left, right)).filter((r) => r.changeKind === 'modified');
 
     expect(modified[0].nodeId).toMatch(/^\$\.stock\[\w+=[^;\]]+;\w+=[^;\]]+\]\.qty$/);
   });
@@ -293,17 +318,17 @@ describe('F. ignore rule', () => {
   it('marks ignored rows as unchanged and never counts them', () => {
     const result = run({ a: 1, m: { x: 1 } }, { a: 2, m: { x: 9 } }, { ignorePaths: ['$.m'] });
     const rows = emitSourceRows(result);
-    const ignored = rows.filter(r => r.ignored);
+    const ignored = rows.filter((r) => r.ignored);
 
     expect(ignored.length).toBeGreaterThan(0);
-    expect(ignored.every(r => r.changeKind === 'unchanged')).toBe(true);
+    expect(ignored.every((r) => r.changeKind === 'unchanged')).toBe(true);
     expect(flattenChanges(result.root)).toEqual(['$.a']);
     expect(flattenChanges(result.root)).toHaveLength(result.summary.totalChanges);
   });
 
   it('still shows both sides of the ignored value as context', () => {
     const rows = emitSourceRows(run({ a: 1, m: { x: 1 } }, { a: 2, m: { x: 9 } }, { ignorePaths: ['$.m'] }));
-    const inner = rows.find(r => r.ignored && r.role === 'value');
+    const inner = rows.find((r) => r.ignored && r.role === 'value');
 
     expect(inner?.left?.text).toBe('"x": 1');
     expect(inner?.right?.text).toBe('"x": 9');
@@ -314,7 +339,7 @@ describe('F. ignore rule', () => {
     const segments = segmentRows(rows);
 
     // Nothing changed as far as the diff is concerned, so nothing is force-kept.
-    expect(segments.every(s => s.kind === 'collapsed')).toBe(true);
+    expect(segments.every((s) => s.kind === 'collapsed')).toBe(true);
   });
 });
 
@@ -331,11 +356,11 @@ describe('G. changes-only collapse', () => {
     const rows = emitSourceRows(run(left as JsonValue, right as JsonValue));
     const segments = segmentRows(rows);
 
-    const collapsedRuns = segments.filter(s => s.kind === 'collapsed');
+    const collapsedRuns = segments.filter((s) => s.kind === 'collapsed');
     expect(collapsedRuns.length).toBeGreaterThan(0);
 
-    const visible = segments.filter(s => s.kind === 'rows').flatMap(s => s.kind === 'rows' ? s.rows : []);
-    const changedIndex = visible.findIndex(r => r.changeKind === 'modified');
+    const visible = segments.filter((s) => s.kind === 'rows').flatMap((s) => (s.kind === 'rows' ? s.rows : []));
+    const changedIndex = visible.findIndex((r) => r.changeKind === 'modified');
     expect(changedIndex).toBeGreaterThanOrEqual(DEFAULT_CONTEXT_LINES);
   });
 
@@ -351,7 +376,7 @@ describe('G. changes-only collapse', () => {
   it('accounts for every row exactly once, so numbering stays truthful', () => {
     const rows = emitSourceRows(run(build(30) as JsonValue, { ...build(30), k15: 999 } as JsonValue));
     const segments = segmentRows(rows);
-    const rebuilt = segments.flatMap(s => (s.kind === 'rows' ? s.rows : s.rows()));
+    const rebuilt = segments.flatMap((s) => (s.kind === 'rows' ? s.rows : s.rows()));
 
     expect(rebuilt).toEqual(rows);
   });
@@ -370,7 +395,9 @@ describe('G. changes-only collapse', () => {
     const left = { outer: { ...build(20) }, tail: 1 };
     const right = { outer: { ...build(20), k10: 999 }, tail: 1 };
     const rows = emitSourceRows(run(left as JsonValue, right as JsonValue));
-    const visible = segmentRows(rows).filter(s => s.kind === 'rows').flatMap(s => s.kind === 'rows' ? s.rows : []);
+    const visible = segmentRows(rows)
+      .filter((s) => s.kind === 'rows')
+      .flatMap((s) => (s.kind === 'rows' ? s.rows : []));
 
     let depth = 0;
     for (const row of visible) {
@@ -383,7 +410,7 @@ describe('G. changes-only collapse', () => {
 
   it('memoizes the expansion thunk', () => {
     const rows = emitSourceRows(run(build(30) as JsonValue, { ...build(30), k15: 999 } as JsonValue));
-    const segment = segmentRows(rows).find(s => s.kind === 'collapsed');
+    const segment = segmentRows(rows).find((s) => s.kind === 'collapsed');
 
     expect(segment?.kind).toBe('collapsed');
     if (segment?.kind === 'collapsed') expect(segment.rows()).toBe(segment.rows());
@@ -404,15 +431,15 @@ describe('G. changes-only collapse', () => {
 describe('type-changed leaves', () => {
   it('zips two differently-shaped sides into aligned rows', () => {
     const rows = rowsFor({ v: [1, 2] }, { v: 'text' });
-    const changed = rows.filter(r => r.changeKind === 'type-changed');
+    const changed = rows.filter((r) => r.changeKind === 'type-changed');
 
-    expect(changed.map(r => [r.left?.text, r.right?.text])).toEqual([
+    expect(changed.map((r) => [r.left?.text, r.right?.text])).toEqual([
       ['"v": [', '"v": "text"'],
       ['1,', undefined],
       ['2', undefined],
       [']', undefined]
     ]);
-    expect(changed.every(r => r.nodeId === '$.v')).toBe(true);
+    expect(changed.every((r) => r.nodeId === '$.v')).toBe(true);
     assertMonotonic(rows);
   });
 });
@@ -420,7 +447,7 @@ describe('type-changed leaves', () => {
 describe('raw value fidelity', () => {
   it('shows the original numeric string rather than the coerced number', () => {
     const rows = rowsFor({ n: '42' }, { n: 42 }, { normalizeNumbers: true });
-    const row = rows.find(r => r.role === 'value');
+    const row = rows.find((r) => r.role === 'value');
 
     expect(row?.changeKind).toBe('unchanged');
     expect(row?.left?.value).toBe('"42"');
@@ -429,7 +456,7 @@ describe('raw value fidelity', () => {
 
   it('escapes strings that need it', () => {
     const rows = rowsFor({ 'a"b': 'line\nbreak' }, { 'a"b': 'line\nbreak' });
-    const row = rows.find(r => r.role === 'value');
+    const row = rows.find((r) => r.role === 'value');
 
     expect(row?.left?.text).toBe('"a\\"b": "line\\nbreak"');
     expect(() => JSON.parse(pane(rows, 'left'))).not.toThrow();

@@ -1,9 +1,11 @@
 # AGENTS.md — DiffLens
 
 ## Product intent
+
 DiffLens is a local-first JSON comparison utility. Its defining behavior is to explain meaningful structural/value changes while matching reordered object arrays by inferred row identity when evidence is strong enough.
 
 ## Non-negotiable product principles
+
 - JSON content must remain in the browser. Do not add network calls that upload, persist, log, or analyze user JSON.
 - Identity inference must remain deterministic and explainable. Do not add ML/AI models to the diff path.
 - Never silently guess an identity when confidence is low or candidate scores are ambiguous. Fall back to position and expose the analysis.
@@ -13,6 +15,7 @@ DiffLens is a local-first JSON comparison utility. Its defining behavior is to e
 - Preserve responsive desktop-first behavior; JSON comparison is optimized for laptop/desktop widths.
 
 ## Runtime and framework
+
 - Angular: 22.x
 - Node: >=24.15.0 <25
 - TypeScript: 6.0.x
@@ -21,6 +24,7 @@ DiffLens is a local-first JSON comparison utility. Its defining behavior is to e
 - State: Angular signals. Prefer local/component state over global stores until cross-feature state actually warrants one.
 
 ## Architecture
+
 - `src/app/core/diff/index.ts` — public API of the diff core. Consumers import from here, not from the modules below.
 - `src/app/core/diff/diff-engine.ts` — recursive structural diff and diff node generation.
 - `src/app/core/diff/options.ts` — `DiffOptions` and `DEFAULT_DIFF_OPTIONS`.
@@ -48,9 +52,11 @@ The core must not import Angular, RxJS, or DOM APIs; components are renderers ov
 the canonical `DiffResult` and must not re-derive matching or change semantics.
 
 ## Identity inference rules
+
 Candidate scoring is based primarily on observed data, not field-name semantics.
 
 Current score dimensions:
+
 - uniqueness on each input
 - completeness on each input
 - cross-input match coverage
@@ -63,12 +69,14 @@ Current score dimensions:
 Single scalar paths are tested first. If no single candidate is strong enough, viable pairs may be tested as composite keys. Keep combinatorics bounded.
 
 The algorithm must distinguish:
+
 1. candidate quality — how identity-like a field/composite is; and
 2. selection confidence — whether the best candidate is clearly better than alternatives.
 
 A high-quality but ambiguous candidate must not be auto-applied.
 
 ## Diff semantics
+
 - Objects compare by property name.
 - Scalar arrays and uncertain object arrays fall back to position in V1.
 - Object arrays may match by inferred single/composite keys only when `autoApply` is true.
@@ -77,6 +85,7 @@ A high-quality but ambiguous candidate must not be auto-applied.
 - Add normalization behavior only behind explicit options.
 
 ## UX conventions
+
 - Initial page is product + input surface, not a marketing gate.
 - Inputs remain on the same page and become collapsible after comparison.
 - Diff summary appears before the tree.
@@ -87,6 +96,7 @@ A high-quality but ambiguous candidate must not be auto-applied.
 - Prefer subtle motion (<250ms) and avoid distracting transitions.
 
 ## Code style
+
 - Use standalone Angular components.
 - Use `ChangeDetectionStrategy.OnPush`.
 - Prefer `input()`, `output()`, `signal()`, and `computed()` APIs.
@@ -95,7 +105,9 @@ A high-quality but ambiguous candidate must not be auto-applied.
 - Add comments only for non-obvious algorithmic decisions, not for self-explanatory code.
 
 ## Testing expectations
+
 Before merging changes to diff logic, cover at minimum:
+
 - reordered arrays with stable IDs
 - arbitrary/random field names with stable values
 - ambiguous multiple-key candidates
@@ -109,7 +121,9 @@ Before merging changes to diff logic, cover at minimum:
 - input parse failures
 
 ## Scope discipline
+
 V1 intentionally does not include:
+
 - user accounts
 - server-side persistence
 - shareable uploaded diffs

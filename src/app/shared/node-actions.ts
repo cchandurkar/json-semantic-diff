@@ -91,7 +91,10 @@ export function deriveMatchingTarget(root: DiffNode, clickedId: string): Matchin
   // Nearest ancestor (or self) whose parent is an array: that is the array element.
   let elementIndex = -1;
   for (let i = chain.length - 1; i > 0; i--) {
-    if (chain[i - 1].nodeKind === 'array') { elementIndex = i; break; }
+    if (chain[i - 1].nodeKind === 'array') {
+      elementIndex = i;
+      break;
+    }
   }
   if (elementIndex <= 0) return undefined;
 
@@ -102,7 +105,10 @@ export function deriveMatchingTarget(root: DiffNode, clickedId: string): Matchin
   if (elementIndex === chain.length - 1) return undefined;
 
   const arrayNode = chain[elementIndex - 1];
-  const fieldPath = chain.slice(elementIndex + 1).map(node => node.label).join('.');
+  const fieldPath = chain
+    .slice(elementIndex + 1)
+    .map((node) => node.label)
+    .join('.');
   const override = arrayNode.arrayMatch?.override;
   const existingFields = override?.strategy === 'key' ? override.fields : undefined;
 
@@ -171,9 +177,8 @@ export function buildNodeMenu(node: DiffNode, target?: MatchingTarget): NodeMenu
 
 /** The override an `use-as-key` / `add-to-key` action should write. */
 export function matchingKeyOverride(target: MatchingTarget, action: 'use-as-key' | 'add-to-key'): ArrayMatchOverride {
-  const fields = action === 'add-to-key' && target.existingFields?.length
-    ? [...target.existingFields, target.fieldPath]
-    : [target.fieldPath];
+  const fields =
+    action === 'add-to-key' && target.existingFields?.length ? [...target.existingFields, target.fieldPath] : [target.fieldPath];
   return { strategy: 'key', fields };
 }
 
@@ -184,11 +189,7 @@ export function matchingKeyOverride(target: MatchingTarget, action: 'use-as-key'
  * array back to inference. The map is dropped entirely once empty so a reset
  * comparison is byte-identical to one that never had an override.
  */
-export function applyOverrideToOptions(
-  options: DiffOptions,
-  pattern: string,
-  override: ArrayMatchOverride | null
-): DiffOptions {
+export function applyOverrideToOptions(options: DiffOptions, pattern: string, override: ArrayMatchOverride | null): DiffOptions {
   const map = { ...(options.arrayMatching ?? {}) };
   if (override) map[pattern] = override;
   else delete map[pattern];

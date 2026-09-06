@@ -42,10 +42,14 @@ function occurrenceSuffix(occurrence: number | undefined): string {
  */
 export function appendPath(parent: string, segment: PathSegment): string {
   switch (segment.kind) {
-    case 'root': return '$';
-    case 'key': return `${parent}.${segment.name}`;
-    case 'index': return `${parent}[${segment.index}]`;
-    case 'identity': return `${parent}[${segment.values.join('|')}${occurrenceSuffix(segment.occurrence)}]`;
+    case 'root':
+      return '$';
+    case 'key':
+      return `${parent}.${segment.name}`;
+    case 'index':
+      return `${parent}[${segment.index}]`;
+    case 'identity':
+      return `${parent}[${segment.values.join('|')}${occurrenceSuffix(segment.occurrence)}]`;
   }
 }
 
@@ -62,10 +66,14 @@ export function appendId(parent: string, segment: PathSegment): string {
 /** Short display label for a segment. */
 export function segmentLabel(segment: PathSegment): string {
   switch (segment.kind) {
-    case 'root': return 'root';
-    case 'key': return segment.name;
-    case 'index': return `[${segment.index}]`;
-    case 'identity': return `[${segment.keyPaths.join('+')}=${segment.values.join('|')}${occurrenceSuffix(segment.occurrence)}]`;
+    case 'root':
+      return 'root';
+    case 'key':
+      return segment.name;
+    case 'index':
+      return `[${segment.index}]`;
+    case 'identity':
+      return `[${segment.keyPaths.join('+')}=${segment.values.join('|')}${occurrenceSuffix(segment.occurrence)}]`;
   }
 }
 
