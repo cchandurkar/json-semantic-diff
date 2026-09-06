@@ -1,0 +1,69 @@
+name: Release Core
+
+# Manual only: bumps packages/core's version, commits it, tags it as
+# core-vX.Y.Z, and publishes a GitHub Release. The "Publish json-semantic-diff
+# to npm" workflow listens for that release and builds/publishes the
+# package.
+#
+# This is independent of packages/ui: releasing core does not bump the UI's
+# version or redeploy the GitHub Pages app. See release-ui.yml for that flow.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  group: release-core
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure git identity
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Bump minor version (packages/core only)
+        id: bump
+        run: |
+          npm version minor -w packages/core --no-git-tag-version --allow-same-version
+          VERSION=$(node -p "require('./packages/core/package.json').version")
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Commit version bump
+        run: |
+          git add package-lock.json packages/core/package.json
+          git commit -m "chore: release core-v${{ steps.bump.outputs.version }}"
+          git push origin HEAD:${{ github.ref_name }}
+
+      - name: Tag release
+        run: |
+          git tag "core-v${{ steps.bump.outputs.version }}"
+          git push origin "core-v${{ steps.bump.outputs.version }}"
+
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "core-v${{ steps.bump.outputs.version }}" \
+            --title "Core v${{ steps.bump.outputs.version }}" \
+            --target "${{ github.ref_name }}" \
+            --generate-notes
+
+      # A release created with the default GITHUB_TOKEN does not itself
+      # trigger other workflows' `on: release` listeners (GitHub's
+      # loop-prevention rule). Dispatch the npm publish explicitly so it
+      # still happens automatically after this run.
+      - name: Trigger npm publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run publish-npm.yml --ref "${{ github.ref_name }}"
