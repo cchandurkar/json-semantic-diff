@@ -32,26 +32,32 @@ function textOf(value: JsonValue | undefined): string {
  * Searchable text per node: `label` (the property/key name — for an
  * identity-matched array element this already spells out the identity, e.g.
  * `[sku+store=SKU-1001|BOS]`, so identity labels are covered without separate
- * extraction) and `path`, plus the four value fields (`left`, `right`, and
- * their pre-normalization `leftRaw`/`rightRaw` counterparts, so a search
- * matches what the Source view actually displays).
+ * extraction), this node's OWN path segment, plus the four value fields
+ * (`left`, `right`, and their pre-normalization `leftRaw`/`rightRaw`
+ * counterparts, so a search matches what the Source view actually displays).
  *
- * Deliberately NOT `node.id`: unlike `label`, the id is a cumulative path that
- * embeds every ancestor's identity segment (e.g. a `.price` leaf's id is
- * `$.inventory[sku=X;store=Y].price`). Indexing it would make an unrelated
- * sibling field (price, quantity, ...) match a search for "store" purely
- * because it inherited that text from its container's id, even though neither
- * its own label nor its rendered text ever shows "store".
+ * Deliberately NOT the full `path` (or `id`): both are cumulative strings that
+ * embed every ancestor's own segment, e.g. a `.name` leaf under a "projects"
+ * array has path `$.teams[0].projects[1].name`. Indexing the full string would
+ * make searching "projects" match every field nested anywhere under a
+ * "projects" container - budget, status, name, all of it - even though none of
+ * them are named "projects" themselves and nothing about their own label or
+ * rendered text mentions it. Stripping the parent's path off each node's own
+ * path leaves just the segment that node itself contributes (e.g. `.name`,
+ * `[1]`, or `.projects`), which is exactly what "search by path" should mean.
  */
 export function buildSearchIndex(root: DiffNode): SearchEntry[] {
   const entries: SearchEntry[] = [];
-  const walk = (node: DiffNode): void => {
+  const walk = (node: DiffNode, parentPath: string): void => {
     if (node.ignored) return;
-    const parts = [node.label, node.path, textOf(node.left), textOf(node.right), textOf(node.leftRaw), textOf(node.rightRaw)];
+    const ownSegment = node.path.startsWith(parentPath) ? node.path.slice(parentPath.length) : node.path;
+    const parts = [node.label, ownSegment, textOf(node.left), textOf(node.right), textOf(node.leftRaw), textOf(node.rightRaw)];
     entries.push({ nodeId: node.id, haystack: parts.join('\u0000').toLowerCase(), hasChanges: node.hasChanges });
-    node.children?.forEach(walk);
+    node.children?.forEach(child => {
+      walk(child, node.path);
+    });
   };
-  walk(root);
+  walk(root, '');
   return entries;
 }
 

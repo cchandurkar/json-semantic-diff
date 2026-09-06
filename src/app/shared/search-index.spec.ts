@@ -14,11 +14,33 @@ describe('buildSearchIndex / searchDiff', () => {
     expect(searchDiff(index, 'username')).toEqual(['$.username']);
   });
 
-  it('finds a node by its canonical/logical path', () => {
+  it('finds a node by its own path segment, not by an inherited ancestor segment', () => {
     const result = run({ a: { b: { target: 1 } } }, { a: { b: { target: 2 } } });
     const index = buildSearchIndex(result.root);
 
-    expect(searchDiff(index, '$.a.b.target')).toEqual(['$.a.b.target']);
+    expect(searchDiff(index, '.target')).toEqual(['$.a.b.target']);
+    // The full path '$.a.b.target' is NOT itself searchable text on any single
+    // node: each node only contributes its own segment ('.a', '.b', '.target').
+    expect(searchDiff(index, '$.a.b.target')).toEqual([]);
+  });
+
+  it('does not cascade a container-name match to unrelated descendant fields', () => {
+    // Regression: searching "projects" used to match every field nested under
+    // a "projects" array (name, budget, status, ...) because the full
+    // cumulative path/id of each descendant contained "projects", even though
+    // none of those fields are themselves named "projects".
+    const result = run(
+      { teams: [{ name: 'Alpha', projects: [{ title: 'Launch', budget: 100, status: 'active' }] }] },
+      { teams: [{ name: 'Alpha', projects: [{ title: 'Launch', budget: 200, status: 'active' }] }] },
+      { arrayMatching: { '$.teams': { strategy: 'position' } } }
+    );
+    const index = buildSearchIndex(result.root);
+
+    const ids = searchDiff(index, 'projects');
+    expect(ids).toEqual(['$.teams[0].projects']);
+    expect(ids).not.toContain('$.teams[0].projects[0].title');
+    expect(ids).not.toContain('$.teams[0].projects[0].budget');
+    expect(ids).not.toContain('$.teams[0].projects[0].status');
   });
 
   it('finds a node by its old scalar value', () => {
