@@ -14,6 +14,7 @@
       [class.in-range]="selectedRange().has(node.id)"
       [class.range-start]="node.id === rangeEndpoints().start"
       [class.range-end]="node.id === rangeEndpoints().end"
+      [class.search-match]="searchResultIds().has(node.id)"
       [style.--depth]="depth"
       [attr.data-node-id]="node.id"
       [cdkContextMenuTriggerFor]="nodeMenu"
@@ -25,7 +26,13 @@
       </button>
       <span class="change-marker">{{ marker(node.changeKind) }}</span>
       <div class="path-cell">
-        <button type="button" class="label" (click)="nodeSelected.emit(node.id)">{{ node.label }}</button>
+        <button type="button" class="label" (click)="nodeSelected.emit(node.id)">
+          @if (splitMatch(node.label, searchQuery()); as m) {
+            {{ m.before }}<mark class="search-hit">{{ m.match }}</mark>{{ m.after }}
+          } @else {
+            {{ node.label }}
+          }
+        </button>
         @if (showsKeyPill(node)) {
           <button type="button" class="match-pill" (click)="analysisRequested.emit(node.path)">
             Matched by {{ node.arrayMatch?.keyPaths?.join(' + ') }} · {{ keyPillSuffix(node) }}

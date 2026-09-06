@@ -17,6 +17,8 @@
 .in-range:not(.range-end) { border-bottom:0; }
 .range-start { border-top:2px solid var(--primary); }
 .diff-row.range-end { border-bottom:2px solid var(--primary); }
+.search-match { background:color-mix(in srgb, var(--primary) 6%, transparent); }
+.search-hit { background:color-mix(in srgb, var(--warning) 55%, transparent); border-radius:2px; padding:0 1px; }
 .match-pill { border:1px solid var(--success-border); background:var(--success-bg); color:var(--success); border-radius:999px; padding:3px 7px; font:11px var(--sans); cursor:pointer; white-space:nowrap; }
 .match-pill.warning { border-color:var(--warning-border); background:var(--warning-bg); color:var(--warning); }
 .diff-row.kind-added { background:var(--diff-added-bg); }

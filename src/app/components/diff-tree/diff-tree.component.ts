@@ -22,6 +22,15 @@ function flattenVisible(node: DiffNode, collapsed: ReadonlySet<string>, changesO
   return out;
 }
 
+/** Splits `text` around the first case-insensitive occurrence of `query`, or null when there's no match. */
+export function splitMatch(text: string, query: string): { before: string; match: string; after: string } | null {
+  const q = query.trim();
+  if (!q || !text) return null;
+  const index = text.toLowerCase().indexOf(q.toLowerCase());
+  if (index === -1) return null;
+  return { before: text.slice(0, index), match: text.slice(index, index + q.length), after: text.slice(index + q.length) };
+}
+
 @Component({
   selector: 'app-diff-tree',
   standalone: true,
@@ -36,6 +45,9 @@ export class DiffTreeComponent {
   readonly selectedNodeId = input<string | null>(null);
   /** Every id in the selected node's subtree, so a container highlights as one block. */
   readonly selectedRange = input<ReadonlySet<string>>(new Set());
+  /** Canonical ids of every current search match, independent of selection. */
+  readonly searchResultIds = input<ReadonlySet<string>>(new Set());
+  readonly searchQuery = input('');
   readonly analysisRequested = output<string>();
   readonly nodeSelected = output<string>();
   readonly nodeAction = output<NodeActionEvent>();
@@ -160,4 +172,6 @@ export class DiffTreeComponent {
 
   /** Re-exported for the template; formatting lives in shared/format.ts. */
   readonly percent = percent;
+  /** Re-exported for the template. */
+  readonly splitMatch = splitMatch;
 }

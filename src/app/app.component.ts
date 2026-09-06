@@ -3,6 +3,7 @@ import { JsonInputComponent } from './components/json-input/json-input.component
 import { DiffTreeComponent } from './components/diff-tree/diff-tree.component';
 import { AnalysisPanelComponent } from './components/analysis-panel/analysis-panel.component';
 import { SourceDiffComponent } from './components/source-diff/source-diff.component';
+import { SearchControlComponent } from './components/search-control/search-control.component';
 import { SidebarComponent } from './components/sidebar/sidebar.component';
 import { ToastComponent } from './components/toast/toast.component';
 import { ArrayMatchingContext } from './components/array-matching/array-matching.component';
@@ -10,6 +11,7 @@ import { DEFAULT_DIFF_OPTIONS, diffJson } from './core/diff';
 import { formatJson } from './core/json/format';
 import { ArrayMatchAnalysis, DiffOptions, DiffResult, JsonValue } from './core/models/diff.models';
 import { findNodeByPath, stepChange, subtreeIds } from './shared/node-navigation';
+import { buildSearchIndex, searchDiff, stepSearchResult } from './shared/search-index';
 import { MatchingOverrideChange, NodeActionEvent, applyOverrideToOptions, ignoreFieldEverywhereRule, ignoreThisPathRule, matchingKeyOverride } from './shared/node-actions';
 import { ClipboardService } from './shared/clipboard/clipboard.service';
 import { formatChange, formatNewValue, formatOldValue, formatSemanticPath, formatSubtree } from './shared/clipboard/diff-clipboard';
@@ -35,7 +37,7 @@ const TOAST_UNDO_MS = 5000;
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [JsonInputComponent, DiffTreeComponent, SourceDiffComponent, SidebarComponent, AnalysisPanelComponent, ToastComponent],
+  imports: [JsonInputComponent, DiffTreeComponent, SourceDiffComponent, SidebarComponent, AnalysisPanelComponent, ToastComponent, SearchControlComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './app.component.html',
   styleUrl: './app.component.css'
@@ -58,6 +60,8 @@ export class AppComponent {
   readonly view = signal<'tree' | 'source'>('tree');
   /** Single selection shared by both views, keyed on the canonical DiffNode.id. */
   readonly selectedNodeId = signal<string | null>(null);
+  readonly searchQuery = signal('');
+  readonly searchResultIndex = signal(0);
   readonly toast = signal<ToastMessage | null>(null);
   /** Seeded from storage; clamped in case the saved value predates a min/max change. */
   readonly analysisPanelWidth = signal(
@@ -84,6 +88,19 @@ export class AppComponent {
     const id = this.selectedNodeId();
     const root = this.result()?.root;
     return id && root ? subtreeIds(root, id) : new Set<string>();
+  });
+  /** Built once per diff result; typing re-runs a cheap substring scan over this instead of re-walking the tree. */
+  private readonly searchIndex = computed(() => {
+    const root = this.result()?.root;
+    return root ? buildSearchIndex(root) : [];
+  });
+  /** Canonical node ids matching the current query, in document order. Independent of changesOnly and of change navigation. */
+  readonly searchResults = computed(() => searchDiff(this.searchIndex(), this.searchQuery()));
+  /** For the Tree's subtle "this row matches" indicator. */
+  readonly searchResultIds = computed(() => new Set(this.searchResults()));
+  private readonly currentSearchNodeId = computed(() => {
+    const results = this.searchResults();
+    return results.length ? results[Math.min(this.searchResultIndex(), results.length - 1)] : null;
   });
   /**
    * Every array paired with its node, so the sidebar's matching section can
@@ -126,6 +143,36 @@ export class AppComponent {
 
   stepChange(delta: 1 | -1): void {
     this.selectedNodeId.set(stepChange(this.changeList(), this.selectedNodeId(), delta));
+  }
+
+  onSearchQueryChange(query: string): void {
+    this.searchQuery.set(query);
+    this.searchResultIndex.set(0);
+    this.navigateToSearchResult();
+  }
+
+  stepSearchResult(delta: 1 | -1): void {
+    this.searchResultIndex.update(i => stepSearchResult(this.searchResults().length, i, delta));
+    this.navigateToSearchResult();
+  }
+
+  clearSearch(): void {
+    this.searchQuery.set('');
+    this.searchResultIndex.set(0);
+  }
+
+  /**
+   * Selects the current search result's node, revealing it even when
+   * "Changes only" would otherwise hide an unchanged match - search must work
+   * regardless of that filter. Ignored nodes are never reachable here:
+   * buildSearchIndex excludes them from the index entirely.
+   */
+  private navigateToSearchResult(): void {
+    const nodeId = this.currentSearchNodeId();
+    if (!nodeId) return;
+    const entry = this.searchIndex().find(e => e.nodeId === nodeId);
+    if (this.changesOnly() && entry && !entry.hasChanges) this.changesOnly.set(false);
+    this.selectedNodeId.set(nodeId);
   }
 
   patchOption<K extends keyof DiffOptions>(key: K, value: DiffOptions[K]): void {

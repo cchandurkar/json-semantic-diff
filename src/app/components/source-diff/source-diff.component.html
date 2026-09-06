@@ -19,6 +19,7 @@
           [class.in-range]="selectedRange().has(item.row.nodeId)"
           [class.range-start]="$index === rangeEndpoints().start"
           [class.range-end]="$index === rangeEndpoints().end"
+          [class.search-match]="searchResultIds().has(item.row.nodeId)"
           [attr.data-node-id]="item.row.nodeId"
           [cdkContextMenuTriggerFor]="rowActions"
           [cdkContextMenuTriggerData]="{ $implicit: item.row.nodeId }">

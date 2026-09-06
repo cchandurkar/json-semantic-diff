@@ -92,6 +92,14 @@
             </button>
           </div>
         }
+        <app-search-control
+          [query]="searchQuery()"
+          [resultCount]="searchResults().length"
+          [currentIndex]="searchResultIndex()"
+          (queryChange)="onSearchQueryChange($event)"
+          (next)="stepSearchResult(1)"
+          (previous)="stepSearchResult(-1)"
+          (clear)="clearSearch()" />
       </div>
 
       <div class="results-scroll">
@@ -101,6 +109,8 @@
             [changesOnly]="changesOnly()"
             [selectedNodeId]="selectedNodeId()"
             [selectedRange]="selectionRange()"
+            [searchResultIds]="searchResultIds()"
+            [searchQuery]="searchQuery()"
             (nodeSelected)="selectNode($event)"
             (nodeAction)="handleNodeAction($event)"
             (analysisRequested)="openAnalysis($event)" />
@@ -110,6 +120,7 @@
             [changesOnly]="changesOnly()"
             [selectedNodeId]="selectedNodeId()"
             [selectedRange]="selectionRange()"
+            [searchResultIds]="searchResultIds()"
             [root]="diff.root"
             (nodeSelected)="selectNode($event)"
             (nodeAction)="handleNodeAction($event)" />

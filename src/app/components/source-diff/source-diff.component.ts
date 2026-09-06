@@ -20,6 +20,8 @@ export class SourceDiffComponent {
   readonly selectedNodeId = input<string | null>(null);
   /** Every id in the selected node's subtree, so a container highlights as one block. */
   readonly selectedRange = input<ReadonlySet<string>>(new Set());
+  /** Canonical ids of every current search match, independent of selection. */
+  readonly searchResultIds = input<ReadonlySet<string>>(new Set());
   /** The canonical tree, so a row id can be resolved back to its node. */
   readonly root = input<DiffNode | null>(null);
   readonly nodeSelected = output<string>();
