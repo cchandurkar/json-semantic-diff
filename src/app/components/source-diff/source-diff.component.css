@@ -1,9 +1,10 @@
-.source { border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; background:var(--card); }
-.pane-heads { display:grid; grid-template-columns:1fr 1fr; border-bottom:1px solid var(--border-subtle); }
+:host { display:flex; flex-direction:column; height:100%; min-height:0; }
+.source { display:flex; flex-direction:column; height:100%; min-height:0; border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; background:var(--card); }
+.pane-heads { flex:none; display:grid; grid-template-columns:1fr 1fr; border-bottom:1px solid var(--border-subtle); }
 .pane-head { padding:9px 14px; font:600 11px var(--sans); letter-spacing:.08em; color:var(--muted-foreground); }
 .pane-head + .pane-head { border-left:1px solid var(--border-subtle); }
-.pane-note { margin:0; padding:7px 14px; border-bottom:1px solid var(--border-subtle); background:var(--muted); color:var(--muted-foreground); font:11px/1.5 var(--sans); }
-.source-scroll { overflow-x:auto; }
+.pane-note { flex:none; margin:0; padding:7px 14px; border-bottom:1px solid var(--border-subtle); background:var(--muted); color:var(--muted-foreground); font:11px/1.5 var(--sans); }
+.source-scroll { flex:1 1 auto; min-height:0; overflow:auto; }
 .src-row { display:grid; grid-template-columns:52px 18px minmax(240px,1fr) 52px 18px minmax(240px,1fr) 26px; align-items:stretch; min-width:max-content; border-bottom:1px solid var(--border-subtle); font:12px/1.6 var(--mono); }
 .src-row:last-child { border-bottom:0; }
 .src-row:hover { background:var(--accent); }
