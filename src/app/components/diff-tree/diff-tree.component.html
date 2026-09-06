@@ -9,13 +9,16 @@
     <div
       class="diff-row"
       [class]="'kind-' + node.changeKind"
+      [class.has-children]="!!node.children?.length"
       [class.is-selected]="node.id === selectedNodeId()"
       [style.--depth]="depth"
       [attr.data-node-id]="node.id"
       [cdkContextMenuTriggerFor]="nodeMenu"
       [cdkContextMenuTriggerData]="{ $implicit: node }">
       <button class="expand" (click)="toggle(node.path)" [disabled]="!node.children?.length" [attr.aria-label]="'Toggle ' + node.label">
-        {{ node.children?.length ? (isExpanded(node.path) ? '▾' : '▸') : '·' }}
+        @if (node.children?.length) {
+          <svg class="chevron" [class.is-collapsed]="!isExpanded(node.path)" width="10" height="10" viewBox="0 0 10 10" aria-hidden="true" focusable="false"><path d="M2 3.5l3 3 3-3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        }
       </button>
       <span class="change-marker">{{ marker(node.changeKind) }}</span>
       <div class="path-cell">
@@ -35,7 +38,11 @@
           <span [class.diff-mark]="seg.changed">{{ seg.text }}</span>
         }
       </div>
-      <div class="arrow">{{ node.changeKind === 'modified' || node.changeKind === 'type-changed' ? '→' : '' }}</div>
+      <div class="arrow">
+        @if (node.changeKind === 'modified' || node.changeKind === 'type-changed') {
+          <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="M2 6h7M6 2.5L9.5 6 6 9.5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        }
+      </div>
       <div class="value-cell right">
         @for (seg of valueSegments(node, 'right'); track $index) {
           <span [class.diff-mark]="seg.changed">{{ seg.text }}</span>
@@ -46,7 +53,7 @@
         class="row-actions"
         [cdkMenuTriggerFor]="nodeMenu"
         [cdkMenuTriggerData]="{ $implicit: node }"
-        [attr.aria-label]="'Actions for ' + node.label">⋯</button>
+        [attr.aria-label]="'Actions for ' + node.label"><svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true" focusable="false"><circle cx="3" cy="7" r="1.4" fill="currentColor"/><circle cx="7" cy="7" r="1.4" fill="currentColor"/><circle cx="11" cy="7" r="1.4" fill="currentColor"/></svg></button>
     </div>
     @if (node.children?.length && isExpanded(node.path)) {
       @for (child of node.children; track child.path) {

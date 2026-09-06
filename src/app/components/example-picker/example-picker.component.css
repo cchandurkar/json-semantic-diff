@@ -4,7 +4,7 @@
 .picker-trigger[aria-expanded="true"] { background:var(--muted); }
 .picker-trigger:focus-visible { outline:2px solid var(--primary); outline-offset:2px; }
 .trigger-label { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-align:left; }
-.caret { flex:none; font-size:10px; color:var(--muted-foreground); }
+.caret { flex:none; display:flex; color:var(--muted-foreground); }
 .picker-panel { width:min(320px,calc(100vw - 24px)); max-height:min(460px,calc(100vh - 96px)); overflow-y:auto; display:flex; flex-direction:column; gap:1px; padding:5px; border:1px solid var(--border); border-radius:var(--radius); background:var(--card); box-shadow:0 12px 32px rgba(10,14,22,.14); }
 .picker-item { display:flex; flex-direction:column; gap:3px; width:100%; border:0; border-radius:var(--radius); background:transparent; padding:8px 10px; text-align:left; cursor:pointer; }
 .picker-item:hover { background:var(--accent); }

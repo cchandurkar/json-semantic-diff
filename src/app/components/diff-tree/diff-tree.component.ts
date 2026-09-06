@@ -32,7 +32,7 @@ export class DiffTreeComponent {
    * only paths the user explicitly closed are tracked.
    */
   readonly collapsed = signal(new Set<string>());
-  readonly visibleNodes = computed(() => this.root().children ?? [this.root()]);
+  readonly visibleNodes = computed(() => [this.root()]);
 
   constructor() {
     // A new comparison starts fully expanded again.

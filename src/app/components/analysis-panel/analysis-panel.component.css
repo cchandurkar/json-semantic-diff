@@ -11,7 +11,7 @@
 .panel-heading { margin:0 0 8px; color:var(--foreground); opacity:.85; font:700 11px var(--sans); letter-spacing:.07em; text-transform:uppercase; }
 .panel-empty { color:var(--muted-foreground); font:12px/1.5 var(--sans); }
 .summary-card { display:flex; flex-direction:column; gap:10px; }
-.stat-row { display:flex; justify-content:center; gap:10px; }
+.stat-row { display:flex; justify-content:center; gap:10px; margin-top: 10px; }
 .stat-chip { display:flex; flex-direction:column; align-items:center; gap:2px; border-radius:var(--radius); padding:8px 14px; }
 .stat-chip b { font:700 16px var(--mono); }
 .stat-chip span { font-size:10px; opacity:.85; }
@@ -19,7 +19,7 @@
 .stat-chip.removed { background:var(--diff-removed-bg); color:var(--diff-removed); }
 .stat-chip.modified { background:var(--diff-modified-bg); color:var(--diff-modified); }
 .summary-meta { flex-basis:100%; display:flex; flex-wrap:wrap; gap:5px 12px; color:var(--muted-foreground); font-size:11px; margin-bottom:10px; }
-.matching-content { display:flex; flex-direction:column; background:var(--muted); border-radius:var(--radius); padding:10px 12px; }
+.overview-content, .matching-content { display:flex; flex-direction:column; background:var(--muted); border-radius:var(--radius); padding:10px 12px; }
 app-array-picker { display:block; margin:0 0 10px; }
 .section-label { font-size:10px; letter-spacing:.11em; color:var(--muted-foreground); font-weight:800; }
 .selected-block,.metrics-block,.alternatives-block { padding:12px 0; border-top:1px solid var(--border-subtle); }
@@ -31,7 +31,7 @@ app-array-picker { display:block; margin:0 0 10px; }
 .metric { margin-top:11px; }
 .meta { display:flex; justify-content:space-between; gap:14px; font-size:11px; color:var(--muted-foreground); }
 .meta strong { color:var(--foreground); font:600 11px var(--mono); }
-.track { height:5px; background:var(--muted); border-radius:99px; margin-top:6px; overflow:hidden; }
+.track { height:5px; background:var(--border); border-radius:99px; margin-top:6px; overflow:hidden; }
 .fill { height:100%; background:var(--primary); border-radius:99px; }
 .alternative { display:flex; justify-content:space-between; padding:8px 0; font:11px var(--mono); }
 .auto-suggestion { margin-top:8px; padding-top:8px; border-top:1px solid var(--border-subtle); }

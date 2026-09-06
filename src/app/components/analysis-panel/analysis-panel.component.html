@@ -32,7 +32,9 @@
 
     <section class="panel-section">
       <h3 class="panel-heading">Changes by area</h3>
-      <app-change-overview [root]="diff.root" [selectedNodeId]="selectedNodeId()" (nodeSelected)="nodeSelected.emit($event)" />
+      <div class="overview-content">
+        <app-change-overview [root]="diff.root" [selectedNodeId]="selectedNodeId()" (nodeSelected)="nodeSelected.emit($event)" />
+      </div>
     </section>
 
     @if (hasAnalysis()) {
@@ -90,7 +92,7 @@
               <span class="section-label">WHY?</span>
               @for (metric of metrics(match.keyStats ?? best); track metric.label) {
                 <div class="metric">
-                  <div class="meta"><span>{{ metric.label }}</span><strong>{{ percent(metric.value) }}</strong></div>
+                  <div class="meta"><span>{{ metric.label }}</span>{{ percent(metric.value) }}</div>
                   <div class="track"><div class="fill" [style.width.%]="metric.value * 100"></div></div>
                 </div>
               }
@@ -102,7 +104,7 @@
                 @for (candidate of match.inference.alternatives; track candidate.paths.join('|')) {
                   <div class="alternative">
                     <span>{{ candidate.paths.join(' + ') }}</span>
-                    <strong>{{ percent(candidate.score) }}</strong>
+                    <span>{{ percent(candidate.score) }}</span>
                   </div>
                 }
               </div>
