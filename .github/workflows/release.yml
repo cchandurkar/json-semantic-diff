@@ -1,0 +1,65 @@
+name: Create Release
+
+# Manual only: bumps the minor version, commits it, tags it, and publishes a
+# GitHub Release. The "Deploy to GitHub Pages" workflow listens for that
+# release and builds/publishes the app.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure git identity
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Bump minor version
+        id: bump
+        run: |
+          npm version minor --no-git-tag-version --allow-same-version
+          VERSION=$(node -p "require('./package.json').version")
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Commit version bump
+        run: |
+          git add package.json package-lock.json
+          git commit -m "chore: release v${{ steps.bump.outputs.version }}"
+          git push origin HEAD:${{ github.ref_name }}
+
+      - name: Tag release
+        run: |
+          git tag "v${{ steps.bump.outputs.version }}"
+          git push origin "v${{ steps.bump.outputs.version }}"
+
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "v${{ steps.bump.outputs.version }}" \
+            --title "v${{ steps.bump.outputs.version }}" \
+            --target "${{ github.ref_name }}" \
+            --generate-notes
+
+      # A release created with the default GITHUB_TOKEN does not itself
+      # trigger other workflows' `on: release` listeners (GitHub's
+      # loop-prevention rule). Dispatch the deploy workflow explicitly so
+      # publishing to Pages still happens automatically after this run.
+      - name: Trigger Pages deployment
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run deploy-pages.yml --ref "${{ github.ref_name }}"
