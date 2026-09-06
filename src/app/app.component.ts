@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
 import { JsonInputComponent } from './components/json-input/json-input.component';
 import { DiffTreeComponent } from './components/diff-tree/diff-tree.component';
 import { AnalysisPanelComponent } from './components/analysis-panel/analysis-panel.component';
@@ -10,7 +10,7 @@ import { ArrayMatchingContext } from './components/array-matching/array-matching
 import { DEFAULT_DIFF_OPTIONS, diffJson } from './core/diff';
 import { formatJson } from './core/json/format';
 import { ArrayMatchAnalysis, DiffOptions, DiffResult, JsonValue } from './core/models/diff.models';
-import { findNodeByPath, stepChange, subtreeIds } from './shared/node-navigation';
+import { findNodeById, findNodeByPath, stepChange, subtreeIds } from './shared/node-navigation';
 import { buildSearchIndex, searchDiff, stepSearchResult } from './shared/search-index';
 import {
   MatchingOverrideChange,
@@ -90,6 +90,20 @@ export class AppComponent {
   private toastTimer?: ReturnType<typeof setTimeout>;
   private panelResizeStartX = 0;
   private panelResizeStartWidth = 0;
+
+  /**
+   * Selecting an array (Tree/Source row click, or a Changes-by-area row)
+   * also selects that same array in the Array Matching pickers - both the
+   * sidebar's and the analysis panel's, since both read `selectedAnalysis`.
+   * A non-array selection leaves whatever array was already open untouched.
+   */
+  private readonly syncSelectedArrayAnalysis = effect(() => {
+    const id = this.selectedNodeId();
+    const root = this.result()?.root;
+    if (!id || !root) return;
+    const node = findNodeById(root, id);
+    if (node?.nodeKind === 'array' && node.arrayMatch) this.selectedAnalysis.set(node.arrayMatch);
+  });
 
   readonly canCompare = computed(() => !!this.leftText().trim() && !!this.rightText().trim());
   /** DFS pre-order change ids: view-independent and invariant to collapse state. */
