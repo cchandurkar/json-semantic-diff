@@ -18,6 +18,7 @@
 .stat-chip.added { background:var(--diff-added-bg); color:var(--diff-added); }
 .stat-chip.removed { background:var(--diff-removed-bg); color:var(--diff-removed); }
 .stat-chip.modified { background:var(--diff-modified-bg); color:var(--diff-modified); }
+.stat-chip.total { background:var(--muted); color:var(--foreground); }
 .summary-meta { flex-basis:100%; display:flex; flex-wrap:wrap; gap:5px 12px; color:var(--muted-foreground); font-size:11px; margin-bottom:10px; }
 .overview-content, .matching-content { display:flex; flex-direction:column; background:var(--muted); border-radius:var(--radius); padding:10px 12px; }
 app-array-picker { display:block; margin:0 0 10px; }
