@@ -8,7 +8,7 @@
 .picker-panel { width:min(320px,calc(100vw - 24px)); max-height:min(460px,calc(100vh - 96px)); overflow-y:auto; display:flex; flex-direction:column; gap:1px; padding:5px; border:1px solid var(--border); border-radius:var(--radius); background:var(--card); box-shadow:0 12px 32px rgba(10,14,22,.14); }
 .picker-item { display:flex; flex-direction:column; gap:3px; width:100%; border:0; border-radius:var(--radius); background:transparent; padding:8px 10px; text-align:left; cursor:pointer; }
 .picker-item:hover { background:var(--accent); }
-.picker-item:focus, .picker-item:focus-visible { outline:2px solid var(--primary); outline-offset:-2px; background:var(--accent); }
+/* .picker-item:focus, .picker-item:focus-visible { outline:2px solid var(--primary); outline-offset:-2px; background:var(--accent); } */
 .picker-name { color:var(--foreground); font:650 12px var(--sans); }
 .picker-description { color:var(--muted-foreground); font:11px/1.45 var(--sans); }
 .picker-highlights { display:flex; flex-wrap:wrap; gap:4px; margin-top:3px; }

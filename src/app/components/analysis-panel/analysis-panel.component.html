@@ -27,11 +27,6 @@
           <div class="stat-chip removed"><b>−{{ diff.summary.removed }}</b><span>Removed</span></div>
           <div class="stat-chip modified"><b>~{{ diff.summary.modified + diff.summary.typeChanged }}</b><span>Modified</span></div>
         </div>
-        <div class="summary-meta">
-          <span>{{ diff.arrays.length }} arrays analyzed</span>
-          <span>{{ diff.autoMatchedCount }} auto-matched</span>
-          <span>{{ diff.elapsedMs }} ms</span>
-        </div>
       </div>
     </section>
 
@@ -43,7 +38,11 @@
     @if (hasAnalysis()) {
       <section class="panel-section">
         <h3 class="panel-heading">Array matching analysis</h3>
-
+        <div class="summary-meta">
+          <span>{{ diff.arrays.length }} arrays analyzed</span>
+          <span>{{ diff.autoMatchedCount }} auto-matched</span>
+          <span>{{ diff.elapsedMs }} ms</span>
+        </div>
         <div class="matching-content">
         <app-array-picker [arrays]="diff.arrays" [selectedPath]="dropdownPath()" (pathSelected)="chooseArray($event)" />
 

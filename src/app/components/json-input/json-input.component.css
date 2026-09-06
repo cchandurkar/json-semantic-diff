@@ -1,5 +1,5 @@
 :host { display:block; min-width:0; }
-.input-card { border:1px solid var(--border); background:var(--card); overflow:hidden; transition:border-color .18s, box-shadow .18s; }
+.input-card { border:1px solid var(--border); background:var(--card);  border-radius:var(--radius); overflow:hidden; transition:border-color .18s, box-shadow .18s; }
 .input-card:focus-within { border-color:var(--border-strong); box-shadow:0 0 0 3px var(--focus-ring); }
 .input-card.has-error { border-color:var(--danger-border); }
 .input-card__header { height:48px; display:flex; align-items:center; justify-content:space-between; padding:0 14px; border-bottom:1px solid var(--border); }
@@ -7,7 +7,8 @@
 .status { font-size:12px; color:var(--success); }
 .status.error { color:var(--danger); }
 .header-actions { display:flex; align-items:center; gap:2px; }
-.file-button { cursor:pointer; font:inherit; font-size:12px; color:var(--muted-foreground); padding:6px 9px; border:0; border-radius:var(--radius); background:transparent; }
+.file-button { cursor:pointer; font:inherit; font-size:12px; color:var(--muted-foreground); padding:6px 8px; border:0; border-radius:var(--radius); background:transparent; display:inline-flex; align-items:center; }
+.file-button svg { display:block; }
 .file-button:hover:not(:disabled) { background:var(--accent); color:var(--foreground); }
 .file-button:disabled { opacity:.45; cursor:default; }
 .json-editor { display:block; color:var(--foreground); }

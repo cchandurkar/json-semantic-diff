@@ -5,9 +5,9 @@
 .sidebar-backdrop { display:none; }
 .drawer-close { display:none; position:absolute; top:8px; right:8px; width:28px; height:28px; border:0; border-radius:var(--radius); background:transparent; color:var(--muted-foreground); font-size:17px; line-height:1; cursor:pointer; }
 .sidebar-panel { flex:1; min-height:0; display:flex; flex-direction:column; gap:2px; overflow-y:auto; padding:12px; background:var(--sidebar); }
-.sidebar-section { display:flex; flex-direction:column; gap:2px; margin-top:20px; }
+.sidebar-section { display:flex; flex-direction:column; gap:2px; margin-top:32px; }
 .sidebar-section:first-of-type { margin-top:0; }
-.sidebar-heading { margin:0 0 6px; color:var(--subtle-foreground); font:600 10px var(--sans); letter-spacing:.07em; text-transform:uppercase; }
+.sidebar-heading { margin:0 0 6px; color:var(--foreground); opacity:.85; font:700 11px var(--sans); letter-spacing:.07em; text-transform:uppercase; }
 .toggle-row { display:flex; align-items:center; gap:9px; border-radius:var(--radius); padding:6px 8px; cursor:pointer; }
 .toggle-row input { margin:0; accent-color:var(--primary); cursor:pointer; }
 .toggle-row:has(input:focus-visible) { outline:2px solid var(--primary); outline-offset:-2px; }

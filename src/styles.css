@@ -1,6 +1,9 @@
 @import "tailwindcss";
 @import "@angular/cdk/overlay-prebuilt.css";
 
+/* #E6FFED */
+
+
 :root {
   color-scheme: light;
   --sans: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -30,9 +33,9 @@
   --selection: #dbeafe;
   --selection-border: #93c5fd;
   --diff-added: #15803d;
-  --diff-added-bg: #f0fdf4;
+  --diff-added-bg: #E6FFED;
   --diff-removed: #dc2626;
-  --diff-removed-bg: #fef2f2;
+  --diff-removed-bg: #FFEEF0;
   --diff-modified: #b45309;
   --diff-modified-bg: #fffbeb;
   --success: var(--diff-added);
