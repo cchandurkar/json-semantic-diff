@@ -1,16 +1,14 @@
 :host { display:flex; flex-direction:column; height:100%; min-height:0; }
 .source { display:flex; flex-direction:column; height:100%; min-height:0; border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; background:var(--card); }
-.pane-heads { flex:none; display:grid; grid-template-columns:1fr 1fr; border-bottom:1px solid var(--border-subtle); }
-.pane-head { padding:9px 14px; font:600 11px var(--sans); letter-spacing:.08em; color:var(--muted-foreground); }
-.pane-head + .pane-head { border-left:1px solid var(--border-subtle); }
 .pane-note { flex:none; margin:0; padding:7px 14px; border-bottom:1px solid var(--border-subtle); background:var(--muted); color:var(--muted-foreground); font:11px/1.5 var(--sans); }
-.source-scroll { flex:1 1 auto; min-height:0; overflow:auto; }
-.src-row { display:grid; grid-template-columns:52px 18px minmax(240px,1fr) 52px 18px minmax(240px,1fr) 26px; align-items:stretch; min-width:max-content; border-bottom:1px solid var(--border-subtle); font:12px/1.6 var(--mono); }
+.source-scroll { flex:1 1 auto; min-width:0; min-height:0; overflow:auto; display:grid; grid-template-columns:52px 18px minmax(240px,1fr) 52px 18px minmax(240px,1fr) 26px; align-content:start; }
+.src-row { display:grid; grid-template-columns:subgrid; grid-column:1 / -1; align-items:stretch; border-bottom:1px solid var(--border-subtle); font:12px/1.6 var(--mono); }
 .src-row:last-child { border-bottom:0; }
 .src-row:hover { background:var(--accent); }
 .gutter { padding:3px 8px; text-align:right; color:var(--subtle-foreground); background:var(--muted); border-right:1px solid var(--border-subtle); user-select:none; font-variant-numeric:tabular-nums; }
 .marker { padding:3px 0; text-align:center; font-weight:800; color:var(--subtle-foreground); }
-.code { --depth:0; padding:3px 10px 3px calc(10px + var(--depth) * 14px); white-space:pre; color:var(--foreground); display:flex; align-items:center; gap:8px; }
+.code { --depth:0; min-width:0; padding:3px 10px 3px calc(10px + var(--depth) * 14px); white-space:pre; color:var(--foreground); }
+.code.right { display:flex; align-items:center; flex-wrap:wrap; gap:2px 0; }
 .code-text { border:0; background:transparent; padding:0; margin:0; font:inherit; color:inherit; white-space:pre; cursor:pointer; text-align:left; }
 .kind-added .right { background:var(--diff-added-bg); }
 .kind-added .right-marker { color:var(--diff-added); }
@@ -26,9 +24,9 @@
 .is-ignored .code { color:var(--subtle-foreground); font-style:italic; }
 .is-ignored .left, .is-ignored .right { background:transparent; }
 .is-selected { outline:2px solid var(--primary); outline-offset:-2px; }
-.reorder-pill, .match-pill { border:1px solid var(--success-border); background:var(--success-bg); color:var(--success); border-radius:999px; padding:1px 7px; font:10px var(--sans); white-space:nowrap; cursor:help; }
+.reorder-pill, .match-pill { flex:none; margin:1px 0 1px 8px; border:1px solid var(--success-border); background:var(--success-bg); color:var(--success); border-radius:999px; padding:1px 7px; font:10px var(--sans); white-space:nowrap; cursor:help; }
 .reorder-pill { border-color:var(--border); background:var(--muted); color:var(--muted-foreground); }
-.collapsed-row { display:block; width:100%; border:0; border-bottom:1px solid var(--border-subtle); background:var(--muted); color:var(--muted-foreground); font:11px var(--sans); padding:7px 14px; text-align:center; cursor:pointer; }
+.collapsed-row { grid-column:1 / -1; display:block; width:100%; border:0; border-bottom:1px solid var(--border-subtle); background:var(--muted); color:var(--muted-foreground); font:11px var(--sans); padding:7px 14px; text-align:center; cursor:pointer; }
 .collapsed-row:hover { color:var(--foreground); background:var(--accent); }
 .code-text:focus-visible, .collapsed-row:focus-visible { outline:2px solid var(--primary); outline-offset:-2px; border-radius:var(--radius); }
 .row-actions { align-self:center; width:22px; height:22px; border:0; border-radius:var(--radius); background:transparent; color:var(--subtle-foreground); font-size:13px; line-height:1; cursor:pointer; opacity:0; }

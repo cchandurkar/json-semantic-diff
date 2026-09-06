@@ -1,8 +1,4 @@
 <div class="source">
-  <div class="pane-heads">
-    <span class="pane-head">ORIGINAL</span>
-    <span class="pane-head">CHANGED</span>
-  </div>
   <p class="pane-note">
     Aligned for comparison: object keys are sorted and matched records are paired side by side, so this is a semantic
     projection rather than a verbatim reproduction of your input.
@@ -26,7 +22,7 @@
 
           <span class="gutter">{{ item.row.left?.lineNumber }}</span>
           <span class="marker left-marker" aria-hidden="true">{{ leftMarker(item.row) }}</span>
-          <span class="code left" [style.--depth]="item.row.depth"><span class="code-line">@if (renderCell(item.row, 'left'); as cell) {{{ cell.key }}@for (seg of cell.segments; track $index) {<span [class.diff-mark]="seg.changed">{{ seg.text }}</span>}{{ cell.tail }}}</span></span>
+          <span class="code left" [style.--depth]="item.row.depth">@if (renderCell(item.row, 'left'); as cell) {{{ cell.key }}@for (seg of cell.segments; track $index) {<span [class.diff-mark]="seg.changed">{{ seg.text }}</span>}{{ cell.tail }}}</span>
 
           <span class="gutter">{{ item.row.right?.lineNumber }}</span>
           <span class="marker right-marker" aria-hidden="true">{{ rightMarker(item.row) }}</span>
