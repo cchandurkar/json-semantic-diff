@@ -48,7 +48,7 @@ const API_RESPONSE: DiffExample = {
 const REORDERED_USERS: DiffExample = {
   id: 'reordered-users',
   name: 'Reordered Users',
-  description: 'Users were reordered, but DiffLens matches them by identity and finds the real change.',
+  description: 'Users were reordered, but JSON Semantic Diff matches them by identity and finds the real change.',
   highlights: ['Smart matching', 'Reordering', 'Added record'],
   original: {
     team: 'Platform',
@@ -73,7 +73,7 @@ const REORDERED_USERS: DiffExample = {
 const INVENTORY_BY_STORE: DiffExample = {
   id: 'inventory-by-store',
   name: 'Inventory by Store',
-  description: 'Neither field is unique by itself. DiffLens identifies records using store + SKU.',
+  description: 'Neither field is unique by itself. JSON Semantic Diff identifies records using store + SKU.',
   highlights: ['Composite key', 'Reordering', 'Two real changes'],
   original: {
     inventory: [

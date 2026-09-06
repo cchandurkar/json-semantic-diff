@@ -1,6 +1,6 @@
 {
   "name": "json-semantic-diff",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Framework-free JSON semantic diff engine with deterministic, explainable array identity matching.",
   "license": "MIT",
   "type": "module",

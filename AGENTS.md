@@ -1,8 +1,8 @@
-# AGENTS.md — DiffLens
+# AGENTS.md — JSON Semantic Diff
 
 ## Product intent
 
-DiffLens is a local-first JSON comparison utility. Its defining behavior is to explain meaningful structural/value changes while matching reordered object arrays by inferred row identity when evidence is strong enough.
+JSON Semantic Diff is a local-first JSON comparison utility. Its defining behavior is to explain meaningful structural/value changes while matching reordered object arrays by inferred row identity when evidence is strong enough.
 
 ## Non-negotiable product principles
 
@@ -13,6 +13,13 @@ DiffLens is a local-first JSON comparison utility. Its defining behavior is to e
 - Avoid IDE-like chrome. No permanent console or settings sidebar for V1.
 - Advanced detail should be progressive: inline match badges -> analysis drawer.
 - Preserve responsive desktop-first behavior; JSON comparison is optimized for laptop/desktop widths.
+
+## Repo layout
+
+This is an npm-workspaces monorepo:
+
+- `packages/core` — the framework-free diff engine. Published to npm as `json-semantic-diff`. Must not import Angular, RxJS, or DOM APIs. Testable and buildable standalone (`npm run build`/`npm test` from within `packages/core`).
+- `packages/ui` — the Angular app. Consumes `packages/core` via the npm workspaces symlink (`"json-semantic-diff": "*"`) and, for local dev/CI builds, via a `paths` alias in `packages/ui/tsconfig.json` that resolves straight from `packages/core/src` — no build-ordering step is required to develop the app.
 
 ## Runtime and framework
 
@@ -25,31 +32,33 @@ DiffLens is a local-first JSON comparison utility. Its defining behavior is to e
 
 ## Architecture
 
-- `src/app/core/diff/index.ts` — public API of the diff core. Consumers import from here, not from the modules below.
-- `src/app/core/diff/diff-engine.ts` — recursive structural diff and diff node generation.
-- `src/app/core/diff/options.ts` — `DiffOptions` and `DEFAULT_DIFF_OPTIONS`.
-- `src/app/core/diff/path.ts` — path segment model plus the `path` and stable `id` serializers.
-- `src/app/core/diff/matching/identity-inference.ts` — deterministic candidate discovery and scoring.
-- `src/app/core/diff/matching/matching.ts` — array strategy selection, element pairing, reorder detection.
-- `src/app/core/diff/normalization/normalization.ts` — timestamp and numeric-string normalization.
-- `src/app/core/diff/ignore/ignore-rules.ts` — ignore-rule wildcard evaluation.
-- `src/app/core/models/diff.models.ts` — shared domain models (canonical diff result).
-- `src/app/source/index.ts` — public API of the Source presentation layer (framework-free).
-- `src/app/source/source-emitter.ts` — turns a `DiffResult` into side-by-side source rows; re-runs no diff logic.
-- `src/app/source/source-segments.ts` — changes-only segmentation with lazy collapsed regions.
-- `src/app/examples/diff-examples.ts` — built-in demo payloads (pure JSON + optional `DiffOptions`).
-- `src/app/shared/format.ts` — presentation-only formatting helpers shared by components.
-- `src/app/shared/node-navigation.ts` — pure ancestor/lookup/prev-next helpers keyed on `DiffNode.id`.
-- `src/app/components/json-input/` — JSON paste/drop/open surface.
-- `src/app/components/diff-tree/` — primary tree result renderer.
-- `src/app/components/source-diff/` — side-by-side Source renderer; `source-view-model.ts` holds its pure logic.
-- `src/app/components/example-picker/` — dropdown for loading the built-in examples.
-- `src/app/components/analysis-drawer/` — explainability surface for identity inference.
-- `src/app/app.component.*` — page composition and comparison-level state.
+- `packages/core/src/index.ts` — public API of the diff core (the npm package's entry point). Consumers import from here, not from the modules below.
+- `packages/core/src/diff/index.ts` — re-exported by the package entry point; internal barrel for the diff engine's own modules.
+- `packages/core/src/diff/diff-engine.ts` — recursive structural diff and diff node generation.
+- `packages/core/src/diff/options.ts` — `DiffOptions` and `DEFAULT_DIFF_OPTIONS`.
+- `packages/core/src/diff/path.ts` — path segment model plus the `path` and stable `id` serializers.
+- `packages/core/src/diff/matching/identity-inference.ts` — deterministic candidate discovery and scoring.
+- `packages/core/src/diff/matching/matching.ts` — array strategy selection, element pairing, reorder detection.
+- `packages/core/src/diff/normalization/normalization.ts` — timestamp and numeric-string normalization.
+- `packages/core/src/diff/ignore/ignore-rules.ts` — ignore-rule wildcard evaluation.
+- `packages/core/src/models/diff.models.ts` — shared domain models (canonical diff result).
+- `packages/ui/src/app/source/index.ts` — public API of the Source presentation layer (framework-free, but app-side: consumes `DiffResult` from `json-semantic-diff`).
+- `packages/ui/src/app/source/source-emitter.ts` — turns a `DiffResult` into side-by-side source rows; re-runs no diff logic.
+- `packages/ui/src/app/source/source-segments.ts` — changes-only segmentation with lazy collapsed regions.
+- `packages/ui/src/app/examples/diff-examples.ts` — built-in demo payloads (pure JSON + optional `DiffOptions`).
+- `packages/ui/src/app/shared/format.ts` — presentation-only formatting helpers shared by components.
+- `packages/ui/src/app/shared/format-json.ts` — pretty-print helper for the raw JSON textareas (UI-only, not part of the diff engine's contract).
+- `packages/ui/src/app/shared/node-navigation.ts` — pure ancestor/lookup/prev-next helpers keyed on `DiffNode.id`.
+- `packages/ui/src/app/components/json-input/` — JSON paste/drop/open surface.
+- `packages/ui/src/app/components/diff-tree/` — primary tree result renderer.
+- `packages/ui/src/app/components/source-diff/` — side-by-side Source renderer; `source-view-model.ts` holds its pure logic.
+- `packages/ui/src/app/components/example-picker/` — dropdown for loading the built-in examples.
+- `packages/ui/src/app/components/analysis-panel/` — explainability surface for identity inference.
+- `packages/ui/src/app/app.component.*` — page composition and comparison-level state.
 
 Keep diff/domain logic framework-independent. It should be testable without Angular.
-The core must not import Angular, RxJS, or DOM APIs; components are renderers over
-the canonical `DiffResult` and must not re-derive matching or change semantics.
+`packages/core` must not import Angular, RxJS, or DOM APIs; `packages/ui` components are
+renderers over the canonical `DiffResult` and must not re-derive matching or change semantics.
 
 ## Identity inference rules
 

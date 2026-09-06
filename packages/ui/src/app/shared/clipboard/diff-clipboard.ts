@@ -16,11 +16,11 @@ export type DiffSide = 'left' | 'right';
 const ARROW = '\u2192';
 
 /**
- * The DiffLens *semantic* path: identity-matched array elements spell out the
+ * The JSON Semantic Diff *semantic* path: identity-matched array elements spell out the
  * key that matched them, e.g. `$.products[sku=ABC123].price`.
  *
  * NAMING (more-features.md §3): this is intentionally NOT called `formatJsonPath`.
- * The `[sku=ABC123]` selector is a DiffLens convention, not standards-compliant
+ * The `[sku=ABC123]` selector is a JSON Semantic Diff convention, not standards-compliant
  * JSONPath, and the spec asks that the distinction be explicit in naming rather
  * than implied. Use `formatPhysicalPath` when a positional path is wanted.
  */

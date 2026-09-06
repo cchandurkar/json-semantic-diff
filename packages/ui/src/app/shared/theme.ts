@@ -6,7 +6,7 @@
 
 export type Theme = 'light' | 'dark';
 
-export const THEME_STORAGE_KEY = 'difflens.theme';
+export const THEME_STORAGE_KEY = 'json-semantic-diff.theme';
 
 /** Narrows a stored value to a Theme; anything else counts as "no saved choice". */
 export function parseTheme(value: string | null): Theme | null {

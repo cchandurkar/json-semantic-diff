@@ -98,7 +98,7 @@ export class TooltipDirective implements OnDestroy {
   private createOverlay(): OverlayRef {
     const preferred = this.tooltipPosition() === 'below' ? [BELOW, ABOVE] : [ABOVE, BELOW];
     return this.overlay.create({
-      panelClass: 'difflens-tooltip',
+      panelClass: 'json-semantic-diff-tooltip',
       scrollStrategy: this.overlay.scrollStrategies.reposition(),
       positionStrategy: this.overlay
         .position()

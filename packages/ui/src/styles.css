@@ -145,7 +145,7 @@ textarea:focus-visible {
 }
 
 /* Tooltip panel. Global because the CDK overlay pane lives outside every component. */
-.difflens-tooltip {
+.json-semantic-diff-tooltip {
   max-width: 240px;
   padding: 5px 9px;
   border: 1px solid var(--border);

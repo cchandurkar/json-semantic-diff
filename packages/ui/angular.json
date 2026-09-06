@@ -3,7 +3,7 @@
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
-    "difflens": {
+    "json-semantic-diff-ui": {
       "projectType": "application",
       "schematics": {
         "@schematics/angular:component": { "style": "css", "skipTests": true }
@@ -40,8 +40,8 @@
         "serve": {
           "builder": "@angular/build:dev-server",
           "configurations": {
-            "production": { "buildTarget": "difflens:build:production" },
-            "development": { "buildTarget": "difflens:build:development" }
+            "production": { "buildTarget": "json-semantic-diff-ui:build:production" },
+            "development": { "buildTarget": "json-semantic-diff-ui:build:development" }
           },
           "defaultConfiguration": "development"
         },
@@ -49,7 +49,7 @@
           "builder": "@angular/build:unit-test",
           "options": {
             "runner": "vitest",
-            "buildTarget": "difflens:build:development",
+            "buildTarget": "json-semantic-diff-ui:build:development",
             "tsConfig": "tsconfig.spec.json",
             "include": ["src/**/*.spec.ts", "src/**/*.test.ts"],
             "watch": false

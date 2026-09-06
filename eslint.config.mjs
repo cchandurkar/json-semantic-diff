@@ -4,12 +4,21 @@ import angular from 'angular-eslint';
 
 export default tseslint.config(
   {
-    ignores: ['dist/**', 'coverage/**', 'node_modules/**', '.angular/**']
+    ignores: ['**/dist/**', '**/coverage/**', '**/node_modules/**', '**/.angular/**']
   },
 
-  // TypeScript source files
+  // Plain TypeScript (packages/core: framework-free, no Angular rules apply here)
   {
-    files: ['**/*.ts'],
+    files: ['packages/core/**/*.ts'],
+    extends: [js.configs.recommended, ...tseslint.configs.recommended],
+    rules: {
+      '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }]
+    }
+  },
+
+  // Angular TypeScript (packages/ui only)
+  {
+    files: ['packages/ui/**/*.ts'],
     extends: [js.configs.recommended, ...tseslint.configs.recommended, ...angular.configs.tsRecommended],
     processor: angular.processInlineTemplates,
     rules: {
@@ -21,9 +30,9 @@ export default tseslint.config(
     }
   },
 
-  // Angular templates
+  // Angular templates (packages/ui only)
   {
-    files: ['**/*.html'],
+    files: ['packages/ui/**/*.html'],
     extends: [...angular.configs.templateRecommended, ...angular.configs.templateAccessibility],
     rules: {
       '@angular-eslint/template/prefer-control-flow': 'error',

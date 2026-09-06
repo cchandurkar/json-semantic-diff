@@ -323,7 +323,7 @@ export class AppComponent {
     const { action, node, target } = event;
     switch (action) {
       case 'copy-path':
-        return this.copy(formatSemanticPath(node), 'Copied DiffLens path');
+        return this.copy(formatSemanticPath(node), 'Copied semantic path');
       case 'copy-old-value':
         return this.copy(formatOldValue(node), 'Copied old value');
       case 'copy-new-value':

@@ -6,7 +6,7 @@
  * back to the session-only default.
  */
 
-export const ANALYSIS_PANEL_WIDTH_STORAGE_KEY = 'difflens.analysisPanelWidth';
+export const ANALYSIS_PANEL_WIDTH_STORAGE_KEY = 'json-semantic-diff.analysisPanelWidth';
 export const ANALYSIS_PANEL_DEFAULT_WIDTH = 300;
 export const ANALYSIS_PANEL_MIN_WIDTH = 260;
 export const ANALYSIS_PANEL_MAX_WIDTH = 480;

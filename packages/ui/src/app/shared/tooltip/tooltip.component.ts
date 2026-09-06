@@ -3,7 +3,7 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 /**
  * Tooltip body rendered into the CDK overlay container.
  *
- * Visual styling lives in `src/styles.css` under the `.difflens-tooltip` panel
+ * Visual styling lives in `src/styles.css` under the `.json-semantic-diff-tooltip` panel
  * class, because the overlay pane is created by the CDK outside this component
  * and so cannot be reached by component-scoped styles.
  */
