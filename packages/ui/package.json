@@ -1,21 +1,14 @@
 {
-  "name": "json-semantic-diff-monorepo",
+  "name": "json-semantic-diff-ui",
   "version": "0.2.0",
   "private": true,
-  "workspaces": ["packages/*"],
   "scripts": {
     "start": "ng serve",
     "build": "ng build",
-    "test": "ng test",
-    "lint": "eslint . && stylelint \"packages/*/src/**/*.css\"",
-    "lint:fix": "eslint . --fix && stylelint \"packages/*/src/**/*.css\" --fix",
-    "format": "prettier --write .",
-    "format:check": "prettier --check ."
-  },
-  "engines": {
-    "node": ">=24.15.0 <25"
+    "test": "ng test"
   },
   "dependencies": {
+    "json-semantic-diff": "*",
     "@angular/animations": "^22.1.5",
     "@angular/cdk": "^22.1.5",
     "@angular/common": "^22.1.5",
@@ -38,28 +31,15 @@
   },
   "devDependencies": {
     "@angular-eslint/builder": "^22.2.0",
-    "@angular-eslint/eslint-plugin": "^22.2.0",
-    "@angular-eslint/eslint-plugin-template": "^22.2.0",
-    "@angular-eslint/template-parser": "^22.2.0",
     "@angular/build": "^22.1.5",
     "@angular/cli": "^22.1.5",
     "@angular/compiler-cli": "^22.1.5",
-    "@eslint/js": "^10.0.1",
     "@tailwindcss/postcss": "^4.1.12",
     "@types/node": "^24.13.3",
-    "angular-eslint": "^22.2.0",
-    "eslint": "^10.10.0",
-    "eslint-config-prettier": "^10.1.8",
     "jsdom": "^26.1.0",
-    "playwright": "^1.60.0",
     "postcss": "^8.5.6",
-    "prettier": "^3.9.6",
-    "prettier-plugin-tailwindcss": "^0.8.1",
-    "stylelint": "^17.15.0",
-    "stylelint-config-standard": "^40.0.0",
     "tailwindcss": "^4.1.12",
     "typescript": "~6.0.2",
-    "typescript-eslint": "^8.69.0",
     "vitest": "^4.1.11"
   }
 }

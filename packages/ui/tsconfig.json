@@ -1,0 +1,8 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "paths": {
+      "json-semantic-diff": ["../core/src/index.ts"]
+    }
+  }
+}

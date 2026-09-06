@@ -1,6 +1,6 @@
-/node_modules
-/dist
-/.angular
+node_modules
+dist
+.angular
 /.idea
 /.vscode/*
 !/.vscode/extensions.json
@@ -8,3 +8,7 @@
 !/.vscode/tasks.json
 .DS_Store
 npm-debug.log*
+/.ignore
+
+# Deepwork orchestrator session state (local only)
+.slim/deepwork/
