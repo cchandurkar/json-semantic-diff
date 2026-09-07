@@ -60,6 +60,15 @@ Keep diff/domain logic framework-independent. It should be testable without Angu
 `packages/core` must not import Angular, RxJS, or DOM APIs; `packages/ui` components are
 renderers over the canonical `DiffResult` and must not re-derive matching or change semantics.
 
+## Releasing
+
+`packages/core` (published to npm) and `packages/ui` (deployed to GitHub Pages) are
+versioned and released independently, via `npm run release:core -- <patch|minor|major>` /
+`npm run release:ui -- <patch|minor|major>` (`scripts/release.mjs`; full process documented
+in `CONTRIBUTING.md`'s "Releasing" section). **Never create a `core-v*`/`ui-v*` tag or
+GitHub Release by hand** — it bypasses the version bump, leaving `package.json` out of sync
+with what the tag claims (this has happened before and caused real confusion).
+
 ## Identity inference rules
 
 Candidate scoring is based primarily on observed data, not field-name semantics.
