@@ -11,7 +11,10 @@
     "identity-matching"
   ],
   "license": "MIT",
-  "author": "Chaitanya Chandurkar",
+  "author": {
+    "name": "Chaitanya Chandurkar",
+    "url": "https://github.com/cchandurkar"
+  },
   "homepage": "https://jsonsemanticdiff.dev",
   "bugs": "https://github.com/cchandurkar/json-semantic-diff/issues",
   "repository": {
