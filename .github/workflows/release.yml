@@ -3,7 +3,8 @@ name: Release
 # Manual only: auto-detects which package(s) changed since their own last
 # release tag and bumps + tags + releases just those. Either package, both,
 # or neither, depending on what actually changed under packages/ui and/or
-# packages/core since ui-v* / core-v* was last cut.
+# packages/core (or a shared root file both depend on - see SHARED_PATHS
+# below) since ui-v* / core-v* was last cut.
 #
 # A UI release tags ui-vX.Y.Z and dispatches "Deploy to GitHub Pages".
 # A core release tags core-vX.Y.Z and dispatches "Publish json-semantic-diff
@@ -36,12 +37,22 @@ jobs:
       - name: Detect changed packages
         id: detect
         run: |
+          # Root-level files both packages build against/with. A change to
+          # any of these counts as a change for BOTH packages, since neither
+          # package's own directory would show it: root tsconfig.json is
+          # extended by both packages/core/tsconfig.json and
+          # packages/ui/tsconfig.json; root package.json holds shared
+          # devDependencies (typescript, eslint, etc.) used by both;
+          # package-lock.json is the single monorepo lockfile; .nvmrc pins
+          # the Node version both packages build/test under.
+          SHARED_PATHS=(tsconfig.json package.json package-lock.json .nvmrc)
+
           LAST_UI_TAG=$(git tag -l 'ui-v*' --sort=-v:refname | head -1)
           LAST_CORE_TAG=$(git tag -l 'core-v*' --sort=-v:refname | head -1)
 
           if [ -z "$LAST_UI_TAG" ]; then
             UI_CHANGED=true
-          elif git diff --quiet "$LAST_UI_TAG"..HEAD -- packages/ui; then
+          elif git diff --quiet "$LAST_UI_TAG"..HEAD -- packages/ui "${SHARED_PATHS[@]}"; then
             UI_CHANGED=false
           else
             UI_CHANGED=true
@@ -49,7 +60,7 @@ jobs:
 
           if [ -z "$LAST_CORE_TAG" ]; then
             CORE_CHANGED=true
-          elif git diff --quiet "$LAST_CORE_TAG"..HEAD -- packages/core; then
+          elif git diff --quiet "$LAST_CORE_TAG"..HEAD -- packages/core "${SHARED_PATHS[@]}"; then
             CORE_CHANGED=false
           else
             CORE_CHANGED=true
@@ -62,6 +73,7 @@ jobs:
             echo "## Change detection"
             echo "- packages/ui changed since \`${LAST_UI_TAG:-<no previous release>}\`: **$UI_CHANGED**"
             echo "- packages/core changed since \`${LAST_CORE_TAG:-<no previous release>}\`: **$CORE_CHANGED**"
+            echo "- shared paths checked for both: \`${SHARED_PATHS[*]}\`"
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Bump, commit and tag UI release
