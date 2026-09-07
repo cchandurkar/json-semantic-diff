@@ -58,4 +58,8 @@ Click **Example**. The `users` array is deliberately reordered between inputs. J
 
 Identity inference lives in `packages/core/src/diff/matching/identity-inference.ts`. Candidate quality considers uniqueness, completeness, match coverage, overlap, type consistency, a weak field-name hint, and volatility penalties. JSON Semantic Diff only auto-applies a candidate when both its score and its lead over competing candidates are strong enough.
 
+## Analytics
+
+The hosted demo uses [GoatCounter](https://www.goatcounter.com) for anonymous, cookie-free page-view analytics. It sets no cookies, no persistent identifiers, and collects no personal data — see GoatCounter's [privacy policy](https://www.goatcounter.com/privacy). Local development traffic (`localhost` and private IP ranges) is never tracked.
+
 See `AGENTS.md` for product and implementation constraints.
