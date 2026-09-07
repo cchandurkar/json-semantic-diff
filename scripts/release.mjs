@@ -78,8 +78,7 @@ run(`git push origin ${branch}`);
 run(`git tag ${tag}`);
 run(`git push origin ${tag}`);
 
-const title = pkgArg === 'core' ? `Core v${version}` : `UI v${version}`;
-run(`gh release create ${tag} --title "${title}" --target ${branch} --generate-notes`);
+run(`gh release create ${tag} --title "${tag}" --target ${branch} --generate-notes`);
 
 console.log(`\nReleased ${tag}.`);
 console.log(
