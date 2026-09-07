@@ -1,0 +1,140 @@
+name: Release
+
+# Manual only: auto-detects which package(s) changed since their own last
+# release tag and bumps + tags + releases just those. Either package, both,
+# or neither, depending on what actually changed under packages/ui and/or
+# packages/core since ui-v* / core-v* was last cut.
+#
+# A UI release tags ui-vX.Y.Z and dispatches "Deploy to GitHub Pages".
+# A core release tags core-vX.Y.Z and dispatches "Publish json-semantic-diff
+# to npm". Bumping/tagging one package never touches the other's version.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure git identity
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Detect changed packages
+        id: detect
+        run: |
+          LAST_UI_TAG=$(git tag -l 'ui-v*' --sort=-v:refname | head -1)
+          LAST_CORE_TAG=$(git tag -l 'core-v*' --sort=-v:refname | head -1)
+
+          if [ -z "$LAST_UI_TAG" ]; then
+            UI_CHANGED=true
+          elif git diff --quiet "$LAST_UI_TAG"..HEAD -- packages/ui; then
+            UI_CHANGED=false
+          else
+            UI_CHANGED=true
+          fi
+
+          if [ -z "$LAST_CORE_TAG" ]; then
+            CORE_CHANGED=true
+          elif git diff --quiet "$LAST_CORE_TAG"..HEAD -- packages/core; then
+            CORE_CHANGED=false
+          else
+            CORE_CHANGED=true
+          fi
+
+          echo "ui_changed=$UI_CHANGED" >> "$GITHUB_OUTPUT"
+          echo "core_changed=$CORE_CHANGED" >> "$GITHUB_OUTPUT"
+
+          {
+            echo "## Change detection"
+            echo "- packages/ui changed since \`${LAST_UI_TAG:-<no previous release>}\`: **$UI_CHANGED**"
+            echo "- packages/core changed since \`${LAST_CORE_TAG:-<no previous release>}\`: **$CORE_CHANGED**"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Bump, commit and tag UI release
+        id: ui_bump
+        if: steps.detect.outputs.ui_changed == 'true'
+        run: |
+          npm version minor -w packages/ui --no-git-tag-version --allow-same-version
+          VERSION=$(node -p "require('./packages/ui/package.json').version")
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+          git add package-lock.json packages/ui/package.json
+          git commit -m "chore: release ui-v$VERSION"
+          git push origin HEAD:${{ github.ref_name }}
+
+          git tag "ui-v$VERSION"
+          git push origin "ui-v$VERSION"
+
+      - name: Create UI GitHub release
+        if: steps.detect.outputs.ui_changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "ui-v${{ steps.ui_bump.outputs.version }}" \
+            --title "UI v${{ steps.ui_bump.outputs.version }}" \
+            --target "${{ github.ref_name }}" \
+            --generate-notes
+
+      # A release created with the default GITHUB_TOKEN does not itself
+      # trigger other workflows' `on: release` listeners (GitHub's
+      # loop-prevention rule). Dispatch the Pages deployment explicitly so it
+      # still happens automatically after this run. Referencing the new tag
+      # (not the branch) is required: the environment's deployment branch
+      # policy for github-pages only allows ui-*/all-* tag refs.
+      - name: Trigger Pages deployment
+        if: steps.detect.outputs.ui_changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run deploy-pages.yml --ref "ui-v${{ steps.ui_bump.outputs.version }}"
+
+      - name: Bump, commit and tag core release
+        id: core_bump
+        if: steps.detect.outputs.core_changed == 'true'
+        run: |
+          npm version minor -w packages/core --no-git-tag-version --allow-same-version
+          VERSION=$(node -p "require('./packages/core/package.json').version")
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+          git add package-lock.json packages/core/package.json
+          git commit -m "chore: release core-v$VERSION"
+          git push origin HEAD:${{ github.ref_name }}
+
+          git tag "core-v$VERSION"
+          git push origin "core-v$VERSION"
+
+      - name: Create core GitHub release
+        if: steps.detect.outputs.core_changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "core-v${{ steps.core_bump.outputs.version }}" \
+            --title "Core v${{ steps.core_bump.outputs.version }}" \
+            --target "${{ github.ref_name }}" \
+            --generate-notes
+
+      # Same loop-prevention reasoning as the Pages dispatch above; the
+      # publish-npm environment isn't branch-restricted, but referencing the
+      # new tag keeps the two dispatches consistent and self-documenting.
+      - name: Trigger npm publish
+        if: steps.detect.outputs.core_changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run publish-npm.yml --ref "core-v${{ steps.core_bump.outputs.version }}"
+
+      - name: Report if nothing changed
+        if: steps.detect.outputs.ui_changed == 'false' && steps.detect.outputs.core_changed == 'false'
+        run: echo "No changes detected in packages/ui or packages/core since their last release - nothing to do." >> "$GITHUB_STEP_SUMMARY"
