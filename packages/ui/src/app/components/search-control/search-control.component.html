@@ -1,4 +1,16 @@
 <div class="search-control">
+  <svg
+    class="search-icon"
+    width="14"
+    height="14"
+    viewBox="0 0 16 16"
+    fill="none"
+    aria-hidden="true"
+    focusable="false"
+  >
+    <circle cx="7" cy="7" r="4.5" stroke="currentColor" stroke-width="1.6" />
+    <path d="M10.2 10.2L14 14" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+  </svg>
   <input
     type="search"
     class="search-input"
@@ -9,12 +21,65 @@
     aria-label="Search diff"
   />
   @if (query()) {
-    <span class="search-count" [class.no-results]="resultCount() === 0" aria-live="polite">
-      {{ resultCount() === 0 ? '0 / 0' : currentIndex() + 1 + ' / ' + resultCount() }}
-    </span>
-    <button type="button" class="search-nav-btn" (click)="previous.emit()" [disabled]="resultCount() === 0" aria-label="Previous result">
-      ↑
-    </button>
-    <button type="button" class="search-nav-btn" (click)="next.emit()" [disabled]="resultCount() === 0" aria-label="Next result">↓</button>
+    <div class="search-actions">
+      <span class="search-count" [class.no-results]="resultCount() === 0" aria-live="polite">
+        {{ resultCount() === 0 ? '0 / 0' : currentIndex() + 1 + ' / ' + resultCount() }}
+      </span>
+      <div class="search-btn-group">
+        <button
+          type="button"
+          class="search-nav-btn"
+          (click)="previous.emit()"
+          [disabled]="resultCount() === 0"
+          aria-label="Previous result"
+          title="Previous result (Shift+Enter)"
+        >
+          <svg class="search-nav-icon" width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true" focusable="false">
+            <path
+              d="M3 7l3-3 3 3"
+              stroke="currentColor"
+              stroke-width="1.6"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+        </button>
+        <button
+          type="button"
+          class="search-nav-btn"
+          (click)="next.emit()"
+          [disabled]="resultCount() === 0"
+          aria-label="Next result"
+          title="Next result (Enter)"
+        >
+          <svg class="search-nav-icon" width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true" focusable="false">
+            <path
+              d="M3 5l3 3 3-3"
+              stroke="currentColor"
+              stroke-width="1.6"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+        </button>
+      </div>
+      <span class="search-divider" aria-hidden="true"></span>
+      <button
+        type="button"
+        class="search-nav-btn search-clear-btn"
+        (click)="onClear()"
+        aria-label="Clear search"
+        title="Clear search (Escape)"
+      >
+        <svg class="search-nav-icon" width="11" height="11" viewBox="0 0 12 12" fill="none" aria-hidden="true" focusable="false">
+          <path
+            d="M2.5 2.5l7 7M9.5 2.5l-7 7"
+            stroke="currentColor"
+            stroke-width="1.6"
+            stroke-linecap="round"
+          />
+        </svg>
+      </button>
+    </div>
   }
 </div>

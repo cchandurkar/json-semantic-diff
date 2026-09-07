@@ -8,6 +8,7 @@
     "build": "ng build",
     "test": "ng test",
     "test:e2e": "playwright test",
+    "demo:record": "node demo/record.mjs",
     "lint": "eslint . && stylelint \"src/**/*.css\"",
     "lint:fix": "eslint . --fix && stylelint \"src/**/*.css\" --fix"
   },

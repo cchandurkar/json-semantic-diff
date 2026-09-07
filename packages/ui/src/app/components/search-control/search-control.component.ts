@@ -21,6 +21,11 @@ export class SearchControlComponent {
     this.queryChange.emit((event.target as HTMLInputElement).value);
   }
 
+  onClear(): void {
+    this.queryChange.emit('');
+    this.clear.emit();
+  }
+
   onKeydown(event: KeyboardEvent): void {
     if (event.key === 'Enter') {
       event.preventDefault();
@@ -28,7 +33,7 @@ export class SearchControlComponent {
       else this.next.emit();
     } else if (event.key === 'Escape') {
       event.preventDefault();
-      this.clear.emit();
+      this.onClear();
     }
   }
 }
