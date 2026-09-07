@@ -7,7 +7,7 @@ JSON Semantic Diff is a local-first JSON comparison app focused on meaningful di
 
 ![JSON Semantic Diff screenshot showing a side-by-side inventory comparison with tree diff, change summary, and array matching analysis](docs/screenshot.png)
 
-**[Try the live demo →](http://cchandurkar.me/json-semantic-diff/)**
+**[Try the live demo →](https://jsonsemanticdiff.dev)**
 
 ## Why it's different
 
