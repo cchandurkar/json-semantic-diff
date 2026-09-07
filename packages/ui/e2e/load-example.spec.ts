@@ -9,7 +9,9 @@ test('loads the first built-in example and computes a diff automatically', async
 
   await page.getByRole('button', { name: 'Load example' }).click();
   // First entry in DIFF_EXAMPLES (diff-examples.ts): API_RESPONSE.
-  await page.getByRole('menuitem', { name: /API Response/ }).click();
+  // Anchored to the start: "Noisy API Response" also contains "API Response"
+  // as a substring and would otherwise match too (strict-mode violation).
+  await page.getByRole('menuitem', { name: /^API Response/ }).click();
 
   await expect(page.getByLabel('ORIGINAL JSON')).not.toBeEmpty();
   await expect(page.getByLabel('CHANGED JSON')).not.toBeEmpty();
