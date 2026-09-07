@@ -42,7 +42,9 @@ jobs:
 
       - name: Build UI
         working-directory: packages/ui
-        run: npx ng build --configuration production --base-href "/${{ github.event.repository.name }}/"
+        # Served from the jsonsemanticdiff.dev custom domain root, not a
+        # github.io/<repo> project-page subpath, so base-href must be "/".
+        run: npx ng build --configuration production --base-href "/"
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
