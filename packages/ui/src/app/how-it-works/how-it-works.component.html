@@ -1,0 +1,322 @@
+<article class="article-container">
+  <nav class="breadcrumb-nav" aria-label="Breadcrumb">
+    <a routerLink="/" class="back-link">
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+        <path d="M10 13L5 8l5-5" />
+      </svg>
+      <span>Back to Diff Tool</span>
+    </a>
+  </nav>
+
+  <header class="article-header">
+    <div class="badge-row">
+      <span class="badge primary">Algorithm Deep Dive</span>
+      <span class="badge neutral">Deterministic & Local</span>
+    </div>
+    <h1 class="article-title">How Array Matching Works</h1>
+    <p class="article-lead">
+      Naive diff tools compare JSON array elements by index. The moment an element is reordered or inserted, every subsequent record looks modified. JSON Semantic Diff infers implicit primary keys directly from empirical data evidence to pair records by identity, not position.
+    </p>
+  </header>
+
+  <section class="article-section">
+    <h2>1. The Problem: Positional Diffing Fragility</h2>
+    <p>
+      In standard text-based and naive structural diff tools, arrays are compared index-by-index: element <code>[0]</code> is compared against <code>[0]</code>, <code>[1]</code> against <code>[1]</code>, and so on.
+    </p>
+    <p>
+      In real-world data systems—such as microservice API responses, database dumps, and sorted configuration files—record arrays are frequently reordered, paginated, or prepended. Positional diffing fails catastrophically under these ordinary operations:
+    </p>
+    <div class="callout warning">
+      <div class="callout-title">The Index Shift Cascade</div>
+      <p>
+        If an array with 1,000 records has a single new item prepended at index 0, positional matching compares record 0 with record 1, record 1 with record 2, and so on. Instead of reporting <strong>1 insertion</strong>, the tool reports <strong>1,000 modified records</strong>—obscuring every genuine change beneath false noise.
+      </p>
+    </div>
+  </section>
+
+  <section class="article-section">
+    <h2>2. The Solution: Inferring Implicit Identity</h2>
+    <p>
+      Databases enforce primary keys so records have identity regardless of physical row order. Raw JSON documents, however, rarely specify which field is the primary key.
+    </p>
+    <p>
+      JSON Semantic Diff solves this by <strong>inferring identity automatically</strong>: it discovers scalar candidate fields, evaluates statistical properties across both versions, and pairs records by <em>who</em> they are rather than <em>where</em> they sit.
+    </p>
+
+    <h3>Candidate Discovery</h3>
+    <ol class="step-list">
+      <li>
+        <strong>Leaf Path Extraction:</strong> Every scalar field present in the array's elements across either side (such as <code>id</code>, <code>sku</code>, <code>user.email</code>) is harvested as a single-field candidate key.
+      </li>
+      <li>
+        <strong>Single-Field Scoring:</strong> All single-field candidates are scored against six statistical criteria.
+      </li>
+      <li>
+        <strong>Composite Key Synthesis:</strong> If no single field achieves identity quality (score ≥ 0.90 with uniqueness ≥ 0.95 on both sides), the engine combines pairs of viable candidates (completeness ≥ 0.80, uniqueness ≥ 0.20) into 2-field composite candidates (for example, <code>store + sku</code> in inventory tables where neither field alone is unique).
+      </li>
+    </ol>
+  </section>
+
+  <section class="article-section">
+    <h2>3. The Six Scoring Signals</h2>
+    <p>
+      Every candidate key is evaluated against six independent mathematical signals that sum to a 1.0 (100%) base weight, minus small targeted penalties:
+    </p>
+
+    <div class="signals-grid">
+      <div class="signal-card">
+        <div class="signal-header">
+          <span class="signal-name">Uniqueness</span>
+          <span class="signal-weight">26% weight</span>
+        </div>
+        <p class="signal-desc">
+          Are values distinct within each side? Measured as the average of left-side and right-side unique ratios. Duplicate values in either document immediately penalize this score.
+        </p>
+      </div>
+
+      <div class="signal-card">
+        <div class="signal-header">
+          <span class="signal-name">Match Coverage</span>
+          <span class="signal-weight">27% weight</span>
+        </div>
+        <p class="signal-desc">
+          What fraction of records in the <em>smaller</em> side have a matching counterpart on the other side? Measured against <code>min(leftCount, rightCount)</code> so appending or removing records does not erode the key's score.
+        </p>
+      </div>
+
+      <div class="signal-card">
+        <div class="signal-header">
+          <span class="signal-name">Population Overlap (Jaccard)</span>
+          <span class="signal-weight">15% weight</span>
+        </div>
+        <p class="signal-desc">
+          The Jaccard similarity of distinct key values across both sides: <code>|A ∩ B| / |A ∪ B|</code>. The critical safety valve preventing accidental matches between dissimilar array populations.
+        </p>
+      </div>
+
+      <div class="signal-card">
+        <div class="signal-header">
+          <span class="signal-name">Completeness</span>
+          <span class="signal-weight">16% weight</span>
+        </div>
+        <p class="signal-desc">
+          Is the candidate key present, non-null, and non-empty across every record in both arrays? Keys missing from records cannot reliably identify them.
+        </p>
+      </div>
+
+      <div class="signal-card">
+        <div class="signal-header">
+          <span class="signal-name">Type Consistency</span>
+          <span class="signal-weight">10% weight</span>
+        </div>
+        <p class="signal-desc">
+          Are key values consistently the same primitive JavaScript type (all strings, all numbers) throughout the dataset rather than mixed?
+        </p>
+      </div>
+
+      <div class="signal-card">
+        <div class="signal-header">
+          <span class="signal-name">Name Hint</span>
+          <span class="signal-weight">6% weight</span>
+        </div>
+        <p class="signal-desc">
+          A small tie-breaker bonus if the field name is identity-like (such as <code>id</code>, <code>uuid</code>, <code>sku</code>, <code>code</code>). Intentionally small (6%) so empirical data evidence always overrides naming.
+        </p>
+      </div>
+    </div>
+
+    <div class="penalties-card">
+      <div class="penalties-title">Subtractive Penalties</div>
+      <ul>
+        <li>
+          <strong>Complexity Penalty (-0.03 per extra field):</strong> Applied to composite keys (e.g. <code>store + sku</code> has 1 extra field = -3%). Prefers a simpler single-field key when both perform equally well.
+        </li>
+        <li>
+          <strong>Volatility Penalty (-0.03):</strong> Applied if a field name suggests mutable state (<code>timestamp</code>, <code>updatedAt</code>, <code>price</code>, <code>status</code>). Kept intentionally tiny (3%) because actual value stability across datasets decides the outcome, not the field name alone.
+        </li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="article-section">
+    <h2>4. The Design Lesson: Why Both Safety Signals Matter</h2>
+    <p>
+      A common trap in identity inference is relying solely on match coverage or solely on set overlap. Neither signal alone is sufficient:
+    </p>
+
+    <div class="comparison-grid">
+      <div class="comp-col">
+        <div class="comp-title">Match Coverage Alone (min-based)</div>
+        <p>
+          Measuring coverage against <code>min(left, right)</code> correctly forgives ordinary array growth (e.g. appending a new user). However, if used alone, comparing 3 records against 300 unrelated records where 3 happen to share keys would yield <strong>100% coverage</strong>—a severe false positive.
+        </p>
+      </div>
+      <div class="comp-col">
+        <div class="comp-title">Population Overlap Alone (Jaccard)</div>
+        <p>
+          Measuring overall set overlap catches unrelated datasets. But if used alone, simply adding 5 new rows to a 10-row array drops Jaccard overlap to 66% (10/15), falsely destroying confidence in an otherwise perfect identity key.
+        </p>
+      </div>
+    </div>
+
+    <div class="callout highlight">
+      <div class="callout-title">The Dual-Signal Architecture</div>
+      <p>
+        <strong>Match Coverage (27%)</strong> guarantees that normal record additions or removals do not break identity matching. Simultaneously, <strong>Population Overlap (15%)</strong> acts as a strict guardrail: if 3 items match out of 300 total distinct items, Jaccard overlap drops to <code>3 / 300 = 0.01</code>, successfully vetoing the candidate.
+      </p>
+    </div>
+  </section>
+
+  <section class="article-section">
+    <h2>5. The Decision Gates</h2>
+    <p>
+      Clearing a raw blended score is not enough. Before an inferred key is automatically applied to reorder and pair array records, it must satisfy strict safety gates:
+    </p>
+
+    <div class="gates-table-wrapper">
+      <table class="gates-table">
+        <thead>
+          <tr>
+            <th>Decision Gate</th>
+            <th>Criteria</th>
+            <th>Engine Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="gate-pill high">Auto-Apply (High)</span></td>
+            <td>
+              Score ≥ 0.90, Margin ≥ 0.05 over 2nd best candidate, Match Coverage ≥ 0.70, and Uniqueness ≥ 0.95 on both sides.
+            </td>
+            <td>Automatically pairs array items by identity.</td>
+          </tr>
+          <tr>
+            <td><span class="gate-pill medium">Medium Confidence</span></td>
+            <td>
+              Score ≥ 0.75, Margin ≥ 0.03, Match Coverage ≥ 0.50, and Uniqueness ≥ 0.95 on both sides.
+            </td>
+            <td>Offered to the user with visible confidence indicator.</td>
+          </tr>
+          <tr>
+            <td><span class="gate-pill ambiguous">Ambiguous</span></td>
+            <td>
+              Two candidates both score ≥ 0.75 and margin &lt; 0.05.
+            </td>
+            <td>Refuses to guess; alerts user of multiple competing candidates.</td>
+          </tr>
+          <tr>
+            <td><span class="gate-pill fallback">Below Threshold</span></td>
+            <td>
+              No candidate clears the confidence gates.
+            </td>
+            <td>Safely falls back to positional index-by-index matching.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="article-section">
+    <h2>6. Interactive Worked Example: Live Engine Evaluation</h2>
+    <p>
+      The example below runs the live <code>diffJson</code> comparison engine on the built-in <strong>Inventory by Store</strong> dataset. Neither <code>store</code> nor <code>sku</code> is unique by itself, but together they form an unambiguous identity key.
+    </p>
+
+    <div class="interactive-demo-card">
+      <div class="demo-toolbar">
+        <div class="demo-modes">
+          <button
+            type="button"
+            class="demo-mode-btn"
+            [class.is-active]="demoMode() === 'smart'"
+            (click)="setDemoMode('smart')"
+          >
+            Smart Identity Matching (store + sku)
+          </button>
+          <button
+            type="button"
+            class="demo-mode-btn"
+            [class.is-active]="demoMode() === 'position'"
+            (click)="setDemoMode('position')"
+          >
+            Naive Positional Matching
+          </button>
+        </div>
+
+        <button type="button" class="action-btn" (click)="openInWorkspace()">
+          <span>Open in Diff Workspace</span>
+          <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+            <path d="M3 8h10M9 4l4 4-4 4" />
+          </svg>
+        </button>
+      </div>
+
+      <div class="demo-summary-bar">
+        <div class="summary-metric">
+          <span class="metric-label">Engine Decision</span>
+          <span class="metric-val" [class.meets]="demoMode() === 'smart'" [class.fails]="demoMode() === 'position'">
+            {{ demoMode() === 'smart' ? 'Identity Applied (store + sku)' : 'Positional Fallback' }}
+          </span>
+        </div>
+        <div class="summary-metric">
+          <span class="metric-label">Total Reported Changes</span>
+          <span class="metric-val changes-count" [class.clean]="demoMode() === 'smart'" [class.noisy]="demoMode() === 'position'">
+            {{ activeResult.summary.totalChanges }} changes
+          </span>
+        </div>
+        <div class="summary-metric">
+          <span class="metric-label">Detailed Breakdown</span>
+          <span class="metric-val">
+            +{{ activeResult.summary.added }} added, ~{{ activeResult.summary.modified }} modified, -{{ activeResult.summary.removed }} removed
+          </span>
+        </div>
+      </div>
+
+      @if (demoMode() === 'smart') {
+        <div class="calculation-container">
+          <div class="calc-header-title">Live Score Breakdown (store + sku)</div>
+          <div class="calc-table" role="table" aria-label="Score calculation breakdown">
+            @for (term of scoreBreakdown; track term.label) {
+              <div class="calc-row" role="row" [class.is-penalty]="term.contribution < 0">
+                <span class="calc-term-label" role="rowheader">{{ term.label }}</span>
+                <span class="calc-term-equation">{{ formatMultiplier(term) }} × {{ percent(term.weight) }} =</span>
+                <span class="calc-term-contrib" role="cell">{{ decimalPercent(term.contribution, true) }}</span>
+              </div>
+            }
+          </div>
+
+          <div class="calc-divider" aria-hidden="true"></div>
+
+          <div class="calc-summary-row total">
+            <span class="calc-sum-label">Candidate score</span>
+            <span class="calc-sum-val">{{ decimalPercent(bestCandidate?.score ?? 0) }}</span>
+          </div>
+
+          @if (secondCandidate; as second) {
+            <div class="calc-summary-row sub">
+              <span class="calc-sum-label">Second candidate ({{ second.paths.join(' + ') }})</span>
+              <span class="calc-sum-val">{{ decimalPercent(second.score) }}</span>
+            </div>
+            <div class="calc-summary-row sub">
+              <span class="calc-sum-label">Margin over 2nd best</span>
+              <span class="calc-sum-val">{{ decimalPercent((bestCandidate?.score ?? 0) - second.score) }}</span>
+            </div>
+          }
+
+          <div class="calc-verdict meets">
+            <span class="verdict-icon" aria-hidden="true">✓</span>
+            <span>Meets automatic matching criteria (Score ≥ 90%, Margin ≥ 5%, Uniqueness = 100%)</span>
+          </div>
+        </div>
+      } @else {
+        <div class="positional-notice">
+          <div class="notice-title">Why Positional Diffing Produced 17 Changes:</div>
+          <p>
+            Because the rows were reordered and an item was prepended on the right side, comparing row 0 against row 0, row 1 against row 1, etc., mismatched every store and SKU. <strong>16 individual field modifications</strong> were reported on records that did not actually change.
+          </p>
+        </div>
+      }
+    </div>
+  </section>
+</article>

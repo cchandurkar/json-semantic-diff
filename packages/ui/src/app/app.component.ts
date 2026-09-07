@@ -38,6 +38,9 @@ import { ClipboardService } from './shared/clipboard/clipboard.service';
 import { formatChange, formatNewValue, formatOldValue, formatSemanticPath, formatSubtree } from './shared/clipboard/diff-clipboard';
 import { ToastMessage, createToast } from './shared/toast';
 import { ThemePreference, applyTheme, readStoredTheme, storeTheme } from './shared/theme';
+import { Meta, Title } from '@angular/platform-browser';
+import { NavigationEnd, Router, RouterLink, RouterOutlet } from '@angular/router';
+import { filter } from 'rxjs';
 import {
   ANALYSIS_PANEL_DEFAULT_WIDTH,
   ANALYSIS_PANEL_MAX_WIDTH,
@@ -66,6 +69,8 @@ const THEME_PANEL_POSITIONS: ConnectedPosition[] = [
   selector: 'app-root',
   standalone: true,
   imports: [
+    RouterLink,
+    RouterOutlet,
     JsonInputComponent,
     DiffTreeComponent,
     SourceDiffComponent,
@@ -173,7 +178,34 @@ export class AppComponent implements OnDestroy {
   private panelResizeStartX = 0;
   private panelResizeStartWidth = 0;
 
+  private readonly router = inject(Router);
+  private readonly titleService = inject(Title);
+  private readonly metaService = inject(Meta);
+  readonly isHowItWorks = signal(false);
+
   constructor() {
+    this.router.events.pipe(filter((e): e is NavigationEnd => e instanceof NavigationEnd)).subscribe((e) => {
+      const onHowItWorks = e.urlAfterRedirects.startsWith('/how-it-works');
+      this.isHowItWorks.set(onHowItWorks);
+      if (!onHowItWorks) {
+        this.titleService.setTitle('JSON Semantic Diff — Compare JSON Online with Smart Array Matching');
+        this.metaService.updateTag({
+          name: 'description',
+          content:
+            'Free online JSON diff tool that understands what changed, not just where. Compares JSON structurally, matches reordered array records by identity, and never uploads your data - everything runs locally in your browser.'
+        });
+        this.metaService.updateTag({
+          property: 'og:title',
+          content: 'JSON Semantic Diff — Compare JSON Online with Smart Array Matching'
+        });
+        this.metaService.updateTag({
+          property: 'og:url',
+          content: 'https://jsonsemanticdiff.dev/'
+        });
+      }
+    });
+    this.isHowItWorks.set(this.router.url.startsWith('/how-it-works'));
+
     effect(() => {
       if (this.themeMenuOpen()) this.attachThemePanel();
       else this.themeOverlayRef?.detach();
@@ -355,6 +387,30 @@ export class AppComponent implements OnDestroy {
     this.selectedNodeId.set(null);
     this.options.set({ ...DEFAULT_DIFF_OPTIONS, ...example.options });
     setTimeout(() => this.compare());
+  }
+
+  navigateToDiff(): void {
+    this.router.navigateByUrl('/');
+  }
+
+  onRouteActivate(componentRef: unknown): void {
+    const component = componentRef as {
+      exampleRequested?: { subscribe: (fn: (example: DiffExample) => void) => void };
+    };
+    component.exampleRequested?.subscribe((example: DiffExample) => {
+      this.loadExample(example);
+      this.navigateToDiff();
+    });
+  }
+
+  onBrandClick(event: MouseEvent): void {
+    if (this.isHowItWorks()) {
+      event.preventDefault();
+      this.navigateToDiff();
+    } else {
+      event.preventDefault();
+      this.reset();
+    }
   }
 
   reset(): void {

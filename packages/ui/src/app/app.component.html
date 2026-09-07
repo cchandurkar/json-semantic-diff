@@ -1,6 +1,6 @@
 <header class="site-header">
   <div class="header-inner">
-    <a class="brand" href="#" (click)="$event.preventDefault(); reset()" aria-label="JSON Semantic Diff — Reset application">
+    <a class="brand" routerLink="/" (click)="onBrandClick($event)" aria-label="JSON Semantic Diff — Reset application">
       <span class="brand-mark">
         <svg class="brand-logo" width="26" height="26" viewBox="0 0 24 24" fill="none" aria-hidden="true" focusable="false">
           <path
@@ -34,6 +34,19 @@
       </span>
     </a>
     <nav aria-label="External links and theme">
+      <a
+        class="link-button"
+        routerLink="/how-it-works"
+        [class.is-active]="isHowItWorks()"
+        aria-label="How it works"
+      >
+        <svg class="nav-icon" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+          <circle cx="8" cy="8" r="6.5" />
+          <path d="M8 7v4" />
+          <circle cx="8" cy="4.5" r="0.75" fill="currentColor" />
+        </svg>
+        <span class="nav-label">How it works</span>
+      </a>
       <a
         class="link-button"
         href="https://github.com/cchandurkar/json-semantic-diff"
@@ -123,7 +136,10 @@
   </div>
 </ng-template>
 
-<div class="shell-row">
+@if (isHowItWorks()) {
+  <router-outlet (activate)="onRouteActivate($event)" />
+} @else {
+  <div class="shell-row">
   <app-sidebar
     [normalizeTimestamps]="options().normalizeTimestamps"
     [numericStringsAsNumbers]="options().numericStringsAsNumbers"
@@ -319,5 +335,6 @@
     (exampleRequested)="loadExample($event)"
   />
 </div>
+}
 
 <app-toast [message]="toast()" (undo)="runUndo()" (dismissed)="dismissToast()" />
