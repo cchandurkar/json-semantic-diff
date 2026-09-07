@@ -152,7 +152,7 @@ export interface DiffSummary {
 
 export interface DiffOptions {
   ignorePaths: string[];
-  normalizeNumbers: boolean;
+  numericStringsAsNumbers: boolean;
   normalizeTimestamps: boolean;
   /**
    * When true, a value that is `null` on one side and MISSING (the key/element

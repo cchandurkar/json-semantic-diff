@@ -320,7 +320,7 @@ describe('example loading path', () => {
     const noisy = optionsFor(example('noisy-api-response'));
 
     expect(noisy.ignorePaths).toEqual(['$.requestId', '$.generatedAt']);
-    expect(noisy.normalizeNumbers).toBe(DEFAULT_DIFF_OPTIONS.normalizeNumbers);
+    expect(noisy.numericStringsAsNumbers).toBe(DEFAULT_DIFF_OPTIONS.numericStringsAsNumbers);
     expect(noisy.normalizeTimestamps).toBe(DEFAULT_DIFF_OPTIONS.normalizeTimestamps);
   });
 

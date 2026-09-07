@@ -412,14 +412,14 @@ describe('nodeChain / findNodeByPath', () => {
 });
 
 describe('applyOverrideToOptions', () => {
-  const base = { ...DEFAULT_DIFF_OPTIONS, ignorePaths: ['**.updatedAt'], normalizeNumbers: true };
+  const base = { ...DEFAULT_DIFF_OPTIONS, ignorePaths: ['**.updatedAt'], numericStringsAsNumbers: true };
 
   it('adds an override without disturbing other options', () => {
     const next = applyOverrideToOptions(base, '$.inventory', { strategy: 'key', fields: ['sku'] });
 
     expect(next.arrayMatching).toEqual({ '$.inventory': { strategy: 'key', fields: ['sku'] } });
     expect(next.ignorePaths).toEqual(['**.updatedAt']);
-    expect(next.normalizeNumbers).toBe(true);
+    expect(next.numericStringsAsNumbers).toBe(true);
   });
 
   it('replaces an existing override for the same pattern', () => {

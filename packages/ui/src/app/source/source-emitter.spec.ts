@@ -446,7 +446,7 @@ describe('type-changed leaves', () => {
 
 describe('raw value fidelity', () => {
   it('shows the original numeric string rather than the coerced number', () => {
-    const rows = rowsFor({ n: '42' }, { n: 42 }, { normalizeNumbers: true });
+    const rows = rowsFor({ n: '42' }, { n: 42 }, { numericStringsAsNumbers: true });
     const row = rows.find((r) => r.role === 'value');
 
     expect(row?.changeKind).toBe('unchanged');

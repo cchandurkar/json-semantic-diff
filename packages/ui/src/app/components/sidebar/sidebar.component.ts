@@ -30,7 +30,7 @@ export class SidebarComponent {
 
   /** Comparison toggles, owned by the app. */
   readonly normalizeTimestamps = input(false);
-  readonly normalizeNumbers = input(false);
+  readonly numericStringsAsNumbers = input(false);
   readonly nullEqualsMissing = input(false);
   /** Ignore rules currently in force. */
   readonly ignorePaths = input<readonly string[]>([]);
@@ -43,7 +43,7 @@ export class SidebarComponent {
 
   readonly exampleSelected = output<DiffExample>();
   readonly normalizeTimestampsChange = output<boolean>();
-  readonly normalizeNumbersChange = output<boolean>();
+  readonly numericStringsAsNumbersChange = output<boolean>();
   readonly nullEqualsMissingChange = output<boolean>();
   readonly ignoreAdded = output<string>();
   readonly ignoreRemoved = output<string>();

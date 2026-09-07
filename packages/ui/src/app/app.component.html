@@ -76,7 +76,7 @@
 <div class="shell-row">
   <app-sidebar
     [normalizeTimestamps]="options().normalizeTimestamps"
-    [normalizeNumbers]="options().normalizeNumbers"
+    [numericStringsAsNumbers]="options().numericStringsAsNumbers"
     [nullEqualsMissing]="options().nullEqualsMissing"
     [ignorePaths]="options().ignorePaths"
     [arrays]="matchingContexts()"
@@ -84,7 +84,7 @@
     [hasResult]="!!result()"
     (exampleSelected)="loadExample($event)"
     (normalizeTimestampsChange)="patchOption('normalizeTimestamps', $event)"
-    (normalizeNumbersChange)="patchOption('normalizeNumbers', $event)"
+    (numericStringsAsNumbersChange)="patchOption('numericStringsAsNumbers', $event)"
     (nullEqualsMissingChange)="patchOption('nullEqualsMissing', $event)"
     (ignoreAdded)="addIgnore($event)"
     (ignoreRemoved)="removeIgnore($event)"

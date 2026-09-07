@@ -40,7 +40,7 @@
       </button>
     </label>
     <label class="toggle-row">
-      <input type="checkbox" [checked]="normalizeNumbers()" (change)="normalizeNumbersChange.emit(isChecked($event))" />
+      <input type="checkbox" [checked]="numericStringsAsNumbers()" (change)="numericStringsAsNumbersChange.emit(isChecked($event))" />
       <span class="toggle-text">
         <span class="toggle-name">Numeric strings as numbers</span>
       </span>

@@ -380,20 +380,20 @@ describe('J. numeric-string normalization', () => {
   });
 
   it('coerces numeric strings when enabled', () => {
-    const result = run({ n: '42' }, { n: 42 }, { normalizeNumbers: true });
+    const result = run({ n: '42' }, { n: 42 }, { numericStringsAsNumbers: true });
 
     expect(byPath(result.root, '$.n')?.changeKind).toBe('unchanged');
     expect(byPath(result.root, '$.n')?.left).toBe(42);
   });
 
   it('handles surrounding whitespace, negatives and decimals', () => {
-    const result = run({ a: ' -3 ', b: '2.50', c: '2.5' }, { a: -3, b: 2.5, c: 2.5 }, { normalizeNumbers: true });
+    const result = run({ a: ' -3 ', b: '2.50', c: '2.5' }, { a: -3, b: 2.5, c: 2.5 }, { numericStringsAsNumbers: true });
 
     expect(result.summary.totalChanges).toBe(0);
   });
 
   it('leaves non-numeric strings untouched', () => {
-    const result = run({ a: '1e3', b: 'abc' }, { a: '1e3', b: 'abc' }, { normalizeNumbers: true });
+    const result = run({ a: '1e3', b: 'abc' }, { a: '1e3', b: 'abc' }, { numericStringsAsNumbers: true });
 
     expect(byPath(result.root, '$.a')?.left).toBe('1e3');
     expect(result.summary.totalChanges).toBe(0);

@@ -7,7 +7,7 @@ import { DiffOptions } from '../models/diff.models.js';
  */
 export const DEFAULT_DIFF_OPTIONS: DiffOptions = {
   ignorePaths: [],
-  normalizeNumbers: false,
+  numericStringsAsNumbers: false,
   normalizeTimestamps: true,
   nullEqualsMissing: false
 };

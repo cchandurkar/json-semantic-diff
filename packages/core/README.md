@@ -24,147 +24,56 @@ const result = diffJson(left, right, DEFAULT_DIFF_OPTIONS);
 console.log(JSON.stringify(result, null, 2));
 ```
 
-This is the **exact, real** output for the call above (nothing abridged):
+This is a trimmed view of the **real** output for the call above - only the fields that matter for understanding what happened are shown (the full shape, with every field, is documented in [`DiffResult`](#diffresult) below):
 
 ```json
 {
   "root": {
     "path": "$",
-    "id": "$",
-    "label": "root",
-    "nodeKind": "object",
     "changeKind": "modified",
-    "left": { "users": [{ "userId": 1, "name": "Alice" }] },
-    "right": { "users": [{ "userId": 1, "name": "Alicia" }] },
     "children": [
       {
         "path": "$.users",
-        "id": "$.users",
-        "label": "users",
-        "nodeKind": "array",
         "changeKind": "modified",
-        "left": [{ "userId": 1, "name": "Alice" }],
-        "right": [{ "userId": 1, "name": "Alicia" }],
         "children": [
           {
             "path": "$.users[1]",
             "id": "$.users[userId=1]",
-            "label": "[userId=1]",
-            "leftIndex": 0,
-            "rightIndex": 0,
-            "nodeKind": "object",
             "changeKind": "modified",
-            "left": { "userId": 1, "name": "Alice" },
-            "right": { "userId": 1, "name": "Alicia" },
             "children": [
-              {
-                "path": "$.users[1].name",
-                "id": "$.users[userId=1].name",
-                "label": "name",
-                "leftRaw": "Alice",
-                "rightRaw": "Alicia",
-                "nodeKind": "scalar",
-                "changeKind": "modified",
-                "left": "Alice",
-                "right": "Alicia",
-                "hasChanges": true
-              },
-              {
-                "path": "$.users[1].userId",
-                "id": "$.users[userId=1].userId",
-                "label": "userId",
-                "leftRaw": 1,
-                "rightRaw": 1,
-                "nodeKind": "scalar",
-                "changeKind": "unchanged",
-                "left": 1,
-                "right": 1,
-                "hasChanges": false
-              }
+              { "path": "$.users[1].name", "changeKind": "modified", "left": "Alice", "right": "Alicia" },
+              { "path": "$.users[1].userId", "changeKind": "unchanged", "left": 1, "right": 1 }
             ],
-            "hasChanges": true
+            "arrayMatch": {
+              "strategy": "identity",
+              "outcome": "identity-applied",
+              "confidence": "high",
+              "keyPaths": ["userId"],
+              "inference": {
+                "best": { "paths": ["userId"], "score": 1 },
+                "alternatives": [{ "paths": ["name"], "score": 0.535 }]
+              }
+            }
           }
-        ],
-        "hasChanges": true,
-        "arrayMatch": {
-          "path": "$.users",
-          "leftCount": 1,
-          "rightCount": 1,
-          "reordered": false,
-          "strategy": "identity",
-          "outcome": "identity-applied",
-          "confidence": "high",
-          "keyPaths": ["userId"],
-          "inference": {
-            "best": {
-              "paths": ["userId"],
-              "uniquenessA": 1,
-              "uniquenessB": 1,
-              "completenessA": 1,
-              "completenessB": 1,
-              "completeness": 1,
-              "overlap": 1,
-              "matchCoverage": 1,
-              "typeConsistency": 1,
-              "nameHint": 1,
-              "volatilityPenalty": 0,
-              "score": 1
-            },
-            "alternatives": [
-              {
-                "paths": ["name"],
-                "uniquenessA": 1,
-                "uniquenessB": 1,
-                "completenessA": 1,
-                "completenessB": 1,
-                "completeness": 1,
-                "overlap": 0,
-                "matchCoverage": 0,
-                "typeConsistency": 1,
-                "nameHint": 0.35,
-                "volatilityPenalty": 0,
-                "score": 0.535
-              }
-            ],
-            "confidence": "high",
-            "autoApply": true,
-            "ambiguous": false
-          },
-          "duplicateKeyCount": 0
-        }
+        ]
       }
-    ],
-    "hasChanges": true
+    ]
   },
-  "summary": {
-    "added": 0,
-    "removed": 0,
-    "modified": 1,
-    "typeChanged": 0,
-    "unchanged": 1,
-    "totalChanges": 1
-  },
-  "arrays": [
-    /* same object as root.children[0].arrayMatch above - one entry per array
-       compared anywhere in the document, collected for easy iteration */
-  ],
+  "summary": { "added": 0, "removed": 0, "modified": 1, "typeChanged": 0, "unchanged": 1, "totalChanges": 1 },
   "autoMatchedCount": 1,
   "uncertainCount": 0,
-  "primaryAnalysis": {
-    /* the array a UI should surface first - here the only one, `$.users` */
-  },
   "elapsedMs": 1.4
 }
 ```
 
-Even for this tiny, single-field change, the engine already tells you a lot for free: it recognized `$.users` as an array of records, inferred `userId` as the identity key over the alternative `name` (score `1` vs `0.535`, driven by `uniquenessA`/`uniquenessB` and `nameHint`), and reported that with `high` confidence and no reordering. That same machinery is what lets a much larger, reordered array collapse into a handful of real per-record changes instead of a wall of positional adds/removes.
+Even for this tiny, single-field change, the engine already tells you a lot for free: it recognized `$.users` as an array of records, inferred `userId` as the identity key over the alternative `name` (score `1` vs `0.535`), and reported that with `high` confidence and no reordering. That same machinery is what lets a much larger, reordered array collapse into a handful of real per-record changes instead of a wall of positional adds/removes.
 
 ## Core concepts
 
 - **Comparison, not line diffing.** Both documents are parsed to `JsonValue` (you pass in already-parsed objects, not JSON strings) and walked structurally, key by key and element by element.
 - **`DiffNode` tree.** The result is one recursive tree (`result.root`) - one node per object key, array element, and scalar leaf. Every node carries a canonical `path`, a stable `id`, and a `changeKind`.
 - **Path vs id.** `path` is the human-facing JSON path (`$.users[1]` for a positionally-paired element). `id` is safe to use as a render key across re-diffs: for identity-matched array elements it spells out the key that produced the pairing (`$.users[userId=1]`) instead of a position that can shift.
-- **Normalized vs raw values.** `left`/`right` on every node hold **normalized** values (see `normalizeTimestamps`/`normalizeNumbers` below) and are what comparison and `changeKind` are based on. Leaf nodes additionally carry `leftRaw`/`rightRaw` holding the untouched input, for a renderer that needs to show exactly what the user typed.
+- **Normalized vs raw values.** `left`/`right` on every node hold **normalized** values (see `normalizeTimestamps`/`numericStringsAsNumbers` below) and are what comparison and `changeKind` are based on. Leaf nodes additionally carry `leftRaw`/`rightRaw` holding the untouched input, for a renderer that needs to show exactly what the user typed.
 - **Array identity matching.** For an array of objects, the engine tries to infer a "natural key" (e.g. `userId`, `id`, `sku`) that uniquely and consistently identifies each record on both sides. When it's confident, elements are paired by that key instead of by position, so reordering doesn't get reported as noise. Every array's decision - and why it made that decision - is recorded in an `ArrayMatchAnalysis`, both inline on the array's `DiffNode.arrayMatch` and flattened into `result.arrays`.
 
 ## API reference
@@ -186,7 +95,7 @@ A ready-to-use `DiffOptions` baseline:
 ```ts
 const DEFAULT_DIFF_OPTIONS: DiffOptions = {
   ignorePaths: [],
-  normalizeNumbers: false,
+  numericStringsAsNumbers: false,
   normalizeTimestamps: true,
   nullEqualsMissing: false
 };
@@ -197,7 +106,7 @@ const DEFAULT_DIFF_OPTIONS: DiffOptions = {
 | Option                | Type                                    | Default        | Description                                                                                                                                                       |
 | ---------------------- | ---------------------------------------- | -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `ignorePaths`          | `string[]`                                | `[]`           | Glob-style path patterns (see [Ignore path syntax](#ignore-path-syntax)). Matching nodes are forced `unchanged` and marked `ignored: true` instead of being reported as changes. |
-| `normalizeNumbers`     | `boolean`                                  | `false`        | When `true`, a numeric-looking string (`"42"`) compares equal to the real number `42`.                                                                             |
+| `numericStringsAsNumbers` | `boolean`                               | `false`        | When `true`, a numeric-looking string (`"42"`) compares equal to the real number `42`.                                                                             |
 | `normalizeTimestamps`  | `boolean`                                  | `true`         | When `true`, ISO-8601-looking timestamp strings are parsed and re-serialized to a canonical UTC ISO string before comparing, so `"2026-09-04T14:00:00Z"` and `"2026-09-04T10:00:00-04:00"` compare equal. |
 | `nullEqualsMissing`    | `boolean`                                  | `false`        | When `true`, a key that is `null` on one side and entirely absent on the other compares as `unchanged` instead of `added`/`removed`.                                |
 | `arrayMatching`        | `Record<string, ArrayMatchOverride>` \| `undefined` | `undefined`    | Per-array overrides that pin the matching strategy instead of leaving it to inference. See [Array matching overrides](#array-matching-overrides).                 |
@@ -379,7 +288,7 @@ Every string form of a path is derived from a small set of `PathSegment` values,
 
 ### Normalization utilities
 
-- `normalize(value, options)` — recursively applies `normalizeNumbers`/`normalizeTimestamps` to a `JsonValue`, returning the comparison-ready form (this is what produces `DiffNode.left`/`right`).
+- `normalize(value, options)` — recursively applies `numericStringsAsNumbers`/`normalizeTimestamps` to a `JsonValue`, returning the comparison-ready form (this is what produces `DiffNode.left`/`right`).
 - `looksLikeTimestamp(value)` — cheap heuristic (`/^\d{4}-\d{2}-\d{2}T/`) used to decide whether a string is worth attempting to parse as a timestamp.
 
 ### Ignore-rule utilities

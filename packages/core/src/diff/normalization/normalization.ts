@@ -16,7 +16,7 @@ export function normalize(value: JsonValue, options: DiffOptions): JsonValue {
       const t = Date.parse(value);
       if (!Number.isNaN(t)) return new Date(t).toISOString();
     }
-    if (options.normalizeNumbers && /^-?\d+(\.\d+)?$/.test(value.trim())) return Number(value);
+    if (options.numericStringsAsNumbers && /^-?\d+(\.\d+)?$/.test(value.trim())) return Number(value);
   }
   return value;
 }
