@@ -21,6 +21,8 @@ This is an npm-workspaces monorepo:
 - `packages/core` — the framework-free diff engine. Published to npm as `json-semantic-diff`. Must not import Angular, RxJS, or DOM APIs. Testable and buildable standalone (`npm run build`/`npm test` from within `packages/core`).
 - `packages/ui` — the Angular app. Consumes `packages/core` via the npm workspaces symlink (`"json-semantic-diff": "*"`) and, for local dev/CI builds, via a `paths` alias in `packages/ui/tsconfig.json` that resolves straight from `packages/core/src` — no build-ordering step is required to develop the app.
 
+This alias causes `ng build`/`ng test` to print `File '...' not found in TypeScript compilation.` warnings for every `packages/core/src` file pulled in transitively (and for a handful of `packages/ui/src` files reached only via a `.spec.ts` import). This is expected, upstream Angular CLI behavior for `paths`-aliasing a sibling workspace package's raw source (confirmed via `angular/angular-cli#27176` — Angular's esbuild builder does not treat it the way plain `tsc` `include` would, and widening `tsconfig.app.json`/`tsconfig.spec.json`'s `include` does not suppress it). It is **not** a bug and does not need fixing: `packages/core` is still fully type-checked independently by its own `tsc`/Vitest run, which the root `npm run build`/`npm test` scripts always run first. Don't "fix" this by touching `include`/`exclude` in `packages/ui`'s tsconfigs — it won't work, and isn't the supported path anyway (the supported fix would be dropping the `paths` alias and consuming `packages/core`'s built `dist/` output through plain npm workspace resolution instead, which reintroduces the build-ordering step this alias exists to avoid).
+
 ## Runtime and framework
 
 - Angular: 22.x
