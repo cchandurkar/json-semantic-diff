@@ -9,7 +9,7 @@ need to get set up and send a good pull request.
   run `nvm use` from the repo root.
 - npm (ships with Node). This repo is an **npm workspaces monorepo**, so all
   dependency installation happens from the repo root — do not run `npm
-  install` inside `packages/core` or `packages/ui` individually.
+install` inside `packages/core` or `packages/ui` individually.
 
 ## Getting started
 
@@ -61,6 +61,19 @@ npm run lint:fix    # auto-fix where possible
 
 Lint runs ESLint (and Stylelint for `packages/ui` CSS) across both
 workspaces.
+
+## Pre-commit hook
+
+A Husky pre-commit hook runs `lint-staged` automatically, which lints/formats
+only the files you've staged: ESLint + Prettier for `.js`/`.ts`/`.mjs`/`.cjs`,
+Prettier for `.json`/`.md`/`.yml`/`.yaml`, and Stylelint + Prettier for
+`packages/ui`'s `.css`/`.scss`. It's installed automatically by `npm install`
+(via the `prepare` script) - no extra setup needed.
+
+Make sure your active Node version satisfies `.nvmrc` (`nvm use`) before
+committing: `lint-staged` requires a newer Node than this repo's minimum for
+some of its own dependencies, and will fail with a cryptic
+`util.styleText is not a function` error under an old system-default Node.
 
 ## Formatting
 

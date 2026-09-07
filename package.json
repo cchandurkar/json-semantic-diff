@@ -14,12 +14,28 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "release:core": "node scripts/release.mjs core",
-    "release:ui": "node scripts/release.mjs ui"
+    "release:ui": "node scripts/release.mjs ui",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "*.{js,ts,mjs,cjs}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,md,yml,yaml}": [
+      "prettier --write"
+    ],
+    "packages/ui/**/*.{css,scss}": [
+      "stylelint --fix",
+      "prettier --write"
+    ]
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "eslint": "^10.10.0",
     "eslint-config-prettier": "^10.1.8",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.5.0",
     "prettier": "^3.9.6",
     "prettier-plugin-tailwindcss": "^0.8.1",
     "tailwindcss": "^4.1.12",
