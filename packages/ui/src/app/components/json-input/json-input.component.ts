@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, input, model, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input, model, output } from '@angular/core';
 import { CodeEditorComponent } from '../code-editor/code-editor.component';
 import { formatJson } from '../../shared/format-json';
 
@@ -19,9 +19,22 @@ export class JsonInputComponent {
   readonly editorHeight = model<number>(260);
   readonly valueChange = output<string>();
 
+  readonly isValid = computed(() => {
+    if (this.error() || !this.value().trim()) return false;
+    if (this.statusText().startsWith('Valid')) return true;
+    try {
+      JSON.parse(this.value());
+      return true;
+    } catch {
+      return false;
+    }
+  });
+
   async fileSelected(event: Event): Promise<void> {
-    const file = (event.target as HTMLInputElement).files?.[0];
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
     if (file) this.valueChange.emit(formatJson(await file.text()));
+    input.value = '';
   }
 
   async dropFile(event: DragEvent): Promise<void> {

@@ -2,7 +2,7 @@
   <div class="input-card__header">
     <div>
       <span class="eyebrow">{{ label() }}</span>
-      <span class="status" [class.error]="error()">{{ statusText() }}</span>
+      <span class="status" [class.valid]="isValid()" [class.error]="error()">{{ statusText() }}</span>
     </div>
     <div class="header-actions">
       <button type="button" class="file-button" [disabled]="!value().trim()" (click)="format()" aria-label="Format JSON" title="Format">
@@ -13,7 +13,7 @@
           />
         </svg>
       </button>
-      <label class="file-button" aria-label="Open file" title="Open file">
+      <button type="button" class="file-button" (click)="fileInput.click()" aria-label="Open file" title="Open file">
         <svg
           xmlns="http://www.w3.org/2000/svg"
           width="15"
@@ -25,13 +25,15 @@
           stroke-linecap="round"
           stroke-linejoin="round"
           class="lucide lucide-upload"
+          aria-hidden="true"
+          focusable="false"
         >
           <path d="M12 3v12" />
           <path d="m17 8-5-5-5 5" />
           <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
         </svg>
-        <input type="file" accept=".json,application/json" (change)="fileSelected($event)" hidden />
-      </label>
+      </button>
+      <input #fileInput type="file" accept=".json,application/json" (change)="fileSelected($event)" hidden />
     </div>
   </div>
   <app-code-editor

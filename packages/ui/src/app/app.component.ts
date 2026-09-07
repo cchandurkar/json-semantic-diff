@@ -276,6 +276,11 @@ export class AppComponent {
   }
 
   reset(): void {
+    if (this.hasUnsavedState()) {
+      if (typeof window !== 'undefined' && !window.confirm('Reset application? Any entered JSON and comparison results will be cleared.')) {
+        return;
+      }
+    }
     this.leftText.set('');
     this.rightText.set('');
     this.leftError.set(null);
@@ -286,6 +291,10 @@ export class AppComponent {
     this.view.set('tree');
     this.selectedAnalysis.set(null);
     this.editorHeight.set(EDITOR_HEIGHT_DEFAULT);
+  }
+
+  private hasUnsavedState(): boolean {
+    return Boolean(this.leftText().trim() || this.rightText().trim() || this.result());
   }
 
   markDirty(): void {

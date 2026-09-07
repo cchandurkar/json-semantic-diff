@@ -1,4 +1,4 @@
-<div class="overview" role="tree">
+<div class="overview" role="tree" aria-label="Changes by area">
   @for (area of areas(); track area.nodeId) {
     <ng-container *ngTemplateOutlet="row; context: { $implicit: area, depth: 0 }"></ng-container>
   } @empty {
@@ -7,13 +7,22 @@
 </div>
 
 <ng-template #row let-area let-depth="depth">
-  <div class="area-row" [class.is-selected]="area.nodeId === selectedNodeId()" [style.--depth]="depth">
+  <div
+    class="area-row"
+    role="treeitem"
+    [attr.aria-level]="depth + 1"
+    [attr.aria-expanded]="area.children.length ? isExpanded(area.nodeId) : null"
+    [attr.aria-selected]="area.nodeId === selectedNodeId()"
+    [class.is-selected]="area.nodeId === selectedNodeId()"
+    [style.--depth]="depth"
+  >
     <button
       type="button"
       class="expand"
       (click)="toggle(area.nodeId)"
       [disabled]="!area.children.length"
       [attr.aria-label]="'Toggle ' + area.label"
+      [attr.aria-expanded]="area.children.length ? isExpanded(area.nodeId) : null"
     >
       @if (area.children.length) {
         <svg

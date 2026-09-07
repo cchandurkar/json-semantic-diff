@@ -1,4 +1,4 @@
-<div class="tree" role="tree">
+<div class="tree" role="tree" aria-label="Semantic diff tree">
   @for (node of visibleNodes(); track node.path) {
     <ng-container *ngTemplateOutlet="row; context: { $implicit: node, depth: 0 }"></ng-container>
   }
@@ -8,6 +8,10 @@
   @if (!changesOnly() || node.hasChanges) {
     <div
       class="diff-row"
+      role="treeitem"
+      [attr.aria-level]="depth + 1"
+      [attr.aria-expanded]="node.children?.length ? isExpanded(node.path) : null"
+      [attr.aria-selected]="node.id === selectedNodeId()"
       [class]="'kind-' + node.changeKind"
       [class.has-children]="!!node.children?.length"
       [class.is-selected]="node.id === selectedNodeId()"
@@ -20,7 +24,14 @@
       [cdkContextMenuTriggerFor]="nodeMenu"
       [cdkContextMenuTriggerData]="{ $implicit: node }"
     >
-      <button class="expand" (click)="toggle(node.path)" [disabled]="!node.children?.length" [attr.aria-label]="'Toggle ' + node.label">
+      <button
+        type="button"
+        class="expand"
+        (click)="toggle(node.path)"
+        [disabled]="!node.children?.length"
+        [attr.aria-label]="'Toggle ' + node.label"
+        [attr.aria-expanded]="node.children?.length ? isExpanded(node.path) : null"
+      >
         @if (node.children?.length) {
           <svg
             class="chevron"
