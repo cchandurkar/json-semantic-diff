@@ -1,6 +1,5 @@
 {
   "name": "json-semantic-diff-monorepo",
-  "version": "0.2.0",
   "private": true,
   "license": "MIT",
   "workspaces": [
@@ -13,7 +12,9 @@
     "lint": "npm run lint --workspace=packages/core && npm run lint --workspace=packages/ui",
     "lint:fix": "npm run lint:fix --workspace=packages/core && npm run lint:fix --workspace=packages/ui",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "release:core": "node scripts/release.mjs core",
+    "release:ui": "node scripts/release.mjs ui"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

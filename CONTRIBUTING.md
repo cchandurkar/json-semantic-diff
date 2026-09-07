@@ -90,6 +90,29 @@ scoped to a single logical change.
 4. Open the PR against `main`. CI (lint, test, build) must pass before merge.
 5. Describe the change and link any related issue using the PR template.
 
+## Releasing
+
+`packages/core` (published to npm) and `packages/ui` (deployed to GitHub
+Pages) are versioned and released independently, from your own machine:
+
+```bash
+npm run release:core          # bumps packages/core, defaults to a minor bump
+npm run release:ui  -- patch  # bumps packages/ui with an explicit bump type
+npm run release:core -- major
+```
+
+Each command (`scripts/release.mjs`) bumps that package's version, commits,
+tags it (`core-vX.Y.Z` / `ui-vX.Y.Z`), and creates a GitHub Release, which in
+turn triggers `publish-npm.yml` (npm publish) or `deploy-pages.yml`
+(rebuild + redeploy) respectively. It refuses to run from a dirty working
+tree, a non-`main` branch, or a `main` that's behind `origin/main`.
+
+**Never create a `core-v*`/`ui-v*` tag or GitHub Release by hand.** Doing so
+bypasses the version bump entirely, leaving `package.json` stale while the
+tag claims a version that was never actually built or published — this has
+happened before and caused real confusion. Always go through
+`npm run release:core`/`npm run release:ui`.
+
 ## Reporting bugs / requesting features
 
 Please use the issue templates under `.github/ISSUE_TEMPLATE/` when opening

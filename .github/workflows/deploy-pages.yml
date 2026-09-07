@@ -1,11 +1,22 @@
 name: Deploy to GitHub Pages
 
-# Runs when a release is published (either by "release.yml"'s explicit
-# dispatch, or by a maintainer publishing a release by hand in the GitHub
-# UI), plus workflow_dispatch for manual re-runs/testing.
+# Runs when a release is published. Releases are cut locally via
+# `npm run release:ui` (scripts/release.mjs), which bumps packages/ui's
+# version, tags it ui-vX.Y.Z, and creates the GitHub Release with your own
+# `gh` login - not a GitHub Actions bot token, so there's no
+# loop-prevention concern blocking this listener from firing.
+# workflow_dispatch is available for manual re-runs/testing.
 #
 # The release-triggered path only runs for ui-* tagged releases, so a
-# core-only release (see release.yml) never redeploys Pages.
+# core-only release never redeploys Pages. Note: the github-pages
+# environment's deployment branch policy only allows ui-*/all-* tag refs,
+# not branches - a workflow_dispatch run must be started against a tag,
+# not "main", or the deploy job will be rejected.
+#
+# Never create a ui-v* tag/release by hand - always use
+# `npm run release:ui`. A hand-made tag leaves package.json stale while
+# the tag claims otherwise (this happened once; see git history around the
+# ui-v1.0.0 tag for the incident).
 on:
   release:
     types: [published]
@@ -37,29 +48,30 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      # Guards against a release/tag created by hand without going through
-      # release.yml's version-bump step (which keeps the tag and
-      # package.json in lockstep by construction). See publish-npm.yml for
-      # the equivalent core-package check and the incident that motivated
-      # this.
+      # If this run was triggered by a ui-v* release (the normal path),
+      # make sure that tag's claimed version actually matches
+      # packages/ui/package.json before deploying. Skipped for manual
+      # workflow_dispatch re-runs against a branch, where there's no tag
+      # claim to check against.
       - name: Verify tag matches packages/ui version
-        if: github.event_name == 'release'
         run: |
-          TAG_NAME="${{ github.event.release.tag_name }}"
-          TAG_VERSION="${TAG_NAME#ui-v}"
-          PKG_VERSION=$(node -p "require('./packages/ui/package.json').version")
-          if [ "$TAG_VERSION" != "$PKG_VERSION" ]; then
-            echo "::error::Release tag '$TAG_NAME' claims version $TAG_VERSION, but packages/ui/package.json is at $PKG_VERSION. This usually means the tag/release was created by hand instead of via release.yml. Refusing to deploy a mismatched version."
-            exit 1
+          REF_NAME="${{ github.ref_name }}"
+          if [[ "$REF_NAME" == ui-v* ]]; then
+            TAG_VERSION="${REF_NAME#ui-v}"
+            PKG_VERSION=$(node -p "require('./packages/ui/package.json').version")
+            if [ "$TAG_VERSION" != "$PKG_VERSION" ]; then
+              echo "::error::Release tag '$REF_NAME' claims version $TAG_VERSION, but packages/ui/package.json is at $PKG_VERSION. This usually means the tag/release was created by hand instead of via 'npm run release:ui'. Refusing to deploy a mismatched version."
+              exit 1
+            fi
           fi
-
-      - name: Build core
-        run: npm run build --workspace=packages/core
 
       - name: Build UI
         working-directory: packages/ui
         # Served from the jsonsemanticdiff.dev custom domain root, not a
         # github.io/<repo> project-page subpath, so base-href must be "/".
+        # (packages/ui's tsconfig aliases the "json-semantic-diff" import
+        # straight to packages/core/src, so esbuild bundles core from
+        # source - no separate "build core" step needed here.)
         run: npx ng build --configuration production --base-href "/"
 
       - name: Upload Pages artifact
