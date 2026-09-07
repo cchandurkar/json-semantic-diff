@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, ElementRef, effect, input, output, signal, viewChild } from '@angular/core';
+import { version } from '../../../../package.json';
 import { DiffExample } from '../../examples';
 import { MatchingOverrideChange } from '../../shared/node-actions';
 import { TooltipDirective } from '../../shared/tooltip/tooltip.directive';
@@ -26,6 +27,8 @@ import { ExamplePickerComponent } from '../example-picker/example-picker.compone
   }
 })
 export class SidebarComponent {
+  readonly version = version;
+
   private readonly toggleButton = viewChild.required<ElementRef<HTMLButtonElement>>('toggleButton');
 
   /** Comparison toggles, owned by the app. */

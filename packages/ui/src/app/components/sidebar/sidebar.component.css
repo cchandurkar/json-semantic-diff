@@ -232,6 +232,21 @@
   outline-offset: 2px;
 }
 
+.sidebar-footer {
+  margin-top: auto;
+  padding-top: 14px;
+  border-top: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+}
+
+.version-label {
+  font: 500 11px var(--mono);
+  color: var(--subtle-foreground);
+  letter-spacing: 0.02em;
+  user-select: none;
+}
+
 @media (width <= 1100px) {
   :host {
     height: auto;
