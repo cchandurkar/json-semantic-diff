@@ -23,8 +23,12 @@ export function parsePanelWidth(value: string | null): number | null {
   return Number.isFinite(parsed) ? parsed : null;
 }
 
-/** Returns null when storage is unavailable (private mode, blocked cookies) or empty. */
+/**
+ * Returns null when storage is unavailable (private mode, blocked cookies, or
+ * a non-browser environment such as build-time prerendering) or empty.
+ */
 export function readStoredAnalysisPanelWidth(): number | null {
+  if (typeof localStorage === 'undefined') return null;
   try {
     return parsePanelWidth(localStorage.getItem(ANALYSIS_PANEL_WIDTH_STORAGE_KEY));
   } catch {
@@ -34,6 +38,7 @@ export function readStoredAnalysisPanelWidth(): number | null {
 
 /** Storage failures are non-fatal: the width still applies for this session. */
 export function storeAnalysisPanelWidth(width: number): void {
+  if (typeof localStorage === 'undefined') return;
   try {
     localStorage.setItem(ANALYSIS_PANEL_WIDTH_STORAGE_KEY, String(Math.round(width)));
   } catch {

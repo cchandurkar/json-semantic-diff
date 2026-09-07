@@ -87,7 +87,9 @@ export class SourceDiffComponent {
       if (!id) return;
       const key = collapsedKeyContaining(this.segments(), id, this.expanded());
       if (key) this.expand(key);
-      // Expanding queues a re-render; scroll once the DOM has caught up.
+      // Expanding queues a re-render; scroll once the DOM has caught up. Guarded for
+      // prerendering, where this effect can run in a Node environment with no `document`.
+      if (typeof document === 'undefined') return;
       setTimeout(() => document.querySelector(`[data-node-id="${cssAttr(id)}"]`)?.scrollIntoView({ behavior: 'smooth', block: 'center' }));
     });
   }

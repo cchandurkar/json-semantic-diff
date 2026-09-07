@@ -1,9 +1,9 @@
 import {
-  AfterViewInit,
   ChangeDetectionStrategy,
   Component,
   ElementRef,
   OnDestroy,
+  afterNextRender,
   effect,
   inject,
   input,
@@ -61,7 +61,7 @@ const jsonHighlightStyle = HighlightStyle.define([
   templateUrl: './code-editor.component.html',
   styleUrl: './code-editor.component.css'
 })
-export class CodeEditorComponent implements AfterViewInit, OnDestroy {
+export class CodeEditorComponent implements OnDestroy {
   readonly value = model<string>('');
   readonly editorHeight = model<number>(260);
   readonly darkMode = input(false);
@@ -88,15 +88,20 @@ export class CodeEditorComponent implements AfterViewInit, OnDestroy {
       if (!view) return;
       view.dispatch({ effects: this.themeCompartment.reconfigure(this.themeExtension(dark)) });
     });
-  }
 
-  ngAfterViewInit(): void {
-    const state = EditorState.create({
-      doc: this.value(),
-      extensions: this.extensions()
+    // CodeMirror's `EditorView` reads and writes real DOM (creates elements, measures
+    // layout) and must never run during build-time prerendering, which executes in a
+    // Node environment with no browser DOM. `afterNextRender` is guaranteed by Angular
+    // to run in the browser only, after the first render - the SSR-safe replacement for
+    // constructing this view in `ngAfterViewInit` (which DOES run during prerendering).
+    afterNextRender(() => {
+      const state = EditorState.create({
+        doc: this.value(),
+        extensions: this.extensions()
+      });
+      this.view = new EditorView({ state, parent: this.host().nativeElement });
+      this.observeResize();
     });
-    this.view = new EditorView({ state, parent: this.host().nativeElement });
-    this.observeResize();
   }
 
   ngOnDestroy(): void {

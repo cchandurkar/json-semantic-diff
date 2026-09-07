@@ -283,7 +283,8 @@ export class AppComponent {
     // The handle sits on the panel's LEFT edge: dragging it left (negative
     // delta) widens the panel, dragging it right narrows it.
     const delta = this.panelResizeStartX - event.clientX;
-    const maxWidth = Math.min(ANALYSIS_PANEL_MAX_WIDTH, window.innerWidth * 0.4);
+    const viewportWidth = typeof window !== 'undefined' ? window.innerWidth : ANALYSIS_PANEL_MAX_WIDTH;
+    const maxWidth = Math.min(ANALYSIS_PANEL_MAX_WIDTH, viewportWidth * 0.4);
     this.analysisPanelWidth.set(clampWidth(this.panelResizeStartWidth + delta, ANALYSIS_PANEL_MIN_WIDTH, maxWidth));
   }
 

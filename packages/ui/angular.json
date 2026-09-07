@@ -16,6 +16,8 @@
           "builder": "@angular/build:application",
           "options": {
             "browser": "src/main.ts",
+            "server": "src/main.server.ts",
+            "outputMode": "static",
             "tsConfig": "tsconfig.app.json",
             "inlineStyleLanguage": "css",
             "assets": [{ "glob": "**/*", "input": "public" }],
@@ -24,7 +26,7 @@
           "configurations": {
             "production": {
               "budgets": [
-                { "type": "initial", "maximumWarning": "900kB", "maximumError": "1.5MB" },
+                { "type": "initial", "maximumWarning": "960kB", "maximumError": "1.5MB" },
                 { "type": "anyComponentStyle", "maximumWarning": "16kB", "maximumError": "32kB" }
               ],
               "outputHashing": "all"
