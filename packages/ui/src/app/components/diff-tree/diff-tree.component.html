@@ -9,6 +9,9 @@
     <div
       class="diff-row"
       role="treeitem"
+      tabindex="0"
+      (click)="selectRow(node.id, $event)"
+      (keydown)="onRowKeydown(node.id, $event)"
       [attr.aria-level]="depth + 1"
       [attr.aria-expanded]="node.children?.length ? isExpanded(node.path) : null"
       [attr.aria-selected]="node.id === selectedNodeId()"
@@ -27,7 +30,7 @@
       <button
         type="button"
         class="expand"
-        (click)="toggle(node.path)"
+        (click)="$event.stopPropagation(); toggle(node.path)"
         [disabled]="!node.children?.length"
         [attr.aria-label]="'Toggle ' + node.label"
         [attr.aria-expanded]="node.children?.length ? isExpanded(node.path) : null"
@@ -48,22 +51,22 @@
       </button>
       <span class="change-marker">{{ marker(node.changeKind) }}</span>
       <div class="path-cell">
-        <button type="button" class="label" (click)="nodeSelected.emit(node.id)">
+        <span class="label">
           @if (splitMatch(node.label, searchQuery()); as m) {
             {{ m.before }}<mark class="search-hit">{{ m.match }}</mark
             >{{ m.after }}
           } @else {
             {{ node.label }}
           }
-        </button>
+        </span>
         @if (showsKeyPill(node)) {
-          <button type="button" class="match-pill" (click)="analysisRequested.emit(node.path)">
+          <button type="button" class="match-pill" (click)="$event.stopPropagation(); analysisRequested.emit(node.path)">
             Matched by {{ node.arrayMatch?.keyPaths?.join(' + ') }} · {{ keyPillSuffix(node) }}
           </button>
         } @else if (node.arrayMatch?.outcome === 'manual-position') {
-          <button type="button" class="match-pill" (click)="analysisRequested.emit(node.path)">Position · Manual</button>
+          <button type="button" class="match-pill" (click)="$event.stopPropagation(); analysisRequested.emit(node.path)">Position · Manual</button>
         } @else if (node.arrayMatch?.inference && node.arrayMatch?.confidence === 'low' && !node.arrayMatch?.override) {
-          <button type="button" class="match-pill warning" (click)="analysisRequested.emit(node.path)">Matching uncertain</button>
+          <button type="button" class="match-pill warning" (click)="$event.stopPropagation(); analysisRequested.emit(node.path)">Matching uncertain</button>
         }
       </div>
       <div class="value-cell left">
@@ -93,6 +96,7 @@
       <button
         type="button"
         class="row-actions"
+        (click)="$event.stopPropagation()"
         [cdkMenuTriggerFor]="nodeMenu"
         [cdkMenuTriggerData]="{ $implicit: node }"
         [attr.aria-label]="'Actions for ' + node.label"

@@ -15,6 +15,12 @@
   border-bottom: 1px solid var(--border-subtle);
   font: 12px/1.4 var(--mono);
   padding-left: calc(var(--depth) * 18px);
+  cursor: pointer;
+}
+
+.diff-row:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: -2px;
 }
 
 .diff-row:last-child {
@@ -78,22 +84,11 @@
 }
 
 .label {
-  border: 0;
-  background: transparent;
-  padding: 0;
-  font: inherit;
+  display: inline-block;
   color: var(--foreground);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  cursor: pointer;
-  text-align: left;
-}
-
-.label:focus-visible {
-  outline: 2px solid var(--primary);
-  outline-offset: 2px;
-  border-radius: var(--radius);
 }
 
 .in-range {

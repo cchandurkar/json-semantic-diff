@@ -43,6 +43,12 @@
   align-items: stretch;
   border-bottom: 1px solid var(--border-subtle);
   font: 12px/1.6 var(--mono);
+  cursor: pointer;
+}
+
+.src-row:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: -2px;
 }
 
 .src-row:last-child {
@@ -87,15 +93,7 @@
 }
 
 .code-text {
-  border: 0;
-  background: transparent;
-  padding: 0;
-  margin: 0;
-  font: inherit;
-  color: inherit;
   white-space: pre;
-  cursor: pointer;
-  text-align: left;
 }
 
 .kind-added .right {
@@ -224,7 +222,6 @@
   background: var(--accent);
 }
 
-.code-text:focus-visible,
 .collapsed-row:focus-visible {
   outline: 2px solid var(--primary);
   outline-offset: -2px;

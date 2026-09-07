@@ -167,6 +167,21 @@ export class DiffTreeComponent {
     this.nodeAction.emit({ action, node, target: deriveMatchingTarget(this.root(), node.id) });
   }
 
+  selectRow(nodeId: string, _event?: Event): void {
+    if (typeof window !== 'undefined' && window.getSelection()?.toString().trim()) {
+      return;
+    }
+    this.nodeSelected.emit(nodeId);
+  }
+
+  onRowKeydown(nodeId: string, event: KeyboardEvent): void {
+    if (event.target !== event.currentTarget) return;
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      this.selectRow(nodeId, event);
+    }
+  }
+
   /** True for the pill that opens the matching panel: auto identity or a pinned key. */
   showsKeyPill(node: DiffNode): boolean {
     const outcome = node.arrayMatch?.outcome;

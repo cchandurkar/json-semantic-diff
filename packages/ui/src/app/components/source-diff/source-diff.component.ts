@@ -112,6 +112,21 @@ export class SourceDiffComponent {
     if (node) this.nodeAction.emit({ action, node });
   }
 
+  selectRow(nodeId: string, _event?: Event): void {
+    if (typeof window !== 'undefined' && window.getSelection()?.toString().trim()) {
+      return;
+    }
+    this.nodeSelected.emit(nodeId);
+  }
+
+  onRowKeydown(nodeId: string, event: KeyboardEvent): void {
+    if (event.target !== event.currentTarget) return;
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      this.selectRow(nodeId, event);
+    }
+  }
+
   private nodeFor(nodeId: string): DiffNode | undefined {
     const root = this.root();
     return root ? findNodeById(root, nodeId) : undefined;

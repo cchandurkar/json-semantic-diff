@@ -13,6 +13,9 @@
       } @else {
         <div
           class="src-row"
+          tabindex="0"
+          (click)="selectRow(item.row.nodeId, $event)"
+          (keydown)="onRowKeydown(item.row.nodeId, $event)"
           [class]="'kind-' + item.row.changeKind"
           [class.is-ignored]="item.row.ignored"
           [class.is-selected]="item.row.nodeId === selectedNodeId()"
@@ -41,7 +44,7 @@
           <span class="gutter">{{ item.row.right?.lineNumber }}</span>
           <span class="marker right-marker" aria-hidden="true">{{ rightMarker(item.row) }}</span>
           <span class="code right" [style.--depth]="item.row.depth">
-            <button type="button" class="code-text" (click)="nodeSelected.emit(item.row.nodeId)">
+            <span class="code-text">
               @if (renderCell(item.row, 'right'); as cell) {
                 <ng-container *ngTemplateOutlet="highlighted; context: { $implicit: cell.key ?? '' }"></ng-container>
                 @for (seg of cell.segments; track $index) {
@@ -51,7 +54,7 @@
                 }
                 <ng-container *ngTemplateOutlet="highlighted; context: { $implicit: cell.tail }"></ng-container>
               }
-            </button>
+            </span>
             @if (item.row.arrayMatch; as match) {
               @if (item.row.reordered) {
                 <span class="reorder-pill" [title]="reorderTooltip">↕ Reordered for comparison</span>
@@ -68,6 +71,7 @@
           <button
             type="button"
             class="row-actions"
+            (click)="$event.stopPropagation()"
             [cdkMenuTriggerFor]="rowActions"
             [cdkMenuTriggerData]="{ $implicit: item.row.nodeId }"
             aria-label="Row actions"
