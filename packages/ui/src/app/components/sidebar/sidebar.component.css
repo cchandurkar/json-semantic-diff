@@ -250,6 +250,17 @@
   padding: 11px 12px;
 }
 
+/*
+ * Hides the card before first paint if index.html's inline script already
+ * determined (from localStorage) that the tour has been seen - prevents the
+ * flash-then-disappear glitch that would otherwise happen while waiting for
+ * Angular's own afterNextRender check to run. See index.html and
+ * shared/tour-storage.ts for the corresponding read/write logic.
+ */
+:host-context(html[data-tour-seen='true']) .tour-card {
+  display: none;
+}
+
 .tour-card-header {
   display: flex;
   align-items: center;

@@ -64,6 +64,24 @@
         /* storage blocked */
       }
       if (savedTheme === 'dark' || savedTheme === 'light') document.documentElement.dataset.theme = savedTheme;
+
+      // Hides the "Take the tour" card before first paint if it's already been
+      // seen, so a reload never flashes the card before Angular's own
+      // afterNextRender check removes it. Angular's tourDismissed signal must
+      // still start false (see sidebar.component.ts) to avoid a hydration
+      // mismatch - this is a pure CSS visual override on top of that, not a
+      // change to what Angular itself thinks is rendered, so it can't create a
+      // mismatch. Mirrors TOUR_STORAGE_KEY/PERMANENT/DISMISS_COOLDOWN_MS in
+      // src/app/shared/tour-storage.ts - change both together.
+      var tourStored = null;
+      try {
+        tourStored = localStorage.getItem('json-semantic-diff.tourSeen');
+      } catch (e) {
+        /* storage blocked */
+      }
+      var tourSeen =
+        tourStored === 'permanent' || (tourStored && Date.now() - Number(tourStored) < 14 * 24 * 60 * 60 * 1000);
+      if (tourSeen) document.documentElement.dataset.tourSeen = 'true';
     </script>
   </head>
   <body>
