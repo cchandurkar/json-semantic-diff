@@ -1,5 +1,6 @@
 @import url('tailwindcss');
 @import url('@angular/cdk/overlay-prebuilt.css');
+@import url('driver.js/dist/driver.css');
 
 /* #E6FFED */
 
@@ -234,4 +235,102 @@ textarea:focus-visible {
   margin: 4px 6px;
   border: 0;
   border-top: 1px solid var(--border-subtle);
+}
+
+.driver-popover {
+  background-color: var(--card);
+  color: var(--foreground);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: 0 12px 32px rgb(0 0 0 / 22%);
+  padding: 14px 16px;
+  max-width: 320px;
+}
+
+.driver-popover-title {
+  font-family: var(--sans);
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--foreground);
+  letter-spacing: -0.01em;
+}
+
+.driver-popover-description {
+  font-family: var(--sans);
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--muted-foreground);
+  margin-top: 6px;
+}
+
+.driver-popover-close-btn {
+  color: var(--muted-foreground);
+  transition: color 0.15s ease;
+}
+
+.driver-popover-close-btn:hover,
+.driver-popover-close-btn:focus {
+  color: var(--foreground);
+}
+
+.driver-popover-footer {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.driver-popover-progress-text {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--subtle-foreground);
+}
+
+.driver-popover-footer-btn {
+  font-family: var(--sans);
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: var(--radius);
+  padding: 4px 10px;
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.driver-popover-prev-btn {
+  background-color: var(--card);
+  color: var(--foreground);
+  border: 1px solid var(--border);
+}
+
+.driver-popover-prev-btn:hover {
+  background-color: var(--accent);
+}
+
+.driver-popover-next-btn {
+  background-color: var(--primary);
+  color: var(--primary-foreground);
+  border: 1px solid var(--primary);
+}
+
+.driver-popover-next-btn:hover {
+  background-color: var(--primary-hover);
+  border-color: var(--primary-hover);
+}
+
+.driver-popover-arrow-side-left {
+  border-left-color: var(--card);
+}
+
+.driver-popover-arrow-side-right {
+  border-right-color: var(--card);
+}
+
+.driver-popover-arrow-side-top {
+  border-top-color: var(--card);
+}
+
+.driver-popover-arrow-side-bottom {
+  border-bottom-color: var(--card);
 }

@@ -2,6 +2,7 @@
   #toggleButton
   type="button"
   class="panel-toggle"
+  data-tour="analysis-toggle"
   aria-controls="app-analysis-panel"
   [attr.aria-expanded]="open()"
   (click)="toggle()"
@@ -46,7 +47,7 @@
       </div>
     </section>
 
-    <section class="panel-section">
+    <section class="panel-section" data-tour="changes-by-area">
       <h3 class="panel-heading">Changes by area</h3>
       <div class="overview-content">
         <app-change-overview [root]="diff.root" [selectedNodeId]="selectedNodeId()" (nodeSelected)="nodeSelected.emit($event)" />
@@ -54,7 +55,7 @@
     </section>
 
     @if (hasAnalysis()) {
-      <section class="panel-section">
+      <section class="panel-section" data-tour="analysis-explanation">
         <h3 class="panel-heading">Array matching analysis</h3>
         <div class="summary-meta">
           <span>{{ diff.arrays.length }} arrays analyzed</span>

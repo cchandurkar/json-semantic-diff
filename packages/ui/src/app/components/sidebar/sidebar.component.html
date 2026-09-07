@@ -23,7 +23,7 @@
     <app-example-picker (exampleSelected)="exampleSelected.emit($event)" />
   </section>
 
-  <section class="sidebar-section" aria-labelledby="sidebar-comparison-heading">
+  <section class="sidebar-section" aria-labelledby="sidebar-comparison-heading" data-tour="sidebar-config">
     <h3 id="sidebar-comparison-heading" class="sidebar-heading">Comparison</h3>
     <label class="toggle-row">
       <input type="checkbox" [checked]="normalizeTimestamps()" (change)="normalizeTimestampsChange.emit(isChecked($event))" />
@@ -72,16 +72,18 @@
   <section class="sidebar-section" aria-labelledby="sidebar-ignore-heading">
     <h3 id="sidebar-ignore-heading" class="sidebar-heading">Ignore paths</h3>
     @if (ignorePaths().length) {
-      <ul class="ignore-list">
-        @for (rule of ignorePaths(); track rule) {
-          <li class="ignore-item">
-            <span class="ignore-pattern">{{ rule }}</span>
-            <button type="button" class="ignore-remove" (click)="ignoreRemoved.emit(rule)" [attr.aria-label]="'Remove ignore rule ' + rule">
-              <span aria-hidden="true">×</span>
-            </button>
-          </li>
-        }
-      </ul>
+      <div class="ignore-list-scroll">
+        <ul class="ignore-list">
+          @for (rule of ignorePaths(); track rule) {
+            <li class="ignore-item">
+              <span class="ignore-pattern">{{ rule }}</span>
+              <button type="button" class="ignore-remove" (click)="ignoreRemoved.emit(rule)" [attr.aria-label]="'Remove ignore rule ' + rule">
+                <span aria-hidden="true">×</span>
+              </button>
+            </li>
+          }
+        </ul>
+      </div>
     }
     <div class="ignore-row">
       <input #ignoreRule placeholder="$.metadata.requestId" aria-label="Ignore path pattern" (keyup.enter)="addIgnoreRule(ignoreRule)" />
@@ -90,7 +92,7 @@
   </section>
 
   @if (hasResult()) {
-    <section class="sidebar-section" aria-labelledby="sidebar-matching-heading">
+    <section class="sidebar-section" aria-labelledby="sidebar-matching-heading" data-tour="array-matching">
       <h3 id="sidebar-matching-heading" class="sidebar-heading">Array matching</h3>
       <app-array-matching
         [arrays]="arrays()"
@@ -99,6 +101,27 @@
         (arraySelected)="arraySelected.emit($event)"
       />
     </section>
+  }
+
+  <div class="sidebar-spacer" aria-hidden="true"></div>
+
+  @if (!tourDismissed()) {
+    <div class="tour-card" data-tour="tour-card">
+      <div class="tour-card-header">
+        <span class="tour-badge">Quick Tour</span>
+        <button
+          type="button"
+          class="tour-dismiss"
+          (click)="dismissTour()"
+          aria-label="Dismiss tour prompt"
+          title="Dismiss for this session"
+        >
+          ×
+        </button>
+      </div>
+      <p class="tour-copy">New here? Take a 60-second tour to see how smart matching works.</p>
+      <button type="button" class="tour-start-btn" (click)="startTour()">Take the tour</button>
+    </div>
   }
 
   <footer class="sidebar-footer">

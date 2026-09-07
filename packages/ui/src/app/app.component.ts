@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, afterNextRender, computed, effect, inject, signal } from '@angular/core';
 import { JsonInputComponent } from './components/json-input/json-input.component';
 import { DiffTreeComponent } from './components/diff-tree/diff-tree.component';
 import { AnalysisPanelComponent } from './components/analysis-panel/analysis-panel.component';
@@ -64,8 +64,18 @@ export class AppComponent {
   readonly result = signal<DiffResult | null>(null);
   readonly dirty = signal(false);
   readonly selectedAnalysis = signal<ArrayMatchAnalysis | null>(null);
-  /** Seeded from storage; the inline script in index.html already applied it to the document. */
-  readonly darkMode = signal(readStoredTheme() === 'dark');
+  /**
+   * Always starts false/light so server-prerendered HTML and the client's
+   * initial hydration state match exactly (readStoredTheme() is guarded to
+   * return null during prerendering, but returns the real value in a real
+   * browser - seeding this directly from storage would make the two initial
+   * renders diverge for any user with a saved dark preference, which Angular
+   * detects as a hydration mismatch and resolves by destroying/recreating
+   * the affected DOM - visible as a brief "duplicate page" flash). The real
+   * stored value is applied via afterNextRender below, after hydration has
+   * already completed, which is a normal post-hydration update instead.
+   */
+  readonly darkMode = signal(false);
   readonly editorHeight = signal(EDITOR_HEIGHT_DEFAULT);
   readonly options = signal<DiffOptions>({ ...DEFAULT_DIFF_OPTIONS });
   /** Pure render filter: never round-trips through the engine. */
@@ -77,12 +87,30 @@ export class AppComponent {
   readonly searchQuery = signal('');
   readonly searchResultIndex = signal(0);
   readonly toast = signal<ToastMessage | null>(null);
-  /** Seeded from storage; clamped in case the saved value predates a min/max change. */
-  readonly analysisPanelWidth = signal(
-    clampWidth(readStoredAnalysisPanelWidth() ?? ANALYSIS_PANEL_DEFAULT_WIDTH, ANALYSIS_PANEL_MIN_WIDTH, ANALYSIS_PANEL_MAX_WIDTH)
-  );
+  /**
+   * Always starts at the default width so server/client initial renders
+   * match (same hydration-mismatch reasoning as darkMode above). The real
+   * stored width, if any, is applied via afterNextRender below.
+   */
+  readonly analysisPanelWidth = signal(ANALYSIS_PANEL_DEFAULT_WIDTH);
   /** True only while a resize drag is in progress; drives the handle's active style. */
   readonly resizingAnalysisPanel = signal(false);
+
+  /**
+   * Applies the real stored theme/panel-width after the first render, once
+   * we're guaranteed to be running in the browser (afterNextRender never
+   * runs during build-time prerendering). Runs after hydration completes,
+   * so this is a normal post-hydration update rather than a value hydration
+   * needs to reconcile - see the darkMode/analysisPanelWidth doc comments.
+   */
+  private readonly applyStoredUiState = afterNextRender(() => {
+    if (readStoredTheme() === 'dark') this.darkMode.set(true);
+
+    const storedWidth = readStoredAnalysisPanelWidth();
+    if (storedWidth !== null) {
+      this.analysisPanelWidth.set(clampWidth(storedWidth, ANALYSIS_PANEL_MIN_WIDTH, ANALYSIS_PANEL_MAX_WIDTH));
+    }
+  });
 
   private readonly clipboard = inject(ClipboardService);
   private undoAction: (() => void) | null = null;

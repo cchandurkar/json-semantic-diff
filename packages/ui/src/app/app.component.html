@@ -107,7 +107,7 @@
       their surrounding chrome and the compact editorHeight change.
     -->
     <section class="workspace">
-      <div class="input-grid" [class.compact]="!!result()">
+      <div class="input-grid" [class.compact]="!!result()" data-tour="json-editors">
         <app-json-input
           label="ORIGINAL"
           [value]="leftText()"
@@ -132,7 +132,7 @@
         @if (dirty() && result()) {
           <span class="dirty-note">Inputs changed</span>
         }
-        <button class="primary-button" [disabled]="!canCompare()" (click)="compare()">
+        <button type="button" class="primary-button" [disabled]="!canCompare()" (click)="compare()" data-tour="compare-button">
           <!-- {{ result() ? (dirty() ? 'Recompare' : 'Compare again') : 'Compare JSON' }} -->
           Compare JSON
         </button>
@@ -162,6 +162,7 @@
             type="button"
             class="segmented"
             role="tab"
+            data-tour="source-tab"
             [class.active]="view() === 'source'"
             [attr.aria-selected]="view() === 'source'"
             (click)="view.set('source')"
@@ -219,6 +220,7 @@
       <div class="results-scroll">
         @if (view() === 'tree') {
           <app-diff-tree
+            data-tour="tree-view"
             [root]="diff.root"
             [changesOnly]="changesOnly()"
             [selectedNodeId]="selectedNodeId()"
@@ -255,6 +257,7 @@
   ></div>
 
   <app-analysis-panel
+    data-tour="analysis-panel"
     [style.width.px]="analysisPanelWidth()"
     [result]="result()"
     [analysis]="displayedAnalysis()"

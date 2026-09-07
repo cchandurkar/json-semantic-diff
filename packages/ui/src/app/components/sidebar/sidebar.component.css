@@ -136,11 +136,18 @@
   outline-offset: 2px;
 }
 
+.ignore-list-scroll {
+  max-height: 180px;
+  overflow-y: auto;
+  margin: 0 0 7px;
+  padding-right: 2px;
+}
+
 .ignore-list {
   display: flex;
   flex-direction: column;
   gap: 2px;
-  margin: 0 0 7px;
+  margin: 0;
   padding: 0;
   list-style: none;
 }
@@ -232,8 +239,94 @@
   outline-offset: 2px;
 }
 
+.sidebar-spacer {
+  flex: 1 1 auto;
+}
+
+.tour-card {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--card);
+  padding: 11px 12px;
+}
+
+.tour-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.tour-badge {
+  font: 700 10px var(--sans);
+  color: var(--primary);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.tour-dismiss {
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--muted-foreground);
+  font-size: 14px;
+  line-height: 1;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition:
+    color 0.15s ease,
+    background-color 0.15s ease;
+}
+
+.tour-dismiss:hover {
+  color: var(--foreground);
+  background: var(--accent);
+}
+
+.tour-dismiss:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 1px;
+}
+
+.tour-copy {
+  margin: 0 0 10px;
+  font: 400 11.5px / 1.45 var(--sans);
+  color: var(--muted-foreground);
+}
+
+.tour-start-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 6px 12px;
+  border: 1px solid var(--primary);
+  border-radius: var(--radius);
+  background: var(--primary);
+  color: var(--primary-foreground);
+  font: 600 11.5px var(--sans);
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.tour-start-btn:hover {
+  background: var(--primary-hover);
+  border-color: var(--primary-hover);
+}
+
+.tour-start-btn:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
 .sidebar-footer {
-  margin-top: auto;
+  margin-top: 24px;
   padding-top: 14px;
   border-top: 1px solid var(--border-subtle);
   display: flex;
