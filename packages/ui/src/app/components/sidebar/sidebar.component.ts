@@ -166,16 +166,30 @@ export class SidebarComponent {
             description: 'Click Compare to trigger the semantic diff engine, inferring object identities and detecting reordered elements.',
             side: 'bottom',
             align: 'center'
+          },
+          onHighlightStarted: () => {
+            // Force-switch to Tree view so the diff tree and its nodes are rendered in the DOM before Step 3 looks them up
+            const treeTab = document.querySelector<HTMLButtonElement>('[data-tour="tree-tab"]');
+            if (treeTab && treeTab.getAttribute('aria-selected') !== 'true') {
+              treeTab.click();
+            }
           }
         },
         {
-          element: document.querySelector('[data-node-id="$.users"]') ?? '[data-tour="tree-view"]',
+          element: () =>
+            document.querySelector('[data-node-id="$.users"]') ?? document.querySelector('[data-tour="tree-view"]') ?? document.body,
           popover: {
             title: 'Semantic Diff Tree',
             description:
               'Notice the "Matched by userId" pill on the users array. DiffLens tracked Carol and Bob across position shifts instead of generating false additions and removals.',
             side: 'top',
             align: 'start'
+          },
+          onHighlightStarted: () => {
+            const treeTab = document.querySelector<HTMLButtonElement>('[data-tour="tree-tab"]');
+            if (treeTab && treeTab.getAttribute('aria-selected') !== 'true') {
+              treeTab.click();
+            }
           }
         },
         {

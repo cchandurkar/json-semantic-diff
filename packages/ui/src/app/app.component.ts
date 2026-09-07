@@ -109,7 +109,7 @@ export class AppComponent implements OnDestroy {
   /** Pure render filter: never round-trips through the engine. */
   readonly changesOnly = signal(true);
   /** Tree and Source are two renderers over one result; switching never recomputes the diff. */
-  readonly view = signal<'tree' | 'source'>('tree');
+  readonly view = signal<'tree' | 'source'>('source');
   /** Single selection shared by both views, keyed on the canonical DiffNode.id. */
   readonly selectedNodeId = signal<string | null>(null);
   readonly searchQuery = signal('');
@@ -370,7 +370,7 @@ export class AppComponent implements OnDestroy {
     this.result.set(null);
     this.dirty.set(false);
     this.selectedNodeId.set(null);
-    this.view.set('tree');
+    this.view.set('source');
     this.selectedAnalysis.set(null);
     this.editorHeight.set(EDITOR_HEIGHT_DEFAULT);
   }
@@ -421,7 +421,7 @@ export class AppComponent implements OnDestroy {
 
   inputStatus(text: string, error: string | null): string {
     if (error) return 'Invalid JSON';
-    if (!text.trim()) return 'Waiting for JSON';
+    if (!text.trim()) return '';
     try {
       const parsed = JSON.parse(text) as JsonValue;
       if (Array.isArray(parsed)) return `Valid · ${parsed.length} records`;

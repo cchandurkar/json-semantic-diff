@@ -7,7 +7,12 @@
   <div class="source-scroll">
     @for (item of items(); track $index) {
       @if (item.kind === 'collapsed') {
-        <button type="button" class="collapsed-row" (click)="expand(item.key)">
+        <button
+          type="button"
+          class="collapsed-row"
+          [class.in-range]="isIndexInRange($index)"
+          (click)="expand(item.key)"
+        >
           ⋯ Show {{ item.hiddenLines }} unchanged {{ item.hiddenLines === 1 ? 'line' : 'lines' }} ⋯
         </button>
       } @else {

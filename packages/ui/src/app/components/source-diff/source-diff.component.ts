@@ -119,6 +119,11 @@ export class SourceDiffComponent {
     this.nodeSelected.emit(nodeId);
   }
 
+  isIndexInRange(index: number): boolean {
+    const { start, end } = this.rangeEndpoints();
+    return start !== -1 && index >= start && index <= end;
+  }
+
   onRowKeydown(nodeId: string, event: KeyboardEvent): void {
     if (event.target !== event.currentTarget) return;
     if (event.key === 'Enter' || event.key === ' ') {

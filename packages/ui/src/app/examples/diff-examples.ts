@@ -62,8 +62,7 @@ const API_RESPONSE: DiffExample = {
 const REORDERED_USERS: DiffExample = {
   id: 'reordered-users',
   name: 'Reordered Users',
-  description:
-    'Users were reordered, but identity matching finds the real change - and Alice\'s null nickname is treated as missing.',
+  description: "Users were reordered, but identity matching finds the real change - and Alice's null nickname is treated as missing.",
   highlights: ['Smart matching', 'Reordering', 'Added record', 'Null vs missing'],
   options: { nullEqualsMissing: true },
   original: {
@@ -104,7 +103,8 @@ const INVENTORY_BY_STORE: DiffExample = {
       { store: 'NYC', sku: 'SKU-2004', quantity: 11, price: 9.25 },
       { store: 'BOS', sku: 'SKU-2004', quantity: 7, price: 8.5 },
       { store: 'NYC', sku: 'SKU-1001', quantity: 18, price: 13.49 },
-      { store: 'BOS', sku: 'SKU-1001', quantity: 19, price: 12.99 }
+      { store: 'BOS', sku: 'SKU-1001', quantity: 19, price: 12.99 },
+      { store: 'SEA', sku: 'SKU-1002', quantity: 8, price: 9.99 }
     ]
   }
 };
