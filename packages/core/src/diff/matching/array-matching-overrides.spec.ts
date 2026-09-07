@@ -65,7 +65,9 @@ describe('manual array matching overrides', () => {
     expect(analysis.outcome).toBe('manual-key');
     expect(analysis.reordered).toBe(true);
     expect(analysis.duplicateKeyCount).toBe(0);
-    expect(elementPaths(result.root, '$.inventory')).toEqual(['$.inventory[BOS|1]', '$.inventory[NYC|2]']);
+    // Composite key fields are canonicalized alphabetically ('sku' before 'store'),
+    // regardless of the order they were specified in the override.
+    expect(elementPaths(result.root, '$.inventory')).toEqual(['$.inventory[1|BOS]', '$.inventory[2|NYC]']);
     // Only the qty on the BOS row moved; nothing is reported as added/removed.
     expect(result.summary.added).toBe(0);
     expect(result.summary.removed).toBe(0);

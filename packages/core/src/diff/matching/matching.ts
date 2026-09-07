@@ -1,7 +1,7 @@
 import { ArrayMatchAnalysis, ArrayMatchOutcome, ArrayMatchOverride, JsonObject, JsonValue } from '../../models/diff.models.js';
 import { matchesPathPattern } from '../ignore/ignore-rules.js';
 import { PathSegment, identitySegment, indexSegment, stableValue } from '../path.js';
-import { evaluateKey, inferIdentity, readPath } from './identity-inference.js';
+import { evaluateKey, inferIdentity, readPath, sortFields } from './identity-inference.js';
 
 /** One left/right record pairing produced by an array matching strategy. */
 export interface MatchedPair {
@@ -98,15 +98,16 @@ export function selectArrayStrategy(
   }
 
   if (override?.strategy === 'key' && override.fields?.length) {
+    const keyPaths = sortFields(override.fields);
     return {
       ...base,
       strategy: 'identity',
       outcome: 'manual-key',
       confidence: inference?.confidence ?? 'low',
-      keyPaths: override.fields,
+      keyPaths,
       inference,
       override,
-      keyStats: objectArrays ? evaluateKey(left as JsonObject[], right as JsonObject[], override.fields) : undefined
+      keyStats: objectArrays ? evaluateKey(left as JsonObject[], right as JsonObject[], keyPaths) : undefined
     };
   }
 

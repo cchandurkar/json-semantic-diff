@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { JsonObject } from '../../models/diff.models';
-import { inferIdentity } from './identity-inference';
+import { evaluateKey, inferIdentity } from './identity-inference';
 
 /**
  * Regression tests for the array-identity-matching score formula.
@@ -38,6 +38,37 @@ describe('identity-inference score formula regressions', () => {
     expect(inference.confidence).toBe('high');
     expect(inference.autoApply).toBe(true);
     expect(inference.ambiguous).toBe(false);
+  });
+
+  it('1b. composite key field order is canonicalized regardless of selection/click order', () => {
+    // Mirrors packages/ui/src/app/examples/diff-examples.ts INVENTORY_BY_STORE.
+    const left: JsonObject[] = [
+      { store: 'BOS', sku: 'SKU-1001', quantity: 24, price: 12.99 },
+      { store: 'NYC', sku: 'SKU-1001', quantity: 18, price: 13.49 },
+      { store: 'BOS', sku: 'SKU-2004', quantity: 7, price: 8.5 },
+      { store: 'NYC', sku: 'SKU-2004', quantity: 11, price: 8.75 }
+    ];
+    const right: JsonObject[] = [
+      { store: 'NYC', sku: 'SKU-2004', quantity: 11, price: 9.25 },
+      { store: 'BOS', sku: 'SKU-2004', quantity: 7, price: 8.5 },
+      { store: 'NYC', sku: 'SKU-1001', quantity: 18, price: 13.49 },
+      { store: 'BOS', sku: 'SKU-1001', quantity: 19, price: 12.99 },
+      { store: 'SEA', sku: 'SKU-1002', quantity: 8, price: 9.99 }
+    ];
+
+    // Manual-override path: clicking 'store' then 'sku' vs 'sku' then 'store'
+    // must produce the IDENTICAL field order (same resulting key/path).
+    const storeThenSku = evaluateKey(left, right, ['store', 'sku']);
+    const skuThenStore = evaluateKey(left, right, ['sku', 'store']);
+    expect(storeThenSku?.paths).toEqual(skuThenStore?.paths);
+    expect(storeThenSku?.paths).toEqual(['sku', 'store']);
+    // Sorting the input field list must not change the computed score - it's
+    // based on set operations (uniqueness/completeness/overlap), not order.
+    expect(storeThenSku?.score).toBe(skuThenStore?.score);
+
+    // Automatic composite-discovery path must agree with the manual path.
+    const inference = inferIdentity(left, right);
+    expect(inference.best?.paths).toEqual(['sku', 'store']);
   });
 
   it('2. extreme population mismatch (3 vs 300) does not auto-apply', () => {

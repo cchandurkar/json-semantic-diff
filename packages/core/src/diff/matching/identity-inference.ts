@@ -19,6 +19,17 @@ const VOLATILE_TOKENS = new Set([
   'date'
 ]);
 
+/**
+ * Canonical field order for a composite key: alphabetical by path string.
+ * A composite key is a SET of fields, not a sequence, so the same set must
+ * always produce the same displayed path/id regardless of discovery order
+ * (viable candidates sorted by score) or user click order in the manual
+ * override picker. Applied wherever a field list is assembled into a key.
+ */
+export function sortFields(fields: string[]): string[] {
+  return [...fields].sort((a, b) => a.localeCompare(b));
+}
+
 export function inferIdentity(left: JsonObject[], right: JsonObject[]): IdentityInference {
   const leftFlat = left.map((row) => flattenScalarPaths(row));
   const rightFlat = right.map((row) => flattenScalarPaths(row));
@@ -37,7 +48,7 @@ export function inferIdentity(left: JsonObject[], right: JsonObject[]): Identity
   if (!singleIsIdentityQuality) {
     for (let i = 0; i < viable.length; i++) {
       for (let j = i + 1; j < viable.length; j++) {
-        const combo = scoreCandidate([...viable[i].paths, ...viable[j].paths], leftFlat, rightFlat, 0.03);
+        const combo = scoreCandidate(sortFields([...viable[i].paths, ...viable[j].paths]), leftFlat, rightFlat, 0.03);
         if (combo) composites.push(combo);
       }
     }
@@ -261,7 +272,7 @@ export function readPath(row: JsonObject, path: string): JsonValue | undefined {
 export function evaluateKey(left: JsonObject[], right: JsonObject[], fields: string[]): CandidateStats | undefined {
   if (!fields.length) return undefined;
   return scoreCandidate(
-    fields,
+    sortFields(fields),
     left.map((r) => flattenScalarPaths(r)),
     right.map((r) => flattenScalarPaths(r))
   );
