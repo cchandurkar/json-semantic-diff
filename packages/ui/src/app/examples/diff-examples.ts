@@ -26,7 +26,7 @@ const API_RESPONSE: DiffExample = {
   id: 'api-response',
   name: 'API Response',
   description:
-    'A typical API response with added, removed, and modified fields. The discount percentage and order timestamp are written differently on each side but normalize to the same value, and the line items array is matched by SKU.',
+    'A typical API response with modified, added, and removed fields, normalized numbers/timestamps, and a nested line-items array matched by SKU.',
   highlights: ['Modified', 'Added', 'Removed', 'Normalization', 'Nested array'],
   options: { numericStringsAsNumbers: true, normalizeTimestamps: true },
   original: {
@@ -63,7 +63,7 @@ const REORDERED_USERS: DiffExample = {
   id: 'reordered-users',
   name: 'Reordered Users',
   description:
-    'Users were reordered, but JSON Semantic Diff matches them by identity and finds the real change. Alice\'s explicit null nickname is treated the same as a missing field.',
+    'Users were reordered, but identity matching finds the real change - and Alice\'s null nickname is treated as missing.',
   highlights: ['Smart matching', 'Reordering', 'Added record', 'Null vs missing'],
   options: { nullEqualsMissing: true },
   original: {
