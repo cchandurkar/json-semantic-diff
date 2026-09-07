@@ -9,7 +9,7 @@ JSON Semantic Diff is a local-first JSON comparison utility. Its defining behavi
 - JSON content must remain in the browser. Do not add network calls that upload, persist, log, or analyze user JSON.
 - Identity inference must remain deterministic and explainable. Do not add ML/AI models to the diff path.
 - Never silently guess an identity when confidence is low or candidate scores are ambiguous. Fall back to position and expose the analysis.
-- Keep the primary workflow one-page: paste/drop two JSON documents, compare, inspect results.
+- Keep the primary workflow one-page: paste/drop two JSON documents, compare, inspect results. `packages/ui/src/app/app.routes.ts` defines a single route (`{ path: '', component: AppComponent }`) purely because Angular's build-time prerendering is route-based and there is no router-less prerender path — this is not an invitation to add real navigation/multiple pages. Do not add a second route without deliberately revisiting this principle first.
 - Avoid IDE-like chrome. No permanent console or settings sidebar for V1.
 - Advanced detail should be progressive: inline match badges -> analysis drawer.
 - Preserve responsive desktop-first behavior; JSON comparison is optimized for laptop/desktop widths.
@@ -26,11 +26,23 @@ This alias causes `ng build`/`ng test` to print `File '...' not found in TypeScr
 ## Runtime and framework
 
 - Angular: 22.x
-- Node: >=24.15.0 <25
+- Node: pinned via `.nvmrc` (currently `v24.17.0`) — this is the single source of truth for the required Node version (all CI workflows read it via `node-version-file`). There is deliberately no `engines` field in the root `package.json` (removed; it duplicated `.nvmrc` and could drift out of sync with zero functional benefit — see git history).
 - TypeScript: 6.0.x
 - UI primitives: Angular CDK where interaction primitives are required.
 - Styling: Tailwind CSS 4 plus application CSS variables/components. Do not introduce a second full visual component system without a clear need.
 - State: Angular signals. Prefer local/component state over global stores until cross-feature state actually warrants one.
+
+## Prerendering
+
+`packages/ui` builds with build-time-only static prerendering (`angular.json`'s `outputMode: "static"` + `server: "src/main.server.ts"` + `@angular/ssr`'s `RenderMode.Prerender` in `app.routes.server.ts`) — no live Node server ships to production, this is purely so the deployed site's initial HTML contains real rendered content instead of an empty `<app-root>` (for crawlability/SEO). `ng build` runs this prerender pass in a Node environment with **no browser globals** (`window`/`document`/`localStorage`/`navigator` do not exist).
+
+**Any new code that reads a browser global must guard it**, or a future `ng build`/deploy can crash or silently produce broken output:
+
+- Prefer `afterNextRender(() => { ... })` for DOM-dependent initialization (e.g. `packages/ui/src/app/components/code-editor/code-editor.component.ts`'s CodeMirror `EditorView` construction — moved out of `ngAfterViewInit()`, which DOES run during prerendering, into `afterNextRender()`, which is guaranteed browser-only).
+- Use a `typeof window === 'undefined'` / `typeof localStorage === 'undefined'` / `typeof document === 'undefined'` guard (or `isPlatformBrowser(inject(PLATFORM_ID))`) for simpler read/write helpers — see `packages/ui/src/app/shared/theme.ts` and `packages/ui/src/app/shared/resizable-panel.ts`.
+- Do not assume a lifecycle hook is browser-only. `ngOnInit`/`ngAfterViewInit`/effects all run during server-side prerendering.
+
+`packages/ui/src/app/app.routes.ts` exists solely to satisfy this (Angular's prerendering is route-based; see the one-page principle note above) — it is not an invitation to add real multi-page navigation.
 
 ## Architecture
 
@@ -44,6 +56,7 @@ This alias causes `ng build`/`ng test` to print `File '...' not found in TypeScr
 - `packages/core/src/diff/normalization/normalization.ts` — timestamp and numeric-string normalization.
 - `packages/core/src/diff/ignore/ignore-rules.ts` — ignore-rule wildcard evaluation.
 - `packages/core/src/models/diff.models.ts` — shared domain models (canonical diff result).
+- `packages/ui/src/app/app.routes.ts` / `app.routes.server.ts` / `app.config.server.ts` / `src/main.server.ts` — prerendering scaffolding only (see "Prerendering" above); not a real routing/navigation layer.
 - `packages/ui/src/app/source/index.ts` — public API of the Source presentation layer (framework-free, but app-side: consumes `DiffResult` from `json-semantic-diff`).
 - `packages/ui/src/app/source/source-emitter.ts` — turns a `DiffResult` into side-by-side source rows; re-runs no diff logic.
 - `packages/ui/src/app/source/source-segments.ts` — changes-only segmentation with lazy collapsed regions.

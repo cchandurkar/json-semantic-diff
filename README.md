@@ -51,6 +51,8 @@ import { diffJson } from 'json-semantic-diff';
 const result = diffJson(original, changed);
 ```
 
+The package is ESM-only (no CommonJS `require` support) and requires Node ≥22.
+
 See [`packages/core/README.md`](packages/core/README.md) for the full API reference.
 
 ## Repo structure
@@ -68,7 +70,7 @@ This repo is an npm-workspaces monorepo:
 - Angular CDK
 - Tailwind CSS 4 + CSS variables
 
-Angular 22.0 requires Node `^24.15.0` when using the Node 24 line, so use Node 24.15+.
+Node version is pinned via [`.nvmrc`](.nvmrc) (currently v24.17.0) — run `nvm use` from the repo root before installing/building.
 
 ## Scoring model
 
