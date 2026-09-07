@@ -1,10 +1,18 @@
 #!/usr/bin/env node
 // Cuts a release for one package: bumps its version, commits, tags, pushes,
-// and creates a GitHub Release. Run via `npm run release:core` / `npm run
-// release:ui` (optionally `-- patch`/`-- major` to override the default
-// minor bump), never by creating a tag/release by hand - that's what
-// caused the core-v1.0.0/ui-v1.0.0 incidents (tag existed, package.json
-// never actually bumped).
+// and creates a GitHub Release. Run via one of:
+//   npm run release:core:patch / release:core:minor / release:core:major
+//   npm run release:ui:patch   / release:ui:minor   / release:ui:major
+// never by creating a tag/release by hand - that's what caused the
+// core-v1.0.0/ui-v1.0.0 incidents (tag existed, package.json never
+// actually bumped).
+//
+// The bump type is baked into each npm script rather than forwarded as a
+// CLI arg (`npm run release:core -- major`) on purpose: `npm run <script>
+// --major` (no `--` separator) silently swallows "--major" as an npm CLI
+// flag instead of passing it to this script, so the release still runs -
+// just with the wrong, un-signaled bump type. Dedicated per-bump-type
+// scripts make that mistake impossible.
 //
 // A human-created release (this script, via your own `gh` login) fires
 // each workflow's `on: release: types: [published]` listener normally -
@@ -14,23 +22,20 @@
 // deploy-pages.yml just react to the release this script creates, no
 // separate "trigger downstream workflow" dispatch step needed.
 //
-// Usage:
-//   node scripts/release.mjs <core|ui> [patch|minor|major]   (default: minor)
+// Usage (internal - called by the npm scripts above, bump is required):
+//   node scripts/release.mjs <core|ui> <patch|minor|major>
 
 import { execSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 
-const [, , pkgArg, bumpArg = 'minor'] = process.argv;
+const [, , pkgArg, bumpArg] = process.argv;
 
 const VALID_PACKAGES = ['core', 'ui'];
 const VALID_BUMPS = ['patch', 'minor', 'major'];
 
-if (!VALID_PACKAGES.includes(pkgArg)) {
-  console.error(`Usage: node scripts/release.mjs <${VALID_PACKAGES.join('|')}> [${VALID_BUMPS.join('|')}]`);
-  process.exit(1);
-}
-if (!VALID_BUMPS.includes(bumpArg)) {
-  console.error(`Invalid bump type "${bumpArg}". Must be one of: ${VALID_BUMPS.join(', ')}`);
+if (!VALID_PACKAGES.includes(pkgArg) || !VALID_BUMPS.includes(bumpArg)) {
+  console.error(`Usage: node scripts/release.mjs <${VALID_PACKAGES.join('|')}> <${VALID_BUMPS.join('|')}>`);
+  console.error('Prefer the npm scripts instead, e.g. "npm run release:core:minor".');
   process.exit(1);
 }
 
