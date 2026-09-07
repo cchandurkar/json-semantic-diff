@@ -37,6 +37,22 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      # Guards against a release/tag created by hand without going through
+      # release.yml's version-bump step (which keeps the tag and
+      # package.json in lockstep by construction). See publish-npm.yml for
+      # the equivalent core-package check and the incident that motivated
+      # this.
+      - name: Verify tag matches packages/ui version
+        if: github.event_name == 'release'
+        run: |
+          TAG_NAME="${{ github.event.release.tag_name }}"
+          TAG_VERSION="${TAG_NAME#ui-v}"
+          PKG_VERSION=$(node -p "require('./packages/ui/package.json').version")
+          if [ "$TAG_VERSION" != "$PKG_VERSION" ]; then
+            echo "::error::Release tag '$TAG_NAME' claims version $TAG_VERSION, but packages/ui/package.json is at $PKG_VERSION. This usually means the tag/release was created by hand instead of via release.yml. Refusing to deploy a mismatched version."
+            exit 1
+          fi
+
       - name: Build core
         run: npm run build --workspace=packages/core
 

@@ -38,6 +38,23 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      # Guards against a release/tag created by hand without going through
+      # release.yml's version-bump step (which keeps the tag and
+      # package.json in lockstep by construction). Without this, npm publish
+      # would either silently publish a stale/mismatched version or fail
+      # with a confusing registry error - see AGENTS.md history for the
+      # core-v1.0.0 incident that motivated this check.
+      - name: Verify tag matches packages/core version
+        if: github.event_name == 'release'
+        run: |
+          TAG_NAME="${{ github.event.release.tag_name }}"
+          TAG_VERSION="${TAG_NAME#core-v}"
+          PKG_VERSION=$(node -p "require('./packages/core/package.json').version")
+          if [ "$TAG_VERSION" != "$PKG_VERSION" ]; then
+            echo "::error::Release tag '$TAG_NAME' claims version $TAG_VERSION, but packages/core/package.json is at $PKG_VERSION. This usually means the tag/release was created by hand instead of via release.yml. Refusing to publish a mismatched version."
+            exit 1
+          fi
+
       - name: Publish (prepack builds packages/core first)
         working-directory: packages/core
         run: npm publish --access public
