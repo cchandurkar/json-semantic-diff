@@ -55,7 +55,7 @@
     </script>
 
     <script>
-      // Applies the saved theme before first paint so a reload never flashes light.
+      // Applies the saved or system theme before first paint so a reload never flashes light.
       // Key must match THEME_STORAGE_KEY in src/app/shared/theme.ts.
       var savedTheme = null;
       try {
@@ -63,7 +63,13 @@
       } catch (e) {
         /* storage blocked */
       }
-      if (savedTheme === 'dark' || savedTheme === 'light') document.documentElement.dataset.theme = savedTheme;
+      var resolvedTheme = 'light';
+      if (savedTheme === 'dark' || savedTheme === 'light') {
+        resolvedTheme = savedTheme;
+      } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        resolvedTheme = 'dark';
+      }
+      document.documentElement.dataset.theme = resolvedTheme;
 
       // Hides the "Take the tour" card before first paint if it's already been
       // seen, so a reload never flashes the card before Angular's own

@@ -62,16 +62,66 @@
         <span class="nav-label">npm</span>
       </a>
       <button
+        #themeTrigger
         type="button"
         class="theme-toggle"
-        (click)="toggleTheme()"
-        [attr.aria-label]="darkMode() ? 'Use light theme' : 'Use dark theme'"
+        aria-haspopup="menu"
+        [attr.aria-expanded]="themeMenuOpen()"
+        (click)="toggleThemeMenu()"
+        [attr.aria-label]="'Theme: ' + themeLabel()"
       >
-        {{ darkMode() ? '☀' : '◐' }}
+        {{ darkMode() ? '◐' : '☀' }}
       </button>
     </nav>
   </div>
 </header>
+
+<ng-template #themeMenuTpl>
+  <div class="theme-menu" role="menu" tabindex="-1" aria-label="Theme options" (keydown)="onThemeMenuKeydown($event)">
+    <button
+      type="button"
+      class="theme-menu-item"
+      role="menuitem"
+      [class.is-active]="themePreference() === 'system'"
+      (click)="setThemePreference('system')"
+    >
+      <span class="theme-item-label">System</span>
+      @if (themePreference() === 'system') {
+        <svg class="check-icon" width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+          <path d="M2.5 6.5L4.5 8.5L9.5 3.5" />
+        </svg>
+      }
+    </button>
+    <button
+      type="button"
+      class="theme-menu-item"
+      role="menuitem"
+      [class.is-active]="themePreference() === 'light'"
+      (click)="setThemePreference('light')"
+    >
+      <span class="theme-item-label">Light</span>
+      @if (themePreference() === 'light') {
+        <svg class="check-icon" width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+          <path d="M2.5 6.5L4.5 8.5L9.5 3.5" />
+        </svg>
+      }
+    </button>
+    <button
+      type="button"
+      class="theme-menu-item"
+      role="menuitem"
+      [class.is-active]="themePreference() === 'dark'"
+      (click)="setThemePreference('dark')"
+    >
+      <span class="theme-item-label">Dark</span>
+      @if (themePreference() === 'dark') {
+        <svg class="check-icon" width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+          <path d="M2.5 6.5L4.5 8.5L9.5 3.5" />
+        </svg>
+      }
+    </button>
+  </div>
+</ng-template>
 
 <div class="shell-row">
   <app-sidebar

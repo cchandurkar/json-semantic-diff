@@ -143,7 +143,8 @@ nav {
 }
 
 .link-button:hover,
-.theme-toggle:hover {
+.theme-toggle:hover,
+.theme-toggle[aria-expanded='true'] {
   color: var(--foreground);
   background: var(--accent);
 }
@@ -390,7 +391,9 @@ h1 span {
   background: var(--card);
   color: var(--foreground);
   font-weight: 600;
-  box-shadow: 0 1px 3px rgb(0 0 0 / 10%), 0 1px 2px rgb(0 0 0 / 6%);
+  box-shadow:
+    0 1px 3px rgb(0 0 0 / 10%),
+    0 1px 2px rgb(0 0 0 / 6%);
 }
 
 .segmented:hover:not(:disabled, .active) {

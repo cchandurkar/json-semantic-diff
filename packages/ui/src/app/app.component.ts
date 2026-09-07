@@ -1,4 +1,19 @@
-import { ChangeDetectionStrategy, Component, afterNextRender, computed, effect, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  OnDestroy,
+  TemplateRef,
+  ViewContainerRef,
+  afterNextRender,
+  computed,
+  effect,
+  inject,
+  signal,
+  viewChild
+} from '@angular/core';
+import { ConnectedPosition, Overlay, OverlayRef } from '@angular/cdk/overlay';
+import { TemplatePortal } from '@angular/cdk/portal';
 import { JsonInputComponent } from './components/json-input/json-input.component';
 import { DiffTreeComponent } from './components/diff-tree/diff-tree.component';
 import { AnalysisPanelComponent } from './components/analysis-panel/analysis-panel.component';
@@ -22,7 +37,7 @@ import {
 import { ClipboardService } from './shared/clipboard/clipboard.service';
 import { formatChange, formatNewValue, formatOldValue, formatSemanticPath, formatSubtree } from './shared/clipboard/diff-clipboard';
 import { ToastMessage, createToast } from './shared/toast';
-import { Theme, applyTheme, readStoredTheme, storeTheme } from './shared/theme';
+import { ThemePreference, applyTheme, readStoredTheme, storeTheme } from './shared/theme';
 import {
   ANALYSIS_PANEL_DEFAULT_WIDTH,
   ANALYSIS_PANEL_MAX_WIDTH,
@@ -40,6 +55,13 @@ const EDITOR_HEIGHT_COMPACT = 170;
 const TOAST_MS = 2400;
 const TOAST_UNDO_MS = 5000;
 
+const THEME_PANEL_POSITIONS: ConnectedPosition[] = [
+  { originX: 'end', originY: 'bottom', overlayX: 'end', overlayY: 'top', offsetY: 6 },
+  { originX: 'start', originY: 'bottom', overlayX: 'start', overlayY: 'top', offsetY: 6 },
+  { originX: 'end', originY: 'top', overlayX: 'end', overlayY: 'bottom', offsetY: -6 },
+  { originX: 'start', originY: 'top', overlayX: 'start', overlayY: 'bottom', offsetY: -6 }
+];
+
 @Component({
   selector: 'app-root',
   standalone: true,
@@ -54,9 +76,13 @@ const TOAST_UNDO_MS = 5000;
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './app.component.html',
-  styleUrl: './app.component.css'
+  styleUrl: './app.component.css',
+  host: {
+    '(document:keydown.escape)': 'onEscape($event)',
+    '(document:pointerdown)': 'onDocumentPointerDown($event)'
+  }
 })
-export class AppComponent {
+export class AppComponent implements OnDestroy {
   readonly leftText = signal('');
   readonly rightText = signal('');
   readonly leftError = signal<string | null>(null);
@@ -76,6 +102,8 @@ export class AppComponent {
    * already completed, which is a normal post-hydration update instead.
    */
   readonly darkMode = signal(false);
+  readonly themePreference = signal<ThemePreference>('system');
+  readonly themeMenuOpen = signal(false);
   readonly editorHeight = signal(EDITOR_HEIGHT_DEFAULT);
   readonly options = signal<DiffOptions>({ ...DEFAULT_DIFF_OPTIONS });
   /** Pure render filter: never round-trips through the engine. */
@@ -96,6 +124,14 @@ export class AppComponent {
   /** True only while a resize drag is in progress; drives the handle's active style. */
   readonly resizingAnalysisPanel = signal(false);
 
+  private readonly overlay = inject(Overlay);
+  private readonly viewContainer = inject(ViewContainerRef);
+  private readonly themeTrigger = viewChild<ElementRef<HTMLButtonElement>>('themeTrigger');
+  private readonly themeMenuTemplate = viewChild<TemplateRef<unknown>>('themeMenuTpl');
+  private themeOverlayRef?: OverlayRef;
+  private mediaQueryList?: MediaQueryList;
+  private mediaQueryListener?: (event: MediaQueryListEvent) => void;
+
   /**
    * Applies the real stored theme/panel-width after the first render, once
    * we're guaranteed to be running in the browser (afterNextRender never
@@ -104,7 +140,26 @@ export class AppComponent {
    * needs to reconcile - see the darkMode/analysisPanelWidth doc comments.
    */
   private readonly applyStoredUiState = afterNextRender(() => {
-    if (readStoredTheme() === 'dark') this.darkMode.set(true);
+    const storedPref = readStoredTheme() ?? 'system';
+    this.themePreference.set(storedPref);
+    const resolved = applyTheme(storedPref);
+    this.darkMode.set(resolved === 'dark');
+
+    if (typeof window !== 'undefined' && typeof window.matchMedia === 'function') {
+      this.mediaQueryList = window.matchMedia('(prefers-color-scheme: dark)');
+      this.mediaQueryListener = (event: MediaQueryListEvent) => {
+        if (this.themePreference() === 'system') {
+          const dark = event.matches;
+          this.darkMode.set(dark);
+          applyTheme('system');
+        }
+      };
+      if (this.mediaQueryList.addEventListener) {
+        this.mediaQueryList.addEventListener('change', this.mediaQueryListener);
+      } else if ((this.mediaQueryList as unknown as { addListener: (cb: unknown) => void }).addListener) {
+        (this.mediaQueryList as unknown as { addListener: (cb: unknown) => void }).addListener(this.mediaQueryListener);
+      }
+    }
 
     const storedWidth = readStoredAnalysisPanelWidth();
     if (storedWidth !== null) {
@@ -117,6 +172,33 @@ export class AppComponent {
   private toastTimer?: ReturnType<typeof setTimeout>;
   private panelResizeStartX = 0;
   private panelResizeStartWidth = 0;
+
+  constructor() {
+    effect(() => {
+      if (this.themeMenuOpen()) this.attachThemePanel();
+      else this.themeOverlayRef?.detach();
+    });
+
+    // Move focus into the theme menu once attached
+    effect(() => {
+      if (!this.themeMenuOpen()) return;
+      const pane = this.themeOverlayRef?.overlayElement;
+      if (pane) setTimeout(() => pane.querySelector<HTMLButtonElement>('button.is-active, button')?.focus());
+    });
+  }
+
+  ngOnDestroy(): void {
+    if (this.mediaQueryList && this.mediaQueryListener) {
+      if (this.mediaQueryList.removeEventListener) {
+        this.mediaQueryList.removeEventListener('change', this.mediaQueryListener);
+      } else if ((this.mediaQueryList as unknown as { removeListener: (cb: unknown) => void }).removeListener) {
+        (this.mediaQueryList as unknown as { removeListener: (cb: unknown) => void }).removeListener(this.mediaQueryListener);
+      }
+    }
+    this.themeOverlayRef?.dispose();
+    this.themeOverlayRef = undefined;
+    clearTimeout(this.toastTimer);
+  }
 
   /**
    * Selecting an array (Tree/Source row click, or a Changes-by-area row)
@@ -413,11 +495,81 @@ export class AppComponent {
     undo?.();
   }
 
-  toggleTheme(): void {
-    this.darkMode.update((v) => !v);
-    const theme: Theme = this.darkMode() ? 'dark' : 'light';
-    applyTheme(theme);
-    storeTheme(theme);
+  toggleThemeMenu(): void {
+    this.themeMenuOpen.update((v) => !v);
+  }
+
+  closeThemeMenu(restoreFocus = false): void {
+    if (!this.themeMenuOpen()) return;
+    this.themeMenuOpen.set(false);
+    if (restoreFocus) this.themeTrigger()?.nativeElement.focus();
+  }
+
+  setThemePreference(pref: ThemePreference): void {
+    this.themePreference.set(pref);
+    storeTheme(pref);
+    const resolved = applyTheme(pref);
+    this.darkMode.set(resolved === 'dark');
+    this.closeThemeMenu(true);
+  }
+
+  themeLabel(): string {
+    const pref = this.themePreference();
+    if (pref === 'system') {
+      return `System (${this.darkMode() ? 'dark' : 'light'})`;
+    }
+    return pref;
+  }
+
+  onDocumentPointerDown(event: Event): void {
+    if (!this.themeMenuOpen()) return;
+    const target = event.target as Node;
+    if (this.themeTrigger()?.nativeElement.contains(target)) return;
+    if (this.themeOverlayRef?.overlayElement.contains(target)) return;
+    this.closeThemeMenu(false);
+  }
+
+  onEscape(event: Event): void {
+    const target = event.target as Element | null;
+    if (target?.closest?.('.cdk-overlay-container') && !this.themeOverlayRef?.overlayElement.contains(target)) return;
+    if (this.themeMenuOpen()) {
+      this.closeThemeMenu(true);
+    }
+  }
+
+  onThemeMenuKeydown(event: KeyboardEvent): void {
+    if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') return;
+    event.preventDefault();
+    const pane = this.themeOverlayRef?.overlayElement;
+    if (!pane) return;
+    const buttons = Array.from(pane.querySelectorAll<HTMLButtonElement>('.theme-menu-item'));
+    if (!buttons.length) return;
+    const currentIndex = buttons.indexOf(document.activeElement as HTMLButtonElement);
+    const delta = event.key === 'ArrowDown' ? 1 : -1;
+    const nextIndex = (currentIndex + delta + buttons.length) % buttons.length;
+    buttons[nextIndex]?.focus();
+  }
+
+  private attachThemePanel(): void {
+    const trigger = this.themeTrigger()?.nativeElement;
+    const tpl = this.themeMenuTemplate();
+    if (!trigger || !tpl) return;
+
+    this.themeOverlayRef ??= this.overlay.create({
+      panelClass: 'theme-overlay-panel',
+      scrollStrategy: this.overlay.scrollStrategies.reposition(),
+      positionStrategy: this.overlay
+        .position()
+        .flexibleConnectedTo(trigger)
+        .withPositions(THEME_PANEL_POSITIONS)
+        .withPush(true)
+        .withViewportMargin(8)
+        .withFlexibleDimensions(false)
+    });
+
+    if (!this.themeOverlayRef.hasAttached()) {
+      this.themeOverlayRef.attach(new TemplatePortal(tpl, this.viewContainer));
+    }
   }
 
   private copy(text: string, successMessage: string): void {

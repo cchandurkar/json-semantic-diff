@@ -178,6 +178,68 @@ textarea:focus-visible {
   outline: none;
 }
 
+.theme-menu {
+  min-width: 130px;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 4px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--card);
+  box-shadow: 0 12px 32px rgb(10 14 22 / 14%);
+}
+
+.theme-menu:focus,
+.theme-menu:focus-visible {
+  outline: none;
+}
+
+.theme-menu-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  border: 0;
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--foreground);
+  font: 500 12px var(--sans);
+  padding: 6px 9px;
+  text-align: left;
+  cursor: pointer;
+  user-select: none;
+  transition:
+    background-color 0.12s ease,
+    color 0.12s ease;
+}
+
+.theme-menu-item:hover {
+  background: var(--accent);
+  color: var(--foreground);
+}
+
+.theme-menu-item:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: -2px;
+  background: var(--accent);
+}
+
+.theme-menu-item.is-active {
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.theme-item-label {
+  flex: 1;
+}
+
+.theme-menu .check-icon {
+  flex: none;
+  color: var(--primary);
+}
+
 .cdk-menu-group {
   display: flex;
   flex-direction: column;

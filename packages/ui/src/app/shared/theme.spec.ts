@@ -1,8 +1,9 @@
-import { describe, expect, it } from 'vitest';
-import { THEME_STORAGE_KEY, parseTheme, readStoredTheme, storeTheme } from './theme';
+import { describe, expect, it, vi } from 'vitest';
+import { THEME_STORAGE_KEY, applyTheme, parseTheme, readStoredTheme, resolveTheme, storeTheme } from './theme';
 
 describe('parseTheme', () => {
-  it('accepts the two known themes', () => {
+  it('accepts system, light, and dark', () => {
+    expect(parseTheme('system')).toBe('system');
     expect(parseTheme('light')).toBe('light');
     expect(parseTheme('dark')).toBe('dark');
   });
@@ -17,6 +18,8 @@ describe('parseTheme', () => {
 
 describe('theme storage', () => {
   it('round-trips a stored choice', () => {
+    storeTheme('system');
+    expect(readStoredTheme()).toBe('system');
     storeTheme('dark');
     expect(readStoredTheme()).toBe('dark');
     storeTheme('light');
@@ -28,5 +31,46 @@ describe('theme storage', () => {
     expect(readStoredTheme()).toBeNull();
     localStorage.removeItem(THEME_STORAGE_KEY);
     expect(readStoredTheme()).toBeNull();
+  });
+});
+
+describe('resolveTheme and applyTheme', () => {
+  it('resolves explicit light and dark directly', () => {
+    expect(resolveTheme('light')).toBe('light');
+    expect(resolveTheme('dark')).toBe('dark');
+  });
+
+  it('resolves system using matchMedia when dark matches', () => {
+    const originalMatchMedia = window.matchMedia;
+    window.matchMedia = vi.fn().mockImplementation((query: string) => ({
+      matches: query.includes('dark'),
+      media: query,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn()
+    }));
+
+    expect(resolveTheme('system')).toBe('dark');
+    window.matchMedia = originalMatchMedia;
+  });
+
+  it('resolves system using matchMedia when light matches', () => {
+    const originalMatchMedia = window.matchMedia;
+    window.matchMedia = vi.fn().mockImplementation((query: string) => ({
+      matches: false,
+      media: query,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn()
+    }));
+
+    expect(resolveTheme('system')).toBe('light');
+    window.matchMedia = originalMatchMedia;
+  });
+
+  it('applyTheme writes dataset.theme and returns resolved theme', () => {
+    expect(applyTheme('light')).toBe('light');
+    expect(document.documentElement.dataset['theme']).toBe('light');
+
+    expect(applyTheme('dark')).toBe('dark');
+    expect(document.documentElement.dataset['theme']).toBe('dark');
   });
 });
