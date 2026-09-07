@@ -6,6 +6,8 @@ Unlike a line-oriented text diff, `json-semantic-diff` compares two JSON documen
 
 No ML/AI, no network calls, no DOM dependency - pure TypeScript, usable in Node, the browser, or any bundler.
 
+**[Try the interactive demo →](https://jsonsemanticdiff.dev)**
+
 ## Install
 
 ```bash
@@ -103,13 +105,13 @@ const DEFAULT_DIFF_OPTIONS: DiffOptions = {
 
 ### `DiffOptions`
 
-| Option                | Type                                    | Default        | Description                                                                                                                                                       |
-| ---------------------- | ---------------------------------------- | -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `ignorePaths`          | `string[]`                                | `[]`           | Glob-style path patterns (see [Ignore path syntax](#ignore-path-syntax)). Matching nodes are forced `unchanged` and marked `ignored: true` instead of being reported as changes. |
-| `numericStringsAsNumbers` | `boolean`                               | `false`        | When `true`, a numeric-looking string (`"42"`) compares equal to the real number `42`.                                                                             |
-| `normalizeTimestamps`  | `boolean`                                  | `true`         | When `true`, ISO-8601-looking timestamp strings are parsed and re-serialized to a canonical UTC ISO string before comparing, so `"2026-09-04T14:00:00Z"` and `"2026-09-04T10:00:00-04:00"` compare equal. |
-| `nullEqualsMissing`    | `boolean`                                  | `false`        | When `true`, a key that is `null` on one side and entirely absent on the other compares as `unchanged` instead of `added`/`removed`.                                |
-| `arrayMatching`        | `Record<string, ArrayMatchOverride>` \| `undefined` | `undefined`    | Per-array overrides that pin the matching strategy instead of leaving it to inference. See [Array matching overrides](#array-matching-overrides).                 |
+| Option                    | Type                                                | Default     | Description                                                                                                                                                                                               |
+| ------------------------- | --------------------------------------------------- | ----------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ignorePaths`             | `string[]`                                          | `[]`        | Glob-style path patterns (see [Ignore path syntax](#ignore-path-syntax)). Matching nodes are forced `unchanged` and marked `ignored: true` instead of being reported as changes.                          |
+| `numericStringsAsNumbers` | `boolean`                                           | `false`     | When `true`, a numeric-looking string (`"42"`) compares equal to the real number `42`.                                                                                                                    |
+| `normalizeTimestamps`     | `boolean`                                           | `true`      | When `true`, ISO-8601-looking timestamp strings are parsed and re-serialized to a canonical UTC ISO string before comparing, so `"2026-09-04T14:00:00Z"` and `"2026-09-04T10:00:00-04:00"` compare equal. |
+| `nullEqualsMissing`       | `boolean`                                           | `false`     | When `true`, a key that is `null` on one side and entirely absent on the other compares as `unchanged` instead of `added`/`removed`.                                                                      |
+| `arrayMatching`           | `Record<string, ArrayMatchOverride>` \| `undefined` | `undefined` | Per-array overrides that pin the matching strategy instead of leaving it to inference. See [Array matching overrides](#array-matching-overrides).                                                         |
 
 #### Ignore path syntax
 
@@ -151,7 +153,7 @@ diffJson(left, right, {
 });
 ```
 
-Even when a key is pinned, inference still runs in the background so `arrayMatch.inference` can show a renderer what auto-matching *would* have picked.
+Even when a key is pinned, inference still runs in the background so `arrayMatch.inference` can show a renderer what auto-matching _would_ have picked.
 
 #### Normalize numeric strings and timestamps
 
@@ -285,7 +287,7 @@ interface CandidateStats {
 
 For consumers who want to reuse the identity-inference/matching machinery outside a full `diffJson` call (e.g. building a custom key picker UI):
 
-- `matchArrays(left, right, path, arrayMatching?)` — runs the full strategy selection *and* pairing for one array, returning `{ analysis: ArrayMatchAnalysis, pairs: MatchedPair[] }`.
+- `matchArrays(left, right, path, arrayMatching?)` — runs the full strategy selection _and_ pairing for one array, returning `{ analysis: ArrayMatchAnalysis, pairs: MatchedPair[] }`.
 - `selectArrayStrategy(left, right, path, arrayMatching?)` — just the strategy decision (no pairing), i.e. what `matchArrays` uses internally to produce `ArrayMatchAnalysis`.
 - `resolveOverride(path, arrayMatching?)` — looks up which `ArrayMatchOverride` (if any) governs a given path, exact match first, then patterns in insertion order.
 - `pairByIdentity(left, right, keyPaths)` / `pairByPosition(left, right)` — the two low-level pairing strategies, each returning `MatchedPair[]`.
@@ -326,7 +328,7 @@ Every string form of a path is derived from a small set of `PathSegment` values,
 
 ## What it's for
 
-This package is the engine behind [JSON Semantic Diff](https://github.com/cchandurkar/json-semantic-diff) ([try it live](https://jsonsemanticdiff.dev)), a browser-based JSON comparison tool. It's published standalone so the same deterministic diff/matching logic can be reused outside that UI - in a CLI, a test assertion helper, another editor extension, etc.
+This package is the engine behind [JSON Semantic Diff](https://github.com/cchandurkar/json-semantic-diff), a browser-based JSON comparison tool ([try the interactive demo](https://jsonsemanticdiff.dev)). It's published standalone so the same deterministic diff/matching logic can be reused anywhere - in a CLI, a test assertion helper, another editor extension, etc.
 
 ## License
 
