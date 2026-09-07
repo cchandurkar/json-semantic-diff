@@ -2,13 +2,58 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>JSON Semantic Diff — Smart JSON comparison</title>
+    <title>JSON Semantic Diff — Compare JSON Online with Smart Array Matching</title>
     <base href="/" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta
       name="description"
-      content="Understand what changed in JSON, not just where. Private, local-only JSON comparison with smart array matching."
+      content="Free online JSON diff tool that understands what changed, not just where. Compares JSON structurally, matches reordered array records by identity, and never uploads your data - everything runs locally in your browser."
     />
+    <link rel="canonical" href="https://jsonsemanticdiff.dev/" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="JSON Semantic Diff" />
+    <meta property="og:url" content="https://jsonsemanticdiff.dev/" />
+    <meta property="og:title" content="JSON Semantic Diff — Compare JSON Online with Smart Array Matching" />
+    <meta
+      property="og:description"
+      content="Free online JSON diff tool that understands what changed, not just where. Compares JSON structurally, matches reordered array records by identity, and never uploads your data."
+    />
+    <meta property="og:image" content="https://jsonsemanticdiff.dev/og-image.png" />
+    <meta property="og:image:width" content="1639" />
+    <meta property="og:image:height" content="1223" />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="JSON Semantic Diff — Compare JSON Online with Smart Array Matching" />
+    <meta
+      name="twitter:description"
+      content="Free online JSON diff tool that understands what changed, not just where. Compares JSON structurally, matches reordered array records by identity, and never uploads your data."
+    />
+    <meta name="twitter:image" content="https://jsonsemanticdiff.dev/og-image.png" />
+
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "JSON Semantic Diff",
+        "url": "https://jsonsemanticdiff.dev/",
+        "description": "Free online JSON diff tool that understands what changed, not just where. Compares JSON structurally, matches reordered array records by identity, and never uploads your data - everything runs locally in your browser.",
+        "applicationCategory": "DeveloperApplication",
+        "operatingSystem": "Any",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD"
+        },
+        "author": {
+          "@type": "Person",
+          "name": "Chaitanya Chandurkar",
+          "url": "https://github.com/cchandurkar"
+        }
+      }
+    </script>
+
     <script>
       // Applies the saved theme before first paint so a reload never flashes light.
       // Key must match THEME_STORAGE_KEY in src/app/shared/theme.ts.
