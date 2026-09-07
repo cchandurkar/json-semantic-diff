@@ -219,6 +219,25 @@
   outline-offset: 1px;
 }
 
+.ignore-row input:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.ignore-row input.has-error {
+  border-color: var(--danger-border);
+}
+
+.ignore-row input.has-error:focus-visible {
+  outline-color: var(--danger);
+}
+
+.ignore-error {
+  margin-top: 4px;
+  font: 11px / 1.3 var(--sans);
+  color: var(--danger);
+}
+
 .ghost-action {
   border: 1px solid var(--border);
   border-radius: var(--radius);
@@ -229,14 +248,19 @@
   cursor: pointer;
 }
 
-.ghost-action:hover {
-  color: var(--foreground);
-  background: var(--accent);
+.ghost-action:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }
 
 .ghost-action:focus-visible {
   outline: 2px solid var(--primary);
   outline-offset: 2px;
+}
+
+.ghost-action:hover:not(:disabled) {
+  color: var(--foreground);
+  background: var(--accent);
 }
 
 .sidebar-spacer {

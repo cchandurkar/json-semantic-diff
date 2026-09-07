@@ -156,6 +156,33 @@ app-array-picker {
   text-decoration: underline;
 }
 
+.matching-fieldset {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.matching-fieldset:disabled {
+  opacity: 0.55;
+}
+
+.matching-fieldset:disabled .toggle-row,
+.matching-fieldset:disabled .toggle-row input {
+  cursor: not-allowed;
+}
+
+.matching-fieldset:disabled .toggle-row:hover {
+  background: transparent;
+}
+
+.matching-fieldset:disabled .toggle-row.is-active:hover {
+  background: var(--muted);
+}
+
 .ghost-action {
   border: 1px solid var(--border);
   border-radius: var(--radius);
@@ -166,9 +193,9 @@ app-array-picker {
   cursor: pointer;
 }
 
-.ghost-action:hover {
-  color: var(--foreground);
-  background: var(--accent);
+.ghost-action:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }
 
 .primary-action {
@@ -191,4 +218,9 @@ app-array-picker {
 .primary-action:focus-visible {
   outline: 2px solid var(--primary);
   outline-offset: 2px;
+}
+
+.ghost-action:hover:not(:disabled) {
+  color: var(--foreground);
+  background: var(--accent);
 }

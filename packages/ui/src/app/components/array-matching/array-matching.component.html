@@ -1,4 +1,37 @@
-@if (selected(); as context) {
+@if (!hasResult()) {
+  <fieldset class="matching-fieldset" disabled>
+    <app-array-picker [arrays]="[]" [disabled]="true" placeholder="-" />
+
+    <label class="toggle-row is-active">
+      <input type="radio" name="matching-strategy-disabled" checked disabled />
+      <span class="toggle-text">
+        <span class="toggle-name">Auto</span>
+        <span class="toggle-hint">JSON Semantic Diff chooses the best identity.</span>
+      </span>
+    </label>
+
+    <label class="toggle-row">
+      <input type="radio" name="matching-strategy-disabled" disabled />
+      <span class="toggle-text">
+        <span class="toggle-name">Match by fields</span>
+        <span class="toggle-hint">Pick one or more fields that identify a record.</span>
+      </span>
+    </label>
+
+    <label class="toggle-row">
+      <input type="radio" name="matching-strategy-disabled" disabled />
+      <span class="toggle-text">
+        <span class="toggle-name">Position</span>
+        <span class="toggle-hint">Compare elements by array position.</span>
+      </span>
+    </label>
+
+    <div class="matching-actions">
+      <button type="button" class="ghost-action" disabled>Cancel</button>
+      <button type="button" class="primary-action" disabled>Apply</button>
+    </div>
+  </fieldset>
+} @else if (selected(); as context) {
   <app-array-picker [arrays]="arrayAnalyses()" [selectedPath]="context.analysis.path" (pathSelected)="chooseArray($event)" />
 
   <label class="toggle-row" [class.is-active]="strategy() === 'auto'">

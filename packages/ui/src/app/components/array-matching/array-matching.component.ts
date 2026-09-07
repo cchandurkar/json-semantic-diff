@@ -36,6 +36,8 @@ type Strategy = 'auto' | 'key' | 'position';
   styleUrl: './array-matching.component.css'
 })
 export class ArrayMatchingComponent {
+  /** Whether a comparison exists at all. When false, renders a disabled full preview. */
+  readonly hasResult = input(false);
   /** Every array in the current comparison, in document order. */
   readonly arrays = input<readonly ArrayMatchingContext[]>([]);
   /** An externally-driven selection, e.g. from a Tree match-pill click. */

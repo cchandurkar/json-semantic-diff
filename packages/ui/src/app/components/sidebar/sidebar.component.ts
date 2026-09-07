@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, ElementRef, afterNextRender, effect, input, output, signal, viewChild } from '@angular/core';
+import { isValidIgnorePattern } from 'json-semantic-diff';
 import { version } from '../../../../package.json';
 import { DIFF_EXAMPLES, DiffExample } from '../../examples';
 import { MatchingOverrideChange } from '../../shared/node-actions';
@@ -58,6 +59,9 @@ export class SidebarComponent {
   /** Drawer state; only meaningful below the breakpoint, where the toggle shows. */
   readonly open = signal(false);
 
+  /** Inline validation error for the ignore path input. */
+  readonly ignoreError = signal<string | null>(null);
+
   constructor() {
     // Loading an example from the drawer should reveal the result behind it.
     effect(() => {
@@ -92,9 +96,20 @@ export class SidebarComponent {
     return (event.target as HTMLInputElement).checked;
   }
 
+  clearIgnoreError(): void {
+    if (this.ignoreError()) {
+      this.ignoreError.set(null);
+    }
+  }
+
   addIgnoreRule(input: HTMLInputElement): void {
     const rule = input.value.trim();
     if (!rule) return;
+    if (!isValidIgnorePattern(rule)) {
+      this.ignoreError.set('Path pattern must start with $ (e.g. $.field or $.array[*].field)');
+      return;
+    }
+    this.ignoreError.set(null);
     this.ignoreAdded.emit(rule);
     input.value = '';
   }

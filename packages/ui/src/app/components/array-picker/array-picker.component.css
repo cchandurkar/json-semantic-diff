@@ -16,17 +16,22 @@
   cursor: pointer;
 }
 
-.picker-trigger:hover {
-  background: var(--accent);
-}
-
-.picker-trigger[aria-expanded='true'] {
-  background: var(--muted);
+.picker-trigger:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
 }
 
 .picker-trigger:focus-visible {
   outline: 2px solid var(--primary);
   outline-offset: 2px;
+}
+
+.picker-trigger:hover:not(:disabled) {
+  background: var(--accent);
+}
+
+.picker-trigger[aria-expanded='true'] {
+  background: var(--muted);
 }
 
 .trigger-label {

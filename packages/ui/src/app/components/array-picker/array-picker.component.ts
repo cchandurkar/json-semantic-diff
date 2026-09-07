@@ -72,6 +72,8 @@ export class ArrayPickerComponent implements OnDestroy {
   readonly arrays = input.required<readonly ArrayMatchAnalysis[]>();
   /** An externally-driven selection, e.g. from a Tree match-pill click or the other picker. */
   readonly selectedPath = input<string | null>(null);
+  readonly disabled = input(false);
+  readonly placeholder = input('Select array');
   /** Fired only when the USER picks an item from this picker's own panel. */
   readonly pathSelected = output<string>();
 
@@ -121,6 +123,7 @@ export class ArrayPickerComponent implements OnDestroy {
   }
 
   toggle(): void {
+    if (this.disabled()) return;
     this.open.update((value) => !value);
   }
 

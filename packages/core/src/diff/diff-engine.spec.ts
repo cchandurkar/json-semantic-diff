@@ -330,6 +330,66 @@ describe('H. ignore rules', () => {
     expect(identity.summary.totalChanges).toBe(0);
   });
 
+  it('supports ignoring an identity-matched array element by path representation', () => {
+    const left = {
+      inventory: [
+        { store: 'BOS', sku: 'SKU-1001', quantity: 24, price: 12.99 },
+        { store: 'NYC', sku: 'SKU-1001', quantity: 18, price: 13.49 },
+        { store: 'BOS', sku: 'SKU-2004', quantity: 7, price: 8.5 },
+        { store: 'NYC', sku: 'SKU-2004', quantity: 11, price: 8.75 }
+      ]
+    };
+    const right = {
+      inventory: [
+        { store: 'NYC', sku: 'SKU-2004', quantity: 11, price: 9.25 },
+        { store: 'BOS', sku: 'SKU-2004', quantity: 7, price: 8.5 },
+        { store: 'NYC', sku: 'SKU-1001', quantity: 18, price: 13.49 },
+        { store: 'BOS', sku: 'SKU-1001', quantity: 19, price: 12.99 },
+        { store: 'SEA', sku: 'SKU-1002', quantity: 8, price: 9.99 }
+      ]
+    };
+    const baseline = run(left, right);
+    expect(baseline.summary.totalChanges).toBe(3);
+
+    const result = run(left, right, {
+      ignorePaths: ['$.inventory[SKU-1001|BOS].quantity']
+    });
+    expect(result.arrays[0].strategy).toBe('identity');
+    expect(result.summary.totalChanges).toBe(2);
+    expect(byPath(result.root, '$.inventory[SKU-1001|BOS].quantity')?.ignored).toBe(true);
+    expect(byPath(result.root, '$.inventory[SKU-1001|BOS].quantity')?.changeKind).toBe('unchanged');
+  });
+
+  it('supports ignoring an identity-matched array element by id representation', () => {
+    const left = {
+      inventory: [
+        { store: 'BOS', sku: 'SKU-1001', quantity: 24, price: 12.99 },
+        { store: 'NYC', sku: 'SKU-1001', quantity: 18, price: 13.49 },
+        { store: 'BOS', sku: 'SKU-2004', quantity: 7, price: 8.5 },
+        { store: 'NYC', sku: 'SKU-2004', quantity: 11, price: 8.75 }
+      ]
+    };
+    const right = {
+      inventory: [
+        { store: 'NYC', sku: 'SKU-2004', quantity: 11, price: 9.25 },
+        { store: 'BOS', sku: 'SKU-2004', quantity: 7, price: 8.5 },
+        { store: 'NYC', sku: 'SKU-1001', quantity: 18, price: 13.49 },
+        { store: 'BOS', sku: 'SKU-1001', quantity: 19, price: 12.99 },
+        { store: 'SEA', sku: 'SKU-1002', quantity: 8, price: 9.99 }
+      ]
+    };
+    const baseline = run(left, right);
+    expect(baseline.summary.totalChanges).toBe(3);
+
+    const result = run(left, right, {
+      ignorePaths: ['$.inventory[sku=SKU-1001;store=BOS].quantity']
+    });
+    expect(result.arrays[0].strategy).toBe('identity');
+    expect(result.summary.totalChanges).toBe(2);
+    expect(byPath(result.root, '$.inventory[SKU-1001|BOS].quantity')?.ignored).toBe(true);
+    expect(byPath(result.root, '$.inventory[SKU-1001|BOS].quantity')?.changeKind).toBe('unchanged');
+  });
+
   it('ignores nothing when no rule matches', () => {
     const result = run({ a: 1 }, { a: 2 }, { ignorePaths: ['$.b'] });
 

@@ -115,11 +115,12 @@ const DEFAULT_DIFF_OPTIONS: DiffOptions = {
 
 #### Ignore path syntax
 
-`ignorePaths` (and `arrayMatching` keys, which use the identical matcher) are glob-ish patterns matched against a node's serialized `path`:
+`ignorePaths` (and `arrayMatching` keys, which use the identical matcher) are glob-ish patterns matched against a node's serialized `path` or `id`:
 
 - `*` — matches exactly one path segment; does not cross a `.` or a bracket.
 - `**` — matches any number of segments.
-- `[*]` — matches any array bracket body, so it matches both a positional element (`[2]`) and an identity-matched element (`[102]`).
+- `[*]` — matches any array bracket body, so it matches positional elements (`[2]`), value-only identity elements (`[SKU-1001|BOS]`), and key-value identity elements (`[sku=SKU-1001;store=BOS]`).
+- Both display-style paths (e.g. `$.inventory[SKU-1001|BOS].quantity`) and identity keys (e.g. `$.inventory[sku=SKU-1001;store=BOS].quantity`) match.
 
 ```ts
 diffJson(left, right, {
@@ -127,6 +128,8 @@ diffJson(left, right, {
   ignorePaths: [
     '$.metadata.requestId', // exact path
     '$.users[*].updatedAt', // any user's updatedAt, whichever way that user's array element paired
+    '$.inventory[SKU-1001|BOS].quantity', // ignore specific item by path representation
+    '$.inventory[sku=SKU-1001;store=BOS].quantity', // or by identity key representation
     '$.**.internalNotes' // internalNotes at any depth
   ]
 });
@@ -323,8 +326,9 @@ Every string form of a path is derived from a small set of `PathSegment` values,
 
 ### Ignore-rule utilities
 
-- `shouldIgnore(path, rules)` — true if any pattern in `rules` matches `path` (what powers `ignorePaths`).
+- `shouldIgnore(path, id, rules)` — true if any pattern in `rules` matches `path` or `id` (what powers `ignorePaths`). Also accepts `shouldIgnore(path, rules)` for backward compatibility.
 - `matchesPathPattern(path, pattern)` — the single glob-ish matcher shared by `ignorePaths` and `arrayMatching`, exposed standalone. See [Ignore path syntax](#ignore-path-syntax) for the pattern grammar.
+- `isValidIgnorePattern(pattern)` — validates user-provided ignore pattern strings (must start with `$`, have balanced brackets, and compile cleanly).
 
 ## What it's for
 

@@ -10,7 +10,7 @@ export { inferIdentity, readPath, evaluateKey, eligibleKeyPaths } from './matchi
 export { matchArrays, selectArrayStrategy, resolveOverride, pairByIdentity, pairByPosition } from './matching/matching.js';
 export type { ArrayMatchResult, MatchedPair } from './matching/matching.js';
 export { normalize, looksLikeTimestamp } from './normalization/normalization.js';
-export { shouldIgnore, matchesPathPattern } from './ignore/ignore-rules.js';
+export { shouldIgnore, matchesPathPattern, isValidIgnorePattern } from './ignore/ignore-rules.js';
 export { ROOT_SEGMENT, keySegment, indexSegment, identitySegment, appendPath, appendId, segmentLabel, stableValue } from './path.js';
 export type { PathSegment } from './path.js';
 export type {

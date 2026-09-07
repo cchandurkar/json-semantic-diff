@@ -72,7 +72,7 @@ function compare(
 
   // Ignored nodes stay `unchanged` so they never move the summary counts, but they
   // keep both values and are flagged so a renderer can style them differently.
-  if (shouldIgnore(path, options.ignorePaths)) {
+  if (shouldIgnore(path, id, options.ignorePaths)) {
     return { ...base, ...raw, nodeKind: shapeOf(left ?? right), changeKind: 'unchanged', left, right, hasChanges: false, ignored: true };
   }
 

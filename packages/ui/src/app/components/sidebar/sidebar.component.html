@@ -86,22 +86,32 @@
       </div>
     }
     <div class="ignore-row">
-      <input #ignoreRule placeholder="$.metadata.requestId" aria-label="Ignore path pattern" (keyup.enter)="addIgnoreRule(ignoreRule)" />
-      <button type="button" class="ghost-action" (click)="addIgnoreRule(ignoreRule)">Add</button>
+      <input
+        #ignoreRule
+        placeholder="$.metadata.requestId"
+        aria-label="Ignore path pattern"
+        [disabled]="!hasResult()"
+        [class.has-error]="!!ignoreError()"
+        (input)="clearIgnoreError()"
+        (keyup.enter)="addIgnoreRule(ignoreRule)"
+      />
+      <button type="button" class="ghost-action" [disabled]="!hasResult()" (click)="addIgnoreRule(ignoreRule)">Add</button>
     </div>
+    @if (ignoreError(); as error) {
+      <div class="ignore-error" role="alert">{{ error }}</div>
+    }
   </section>
 
-  @if (hasResult()) {
-    <section class="sidebar-section" aria-labelledby="sidebar-matching-heading" data-tour="array-matching">
-      <h3 id="sidebar-matching-heading" class="sidebar-heading">Array matching</h3>
-      <app-array-matching
-        [arrays]="arrays()"
-        [selectedPath]="selectedAnalysisPath()"
-        (overrideChanged)="overrideChanged.emit($event)"
-        (arraySelected)="arraySelected.emit($event)"
-      />
-    </section>
-  }
+  <section class="sidebar-section" aria-labelledby="sidebar-matching-heading" data-tour="array-matching">
+    <h3 id="sidebar-matching-heading" class="sidebar-heading">Array matching</h3>
+    <app-array-matching
+      [hasResult]="hasResult()"
+      [arrays]="arrays()"
+      [selectedPath]="selectedAnalysisPath()"
+      (overrideChanged)="overrideChanged.emit($event)"
+      (arraySelected)="arraySelected.emit($event)"
+    />
+  </section>
 
   <div class="sidebar-spacer" aria-hidden="true"></div>
 
