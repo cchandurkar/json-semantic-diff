@@ -153,6 +153,34 @@ diffJson(left, right, {
 
 Even when a key is pinned, inference still runs in the background so `arrayMatch.inference` can show a renderer what auto-matching *would* have picked.
 
+#### Normalize numeric strings and timestamps
+
+`numericStringsAsNumbers` and `normalizeTimestamps` control how raw string values are canonicalized before comparison:
+
+```ts
+diffJson(
+  { amount: '42', updatedAt: '2026-09-04T14:00:00Z' },
+  { amount: 42, updatedAt: '2026-09-04T10:00:00-04:00' },
+  {
+    ...DEFAULT_DIFF_OPTIONS,
+    numericStringsAsNumbers: true, // '42' vs 42 -> unchanged
+    normalizeTimestamps: true // same instant, different offset -> unchanged (already the default)
+  }
+);
+```
+
+Both fields report `changeKind: 'unchanged'` - `left`/`right` hold the normalized values (`42` and the canonical UTC timestamp), while each leaf's `leftRaw`/`rightRaw` still holds exactly what was passed in.
+
+#### Treat null and missing as equal
+
+By default a key that's `null` on one side and absent on the other is reported as `added`/`removed`. Set `nullEqualsMissing` to fold that into `unchanged`:
+
+```ts
+diffJson({ nickname: null }, {}, { ...DEFAULT_DIFF_OPTIONS, nullEqualsMissing: true });
+```
+
+`nickname` now compares as `unchanged` instead of `removed` - useful when your data layer treats "explicitly null" and "key never set" as the same thing.
+
 ### `DiffResult`
 
 ```ts

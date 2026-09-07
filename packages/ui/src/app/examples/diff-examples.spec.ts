@@ -80,6 +80,7 @@ describe('example catalogue', () => {
 
 describe('Example 1 - API Response', () => {
   const result = compare(example('api-response'));
+  const items = arrayAt(result, '$.items');
 
   it('shows a mixture of modified, added and removed', () => {
     expect(result.summary.modified).toBeGreaterThan(0);
@@ -87,15 +88,16 @@ describe('Example 1 - API Response', () => {
     expect(result.summary.removed).toBeGreaterThan(0);
   });
 
-  it('reports exactly the five intended field changes', () => {
+  it('reports exactly the six intended field changes', () => {
     expect(changedLeaves(result.root)).toEqual([
       '$.couponCode removed "SPRING24"->undefined',
+      '$.items[sku=SKU-1001].quantity modified 2->3',
       '$.shipping.method modified "standard"->"express"',
       '$.shipping.trackingNumber added undefined->"1Z999AA10123456784"',
       '$.status modified "processing"->"shipped"',
       '$.total modified 84.5->91.25'
     ]);
-    expect(result.summary).toEqual({ added: 1, removed: 1, modified: 3, typeChanged: 0, unchanged: 6, totalChanges: 5 });
+    expect(result.summary).toEqual({ added: 1, removed: 1, modified: 4, typeChanged: 0, unchanged: 13, totalChanges: 6 });
   });
 
   it('leaves the untouched customer block entirely unchanged', () => {
@@ -104,8 +106,15 @@ describe('Example 1 - API Response', () => {
     expect(customer?.hasChanges).toBe(false);
   });
 
-  it('needs no special comparison settings', () => {
-    expect(example('api-response').options).toBeUndefined();
+  it('demonstrates numeric-string and timestamp normalization', () => {
+    expect(example('api-response').options).toEqual({ numericStringsAsNumbers: true, normalizeTimestamps: true });
+  });
+
+  it('matches the nested items array by sku identity without needing to reorder', () => {
+    expect(items.keyPaths).toEqual(['sku']);
+    expect(items.outcome).toBe('identity-applied');
+    expect(items.confidence).toBe('high');
+    expect(items.reordered).toBe(false);
   });
 });
 
@@ -134,7 +143,7 @@ describe('Example 2 - Reordered Users', () => {
 
   it('does NOT represent the reorder as mass deletes and additions', () => {
     // The whole point of the example: 3 records move, only 1 addition is reported.
-    expect(result.summary).toEqual({ added: 1, removed: 0, modified: 1, typeChanged: 0, unchanged: 12, totalChanges: 2 });
+    expect(result.summary).toEqual({ added: 1, removed: 0, modified: 1, typeChanged: 0, unchanged: 13, totalChanges: 2 });
     expect(result.summary.removed).toBe(0);
     expect(result.summary.added).toBe(1);
   });
@@ -149,6 +158,15 @@ describe('Example 2 - Reordered Users', () => {
     expect(carol?.changeKind).toBe('unchanged');
     expect(carol?.leftIndex).toBe(2);
     expect(carol?.rightIndex).toBe(0);
+  });
+
+  it('treats Alice\'s explicit-null nickname as unchanged against the missing field, via nullEqualsMissing', () => {
+    expect(example('reordered-users').options).toEqual({ nullEqualsMissing: true });
+
+    const alice = result.root.children?.find((c) => c.label === 'users')?.children?.find((c) => c.path === '$.users[101]');
+    const nickname = alice?.children?.find((c) => c.label === 'nickname');
+
+    expect(nickname?.changeKind).toBe('unchanged');
   });
 });
 
@@ -205,8 +223,9 @@ describe('Example 4 - Noisy API Response', () => {
   const result = compare(subject);
   const products = arrayAt(result, '$.products');
 
-  it('ships the ignore rules it needs', () => {
+  it('ships the ignore rules and pinned array key it needs', () => {
     expect(subject.options?.ignorePaths).toEqual(['$.requestId', '$.generatedAt']);
+    expect(subject.options?.arrayMatching).toEqual({ '$.products': { strategy: 'key', fields: ['sku'] } });
   });
 
   it('does not count the volatile metadata as a meaningful change', () => {
@@ -229,10 +248,12 @@ describe('Example 4 - Noisy API Response', () => {
     expect(withoutIgnores.summary.totalChanges).toBeGreaterThan(result.summary.totalChanges);
   });
 
-  it('infers sku as the product identity', () => {
+  it('matches products by the pinned sku key', () => {
     expect(products.keyPaths).toEqual(['sku']);
-    expect(products.outcome).toBe('identity-applied');
+    expect(products.strategy).toBe('identity');
+    expect(products.outcome).toBe('manual-key');
     expect(products.confidence).toBe('high');
+    expect(products.override).toEqual({ strategy: 'key', fields: ['sku'], pattern: '$.products' });
     expect(products.inference?.best?.score).toBeCloseTo(1, 10);
     expect(products.reordered).toBe(true);
   });
@@ -320,6 +341,7 @@ describe('example loading path', () => {
     const noisy = optionsFor(example('noisy-api-response'));
 
     expect(noisy.ignorePaths).toEqual(['$.requestId', '$.generatedAt']);
+    expect(noisy.arrayMatching).toEqual({ '$.products': { strategy: 'key', fields: ['sku'] } });
     expect(noisy.numericStringsAsNumbers).toBe(DEFAULT_DIFF_OPTIONS.numericStringsAsNumbers);
     expect(noisy.normalizeTimestamps).toBe(DEFAULT_DIFF_OPTIONS.normalizeTimestamps);
   });

@@ -21,39 +21,55 @@ export interface DiffExample {
   options?: Partial<DiffOptions>;
 }
 
-/** Example 1 - a plain object diff: modified, added and removed all in one small payload. */
+/** Example 1 - a plain object diff: modified, added and removed fields, a numeric-string and a timestamp field that normalize to equal values, and a nested array of line items matched by identity. */
 const API_RESPONSE: DiffExample = {
   id: 'api-response',
   name: 'API Response',
-  description: 'A typical API response with added, removed, and modified fields.',
-  highlights: ['Modified', 'Added', 'Removed'],
+  description:
+    'A typical API response with added, removed, and modified fields. The discount percentage and order timestamp are written differently on each side but normalize to the same value, and the line items array is matched by SKU.',
+  highlights: ['Modified', 'Added', 'Removed', 'Normalization', 'Nested array'],
+  options: { numericStringsAsNumbers: true, normalizeTimestamps: true },
   original: {
     orderId: 'ORD-10482',
     status: 'processing',
     customer: { id: 7281, name: 'Alex Morgan', email: 'alex@example.com' },
     shipping: { method: 'standard', city: 'Boston', state: 'MA' },
     couponCode: 'SPRING24',
-    total: 84.5
+    total: 84.5,
+    discountPercent: '15',
+    orderPlacedAt: '2026-09-04T14:32:11Z',
+    items: [
+      { sku: 'SKU-1001', quantity: 2, price: 24.5 },
+      { sku: 'SKU-2004', quantity: 1, price: 35.5 }
+    ]
   },
   changed: {
     orderId: 'ORD-10482',
     status: 'shipped',
     customer: { id: 7281, name: 'Alex Morgan', email: 'alex@example.com' },
     shipping: { method: 'express', city: 'Boston', state: 'MA', trackingNumber: '1Z999AA10123456784' },
-    total: 91.25
+    total: 91.25,
+    discountPercent: 15,
+    orderPlacedAt: '2026-09-04T10:32:11-04:00',
+    items: [
+      { sku: 'SKU-1001', quantity: 3, price: 24.5 },
+      { sku: 'SKU-2004', quantity: 1, price: 35.5 }
+    ]
   }
 };
 
-/** Example 2 - the core differentiator: heavy reordering, one real change, one addition. */
+/** Example 2 - the core differentiator: heavy reordering, one real change, one addition, and an explicit-null field treated as missing. */
 const REORDERED_USERS: DiffExample = {
   id: 'reordered-users',
   name: 'Reordered Users',
-  description: 'Users were reordered, but JSON Semantic Diff matches them by identity and finds the real change.',
-  highlights: ['Smart matching', 'Reordering', 'Added record'],
+  description:
+    'Users were reordered, but JSON Semantic Diff matches them by identity and finds the real change. Alice\'s explicit null nickname is treated the same as a missing field.',
+  highlights: ['Smart matching', 'Reordering', 'Added record', 'Null vs missing'],
+  options: { nullEqualsMissing: true },
   original: {
     team: 'Platform',
     users: [
-      { userId: 101, name: 'Alice', role: 'engineer', status: 'active' },
+      { userId: 101, name: 'Alice', role: 'engineer', status: 'active', nickname: null },
       { userId: 102, name: 'Bob', role: 'engineer', status: 'active' },
       { userId: 103, name: 'Carol', role: 'manager', status: 'active' }
     ]
@@ -93,13 +109,16 @@ const INVENTORY_BY_STORE: DiffExample = {
   }
 };
 
-/** Example 4 - volatile metadata suppressed by ignore rules so the business change stands out. */
+/** Example 4 - volatile metadata suppressed by ignore rules so the business change stands out, with the product array's matching key pinned explicitly. */
 const NOISY_API_RESPONSE: DiffExample = {
   id: 'noisy-api-response',
   name: 'Noisy API Response',
-  description: 'Ignore volatile metadata and focus on meaningful business changes.',
-  highlights: ['Ignore rules', 'Smart matching', 'Noise reduction'],
-  options: { ignorePaths: ['$.requestId', '$.generatedAt'] },
+  description: 'Ignore volatile metadata, focus on meaningful business changes, and pin the product array to match by SKU explicitly.',
+  highlights: ['Ignore rules', 'Smart matching', 'Noise reduction', 'Pinned key'],
+  options: {
+    ignorePaths: ['$.requestId', '$.generatedAt'],
+    arrayMatching: { '$.products': { strategy: 'key', fields: ['sku'] } }
+  },
   original: {
     requestId: 'req-a81f3c9e',
     generatedAt: '2026-09-04T14:32:11Z',
