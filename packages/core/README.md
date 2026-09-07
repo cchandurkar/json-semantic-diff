@@ -326,7 +326,7 @@ Every string form of a path is derived from a small set of `PathSegment` values,
 
 ## What it's for
 
-This package is the engine behind [DiffLens/JSON Semantic Diff](https://github.com/cchandurkar/json-semantic-diff), a browser-based JSON comparison tool. It's published standalone so the same deterministic diff/matching logic can be reused outside that UI - in a CLI, a test assertion helper, another editor extension, etc.
+This package is the engine behind [JSON Semantic Diff](https://github.com/cchandurkar/json-semantic-diff) ([try it live](https://jsonsemanticdiff.dev)), a browser-based JSON comparison tool. It's published standalone so the same deterministic diff/matching logic can be reused outside that UI - in a CLI, a test assertion helper, another editor extension, etc.
 
 ## License
 
