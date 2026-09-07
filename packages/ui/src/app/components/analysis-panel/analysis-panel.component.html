@@ -142,7 +142,22 @@
     }
   } @else {
     <section class="panel-section">
-      <p class="panel-empty">Analysis appears here once you compare two documents.</p>
+      <div class="panel-empty-callout">
+        <svg
+          class="empty-icon"
+          width="15"
+          height="15"
+          viewBox="0 0 16 16"
+          fill="none"
+          aria-hidden="true"
+          focusable="false"
+        >
+          <circle cx="8" cy="8" r="6.5" stroke="currentColor" stroke-width="1.5" />
+          <path d="M8 7v4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+          <circle cx="8" cy="4.5" r="0.75" fill="currentColor" />
+        </svg>
+        <p class="empty-text">Analysis appears here once you compare two documents.</p>
+      </div>
     </section>
   }
 </aside>

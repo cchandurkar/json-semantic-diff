@@ -91,7 +91,24 @@
   text-transform: uppercase;
 }
 
-.panel-empty {
+.panel-empty-callout {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 11px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--muted);
+}
+
+.empty-icon {
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: var(--primary);
+}
+
+.empty-text {
+  margin: 0;
   color: var(--muted-foreground);
   font: 12px/1.5 var(--sans);
 }
