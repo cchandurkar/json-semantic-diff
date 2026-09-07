@@ -1,10 +1,10 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { DOCUMENT } from '@angular/common';
+import { ChangeDetectionStrategy, Component, OnDestroy, inject, output, signal } from '@angular/core';
 import { Meta, Title } from '@angular/platform-browser';
 import { RouterLink } from '@angular/router';
 import { ArrayMatchAnalysis, DEFAULT_DIFF_OPTIONS, DiffResult, ScoreBreakdownTerm, diffJson } from 'json-semantic-diff';
 import { DIFF_EXAMPLES, DiffExample } from '../examples';
 import { decimalPercent, percent } from '../shared/format';
-import { output } from '@angular/core';
 
 @Component({
   selector: 'app-how-it-works',
@@ -14,9 +14,10 @@ import { output } from '@angular/core';
   styleUrl: './how-it-works.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class HowItWorksComponent {
+export class HowItWorksComponent implements OnDestroy {
   private readonly titleService = inject(Title);
   private readonly metaService = inject(Meta);
+  private readonly doc = inject(DOCUMENT);
 
   /** Fired when user wants to load this live example into the main diff workspace */
   readonly exampleRequested = output<DiffExample>();
@@ -36,7 +37,23 @@ export class HowItWorksComponent {
     this.metaService.updateTag({
       name: 'description',
       content:
-        'In-depth technical explanation of JSON Semantic Diff identity-inference algorithm: candidate discovery, 6 scoring signals, decision gates, and why naive positional matching breaks.'
+        'How JSON Semantic Diff identity inference works: candidate discovery, 6 scoring signals, decision gates, and why naive positional array matching breaks.'
+    });
+    this.metaService.updateTag({
+      property: 'og:type',
+      content: 'article'
+    });
+    this.metaService.updateTag({
+      property: 'og:site_name',
+      content: 'JSON Semantic Diff'
+    });
+    this.metaService.updateTag({
+      property: 'og:locale',
+      content: 'en_US'
+    });
+    this.metaService.updateTag({
+      name: 'robots',
+      content: 'index, follow'
     });
     this.metaService.updateTag({
       property: 'og:title',
@@ -45,11 +62,82 @@ export class HowItWorksComponent {
     this.metaService.updateTag({
       property: 'og:description',
       content:
-        'In-depth technical explanation of JSON Semantic Diff identity-inference algorithm: candidate discovery, 6 scoring signals, decision gates, and why naive positional matching breaks.'
+        'How JSON Semantic Diff identity inference works: candidate discovery, 6 scoring signals, decision gates, and why naive positional array matching breaks.'
     });
     this.metaService.updateTag({
       property: 'og:url',
       content: 'https://jsonsemanticdiff.dev/how-it-works'
+    });
+    this.metaService.updateTag({
+      property: 'og:image',
+      content: 'https://jsonsemanticdiff.dev/og-image.png'
+    });
+    this.metaService.updateTag({
+      property: 'og:image:width',
+      content: '1639'
+    });
+    this.metaService.updateTag({
+      property: 'og:image:height',
+      content: '1223'
+    });
+
+    this.metaService.updateTag({
+      name: 'twitter:card',
+      content: 'summary_large_image'
+    });
+    this.metaService.updateTag({
+      name: 'twitter:title',
+      content: 'How It Works: Smart Array Matching — JSON Semantic Diff'
+    });
+    this.metaService.updateTag({
+      name: 'twitter:description',
+      content:
+        'How JSON Semantic Diff identity inference works: candidate discovery, 6 scoring signals, decision gates, and why naive positional array matching breaks.'
+    });
+    this.metaService.updateTag({
+      name: 'twitter:image',
+      content: 'https://jsonsemanticdiff.dev/og-image.png'
+    });
+
+    let link: HTMLLinkElement | null = this.doc.querySelector('link[rel="canonical"]');
+    if (!link) {
+      link = this.doc.createElement('link');
+      link.setAttribute('rel', 'canonical');
+      this.doc.head.appendChild(link);
+    }
+    link.setAttribute('href', 'https://jsonsemanticdiff.dev/how-it-works');
+
+    let script: HTMLScriptElement | null = this.doc.querySelector('script#how-it-works-jsonld');
+    if (!script) {
+      script = this.doc.createElement('script');
+      script.id = 'how-it-works-jsonld';
+      script.type = 'application/ld+json';
+      this.doc.head.appendChild(script);
+    }
+    script.textContent = JSON.stringify({
+      '@context': 'https://schema.org',
+      '@type': 'TechArticle',
+      headline: 'How It Works: Smart Array Matching — JSON Semantic Diff',
+      description:
+        'How JSON Semantic Diff identity inference works: candidate discovery, 6 scoring signals, decision gates, and why naive positional array matching breaks.',
+      url: 'https://jsonsemanticdiff.dev/how-it-works',
+      image: 'https://jsonsemanticdiff.dev/og-image.png',
+      datePublished: '2026-09-07',
+      dateModified: '2026-09-07',
+      mainEntityOfPage: {
+        '@type': 'WebPage',
+        '@id': 'https://jsonsemanticdiff.dev/how-it-works'
+      },
+      author: {
+        '@type': 'Person',
+        name: 'Chaitanya Chandurkar',
+        url: 'https://github.com/cchandurkar'
+      },
+      publisher: {
+        '@type': 'Organization',
+        name: 'JSON Semantic Diff',
+        url: 'https://jsonsemanticdiff.dev/'
+      }
     });
 
     // Execute the real comparison engine
@@ -58,6 +146,13 @@ export class HowItWorksComponent {
       ...DEFAULT_DIFF_OPTIONS,
       arrayMatching: { '$.inventory': { strategy: 'position' } }
     });
+  }
+
+  ngOnDestroy(): void {
+    const script = this.doc.getElementById('how-it-works-jsonld');
+    if (script) {
+      script.remove();
+    }
   }
 
   get activeResult(): DiffResult {
