@@ -96,8 +96,9 @@ scoped to a single logical change.
 Pages) are versioned and released independently, from your own machine:
 
 ```bash
-npm run release:core:patch   # or :minor / :major
-npm run release:ui:patch     # or :minor / :major
+npm run release:core          # bumps packages/core, defaults to a minor bump
+npm run release:ui  -- patch  # bumps packages/ui with an explicit bump type
+npm run release:core -- major
 ```
 
 Each command (`scripts/release.mjs`) bumps that package's version, commits,
@@ -105,13 +106,6 @@ tags it (`core-vX.Y.Z` / `ui-vX.Y.Z`), and creates a GitHub Release, which in
 turn triggers `publish-npm.yml` (npm publish) or `deploy-pages.yml`
 (rebuild + redeploy) respectively. It refuses to run from a dirty working
 tree, a non-`main` branch, or a `main` that's behind `origin/main`.
-
-The bump type is baked into each script name rather than passed as a CLI
-argument on purpose: `npm run release:core -- major` requires the `--`
-separator to forward the argument, and `npm run release:core --major`
-(missing it) silently drops `--major` instead of erroring, running with an
-unintended default. Dedicated per-bump-type scripts make that mistake
-impossible.
 
 **Never create a `core-v*`/`ui-v*` tag or GitHub Release by hand.** Doing so
 bypasses the version bump entirely, leaving `package.json` stale while the

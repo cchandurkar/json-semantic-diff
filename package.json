@@ -13,12 +13,8 @@
     "lint:fix": "npm run lint:fix --workspace=packages/core && npm run lint:fix --workspace=packages/ui",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "release:core:patch": "node scripts/release.mjs core patch",
-    "release:core:minor": "node scripts/release.mjs core minor",
-    "release:core:major": "node scripts/release.mjs core major",
-    "release:ui:patch": "node scripts/release.mjs ui patch",
-    "release:ui:minor": "node scripts/release.mjs ui minor",
-    "release:ui:major": "node scripts/release.mjs ui major"
+    "release:core": "node scripts/release.mjs core",
+    "release:ui": "node scripts/release.mjs ui"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
