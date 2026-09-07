@@ -8,6 +8,7 @@
 .diff-row {
   --depth: 0;
 
+  position: relative;
   display: grid;
   grid-template-columns: 28px 24px minmax(220px, 1.1fr) minmax(160px, 1fr) 34px minmax(160px, 1fr) 26px;
   align-items: center;
@@ -92,20 +93,45 @@
 }
 
 .in-range {
-  border-left: 2px solid var(--primary);
-  border-right: 2px solid var(--primary);
+  border-bottom-color: transparent;
 }
 
-.in-range:not(.range-end) {
-  border-bottom: 0;
+.in-range::after {
+  content: '';
+  position: absolute;
+  inset: 0 0 -1px;
+  pointer-events: none;
+  z-index: 1;
+  box-shadow:
+    inset 2px 0 0 0 var(--primary),
+    inset -2px 0 0 0 var(--primary);
 }
 
-.range-start {
-  border-top: 2px solid var(--primary);
+.in-range.range-start::after {
+  box-shadow:
+    inset 2px 0 0 0 var(--primary),
+    inset -2px 0 0 0 var(--primary),
+    inset 0 2px 0 0 var(--primary);
 }
 
-.diff-row.range-end {
-  border-bottom: 2px solid var(--primary);
+.in-range.range-end::after,
+.diff-row.range-end::after {
+  box-shadow:
+    inset 2px 0 0 0 var(--primary),
+    inset -2px 0 0 0 var(--primary),
+    inset 0 -2px 0 0 var(--primary);
+}
+
+.diff-row.range-end:last-child::after {
+  bottom: 0;
+}
+
+.in-range.range-start.range-end::after {
+  box-shadow:
+    inset 2px 0 0 0 var(--primary),
+    inset -2px 0 0 0 var(--primary),
+    inset 0 2px 0 0 var(--primary),
+    inset 0 -2px 0 0 var(--primary);
 }
 
 .search-match {
