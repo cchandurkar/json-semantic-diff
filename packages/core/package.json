@@ -20,7 +20,7 @@
     "directory": "packages/core"
   },
   "engines": {
-    "node": ">=18"
+    "node": ">=22"
   },
   "type": "module",
   "main": "./dist/index.js",
@@ -33,10 +33,7 @@
     }
   },
   "files": [
-    "dist",
-    "src",
-    "!src/**/*.spec.ts",
-    "!src/**/*.fixture.ts"
+    "dist"
   ],
   "sideEffects": false,
   "scripts": {
