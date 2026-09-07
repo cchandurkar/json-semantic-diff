@@ -1,8 +1,21 @@
-import { ChangeDetectionStrategy, Component, ElementRef, computed, effect, input, output, signal, viewChild } from '@angular/core';
-import { ArrayMatchAnalysis, CandidateStats, DiffResult } from 'json-semantic-diff';
-import { percent } from '../../shared/format';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  afterNextRender,
+  computed,
+  effect,
+  input,
+  output,
+  signal,
+  viewChild
+} from '@angular/core';
+import { ArrayMatchAnalysis, CandidateStats, DiffResult, ScoreBreakdownTerm } from 'json-semantic-diff';
+import { DIFF_EXAMPLES, DiffExample } from '../../examples';
+import { decimalPercent, percent } from '../../shared/format';
 import { ArrayPickerComponent } from '../array-picker/array-picker.component';
 import { ChangeOverviewComponent } from '../change-overview/change-overview.component';
+import { pickRandomExample } from './analysis-panel-example';
 
 /**
  * Right rail: summary counts and the matching-analysis explanation that used
@@ -44,9 +57,27 @@ export class AnalysisPanelComponent {
   readonly arraySelected = output<string>();
   /** Fired when the user clicks a Changes-by-area row; the parent re-points `selectedNodeId`. */
   readonly nodeSelected = output<string>();
+  /** Fired when the user clicks the empty-state "Try [Example] example" link. */
+  readonly exampleRequested = output<DiffExample>();
 
   /** Drawer state; only meaningful below the breakpoint, where the toggle shows. */
   readonly open = signal(false);
+
+  /**
+   * Always starts with DIFF_EXAMPLES[0] so server-prerendered HTML and the
+   * client's initial hydration state match exactly (same reasoning as
+   * AppComponent's darkMode/analysisPanelWidth signals - picking a random
+   * example during initial component construction would make the prerendered
+   * HTML and client hydration render diverge, which Angular detects as a
+   * hydration mismatch and resolves by destroying/recreating DOM). The real
+   * random pick is applied via afterNextRender below, once hydration has
+   * already completed.
+   */
+  readonly suggestedExample = signal<DiffExample>(DIFF_EXAMPLES[0]);
+
+  private readonly randomizeSuggestedExample = afterNextRender(() => {
+    this.suggestedExample.set(pickRandomExample());
+  });
 
   /** Set optimistically on the user's own pick; reconciled from `selectedPath` otherwise. */
   private readonly chosenPath = signal<string | null>(null);
@@ -69,6 +100,10 @@ export class AnalysisPanelComponent {
   chooseArray(path: string): void {
     this.chosenPath.set(path);
     this.arraySelected.emit(path);
+  }
+
+  loadSuggestedExample(): void {
+    this.exampleRequested.emit(this.suggestedExample());
   }
 
   toggle(): void {
@@ -123,6 +158,30 @@ export class AnalysisPanelComponent {
     ];
   }
 
+  scoreBreakdown(stats: CandidateStats): ScoreBreakdownTerm[] {
+    return stats.scoreBreakdown ?? [];
+  }
+
+  secondCandidate(match: ArrayMatchAnalysis): CandidateStats | undefined {
+    return match.inference?.alternatives?.[0];
+  }
+
+  margin(match: ArrayMatchAnalysis, best: CandidateStats, second: CandidateStats): number {
+    return match.inference?.margin ?? Math.max(0, best.score - second.score);
+  }
+
+  verdict(match: ArrayMatchAnalysis): { icon: string; text: string; meets: boolean } {
+    const meets = match.inference?.autoApply ?? match.outcome === 'identity-applied';
+    if (meets) return { icon: '✓', text: 'Meets automatic matching criteria', meets: true };
+    if (match.outcome === 'ambiguous') return { icon: '⚠', text: 'Ambiguous: multiple fields score similarly', meets: false };
+    return { icon: '✕', text: 'Below threshold: falls back to positional matching', meets: false };
+  }
+
+  formatMultiplier(term: ScoreBreakdownTerm): string {
+    return term.label.includes('penalty') ? String(term.value) : this.percent(term.value);
+  }
+
   /** Re-exported for the template; formatting lives in shared/format.ts. */
   readonly percent = percent;
+  readonly decimalPercent = decimalPercent;
 }

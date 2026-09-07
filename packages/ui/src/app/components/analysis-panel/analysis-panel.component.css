@@ -113,6 +113,24 @@
   font: 12px/1.5 var(--sans);
 }
 
+.empty-link {
+  color: var(--primary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.empty-link:hover {
+  color: var(--primary-hover);
+}
+
+.empty-link:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
 .summary-card {
   display: flex;
   flex-direction: column;
@@ -200,9 +218,151 @@ app-array-picker {
 
 .selected-block,
 .metrics-block,
+.calculation-block,
 .alternatives-block {
   padding: 12px 0;
   border-top: 1px solid var(--border-subtle);
+}
+
+.calculation-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+}
+
+.calculation-summary::-webkit-details-marker {
+  display: none;
+}
+
+.calculation-summary:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+  border-radius: var(--radius);
+}
+
+.calc-chevron {
+  color: var(--muted-foreground);
+  transition: transform 0.15s ease;
+}
+
+.calculation-block[open] .calc-chevron {
+  transform: rotate(180deg);
+}
+
+.metrics-body,
+.alternatives-body {
+  margin-top: 4px;
+}
+
+.calc-body {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+}
+
+.calc-table {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.calc-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  font: 11px var(--mono);
+  color: var(--muted-foreground);
+}
+
+.calc-term-label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.calc-term-equation {
+  flex: none;
+  color: var(--subtle-foreground);
+  font-variant-numeric: tabular-nums;
+  margin: 0 8px;
+}
+
+.calc-term-contrib {
+  flex: none;
+  font-weight: 600;
+  color: var(--foreground);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  min-width: 44px;
+}
+
+.calc-row.is-penalty .calc-term-contrib {
+  color: var(--danger);
+}
+
+.calc-divider {
+  height: 1px;
+  background: var(--border-subtle);
+  margin: 9px 0 8px;
+}
+
+.calc-summary-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  font: 11px var(--mono);
+  padding: 2px 0;
+}
+
+.calc-summary-row.total {
+  font-weight: 700;
+  color: var(--foreground);
+}
+
+.calc-summary-row.sub {
+  color: var(--muted-foreground);
+}
+
+.calc-sum-label {
+  flex: 1;
+}
+
+.calc-sum-val {
+  flex: none;
+  font-variant-numeric: tabular-nums;
+}
+
+.calc-verdict {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+  padding: 6px 8px;
+  border-radius: var(--radius);
+  font: 500 11px var(--sans);
+  line-height: 1.4;
+}
+
+.calc-verdict.meets {
+  background: var(--success-bg);
+  color: var(--success);
+  border: 1px solid var(--success-border);
+}
+
+.calc-verdict.fails {
+  background: var(--warning-bg);
+  color: var(--warning);
+  border: 1px solid var(--warning-border);
+}
+
+.verdict-icon {
+  font-weight: 700;
+  flex: none;
 }
 
 .candidate-title {

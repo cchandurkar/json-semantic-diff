@@ -27,5 +27,6 @@ export type {
   IdentityInference,
   JsonObject,
   JsonScalar,
-  JsonValue
+  JsonValue,
+  ScoreBreakdownTerm
 } from '../models/diff.models.js';

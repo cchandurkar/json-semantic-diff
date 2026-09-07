@@ -107,29 +107,134 @@
                 }
               </div>
 
-              <div class="metrics-block">
-                <span class="section-label">WHY?</span>
-                @for (metric of metrics(match.keyStats ?? best); track metric.label) {
-                  <div class="metric">
-                    <div class="meta">
-                      <span>{{ metric.label }}</span
-                      >{{ percent(metric.value) }}
-                    </div>
-                    <div class="track"><div class="fill" [style.width.%]="metric.value * 100"></div></div>
-                  </div>
-                }
-              </div>
-
-              @if (match.inference.alternatives.length) {
-                <div class="alternatives-block">
-                  <span class="section-label">OTHER CANDIDATES</span>
-                  @for (candidate of match.inference.alternatives; track candidate.paths.join('|')) {
-                    <div class="alternative">
-                      <span>{{ candidate.paths.join(' + ') }}</span>
-                      <span>{{ percent(candidate.score) }}</span>
+              <details class="calculation-block" open>
+                <summary class="calculation-summary">
+                  <span class="section-label">WHY?</span>
+                  <svg
+                    class="calc-chevron"
+                    width="10"
+                    height="10"
+                    viewBox="0 0 10 10"
+                    aria-hidden="true"
+                    focusable="false"
+                  >
+                    <path
+                      d="M2 3.5l3 3 3-3"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.5"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
+                  </svg>
+                </summary>
+                <div class="metrics-body">
+                  @for (metric of metrics(match.keyStats ?? best); track metric.label) {
+                    <div class="metric">
+                      <div class="meta">
+                        <span>{{ metric.label }}</span
+                        >{{ percent(metric.value) }}
+                      </div>
+                      <div class="track"><div class="fill" [style.width.%]="metric.value * 100"></div></div>
                     </div>
                   }
                 </div>
+              </details>
+
+              @if (scoreBreakdown(match.keyStats ?? best); as breakdown) {
+                @if (breakdown.length) {
+                  <details class="calculation-block">
+                    <summary class="calculation-summary">
+                      <span class="section-label">HOW IS THIS CALCULATED?</span>
+                      <svg
+                        class="calc-chevron"
+                        width="10"
+                        height="10"
+                        viewBox="0 0 10 10"
+                        aria-hidden="true"
+                        focusable="false"
+                      >
+                        <path
+                          d="M2 3.5l3 3 3-3"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="1.5"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        />
+                      </svg>
+                    </summary>
+
+                    <div class="calc-body">
+                      <div class="calc-table" role="table" aria-label="Score calculation breakdown">
+                        @for (term of breakdown; track term.label) {
+                          <div class="calc-row" role="row" [class.is-penalty]="term.contribution < 0">
+                            <span class="calc-term-label" role="rowheader">{{ term.label }}</span>
+                            <span class="calc-term-equation">{{ formatMultiplier(term) }} × {{ percent(term.weight) }} =</span>
+                            <span class="calc-term-contrib" role="cell">{{ decimalPercent(term.contribution, true) }}</span>
+                          </div>
+                        }
+                      </div>
+
+                      <div class="calc-divider" aria-hidden="true"></div>
+
+                      <div class="calc-summary-row total">
+                        <span class="calc-sum-label">Candidate score</span>
+                        <span class="calc-sum-val">{{ decimalPercent((match.keyStats ?? best).score) }}</span>
+                      </div>
+
+                      @if (secondCandidate(match); as second) {
+                        <div class="calc-summary-row sub">
+                          <span class="calc-sum-label">Second candidate</span>
+                          <span class="calc-sum-val">{{ decimalPercent(second.score) }}</span>
+                        </div>
+                        <div class="calc-summary-row sub">
+                          <span class="calc-sum-label">Margin</span>
+                          <span class="calc-sum-val">{{ decimalPercent(margin(match, (match.keyStats ?? best), second)) }}</span>
+                        </div>
+                      }
+
+                      @let v = verdict(match);
+                      <div class="calc-verdict" [class.meets]="v.meets" [class.fails]="!v.meets">
+                        <span class="verdict-icon" aria-hidden="true">{{ v.icon }}</span>
+                        <span>{{ v.text }}</span>
+                      </div>
+                    </div>
+                  </details>
+                }
+              }
+
+              @if (match.inference.alternatives.length) {
+                <details class="calculation-block">
+                  <summary class="calculation-summary">
+                    <span class="section-label">OTHER CANDIDATES</span>
+                    <svg
+                      class="calc-chevron"
+                      width="10"
+                      height="10"
+                      viewBox="0 0 10 10"
+                      aria-hidden="true"
+                      focusable="false"
+                    >
+                      <path
+                        d="M2 3.5l3 3 3-3"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.5"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      />
+                    </svg>
+                  </summary>
+                  <div class="alternatives-body">
+                    @for (candidate of match.inference.alternatives; track candidate.paths.join('|')) {
+                      <div class="alternative">
+                        <span>{{ candidate.paths.join(' + ') }}</span>
+                        <span>{{ percent(candidate.score) }}</span>
+                      </div>
+                    }
+                  </div>
+                </details>
               }
             } @else {
               <div class="notice warning">No usable scalar identity candidates were found for this array.</div>
@@ -156,7 +261,16 @@
           <path d="M8 7v4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
           <circle cx="8" cy="4.5" r="0.75" fill="currentColor" />
         </svg>
-        <p class="empty-text">Analysis appears here once you compare two documents.</p>
+        <p class="empty-text">
+          Analysis appears here once you compare two documents. Try
+          <a
+            href="#"
+            class="empty-link"
+            (click)="$event.preventDefault(); loadSuggestedExample()"
+            >{{ suggestedExample().name }}</a
+          >
+          example.
+        </p>
       </div>
     </section>
   }

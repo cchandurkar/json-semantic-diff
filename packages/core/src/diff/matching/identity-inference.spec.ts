@@ -220,4 +220,41 @@ describe('identity-inference score formula regressions', () => {
     expect(inference.confidence).not.toBe('high');
     expect(inference.autoApply).toBe(false);
   });
+
+  it('10. scoreBreakdown exposed on candidates and sums exactly to candidate score', () => {
+    const left: JsonObject[] = [
+      { store: 'BOS', sku: 'SKU-1001', quantity: 24, price: 12.99 },
+      { store: 'NYC', sku: 'SKU-1001', quantity: 18, price: 13.49 },
+      { store: 'BOS', sku: 'SKU-2004', quantity: 7, price: 8.5 },
+      { store: 'NYC', sku: 'SKU-2004', quantity: 11, price: 8.75 }
+    ];
+    const right: JsonObject[] = [
+      { store: 'NYC', sku: 'SKU-2004', quantity: 11, price: 9.25 },
+      { store: 'BOS', sku: 'SKU-2004', quantity: 7, price: 8.5 },
+      { store: 'NYC', sku: 'SKU-1001', quantity: 18, price: 13.49 },
+      { store: 'BOS', sku: 'SKU-1001', quantity: 19, price: 12.99 }
+    ];
+
+    const inference = inferIdentity(left, right);
+    expect(inference.best).toBeDefined();
+    const best = inference.best!;
+    expect(best.scoreBreakdown).toBeDefined();
+    expect(best.scoreBreakdown!.length).toBeGreaterThanOrEqual(6);
+
+    const labels = best.scoreBreakdown!.map((t) => t.label);
+    expect(labels).toContain('Uniqueness');
+    expect(labels).toContain('Match coverage');
+    expect(labels).toContain('Population overlap');
+    expect(labels).toContain('Completeness');
+    expect(labels).toContain('Type consistency');
+    expect(labels).toContain('Name hint');
+    // Composite candidate has complexity penalty
+    expect(labels).toContain('Complexity penalty');
+
+    const sum = best.scoreBreakdown!.reduce((acc, t) => acc + t.contribution, 0);
+    expect(sum).toBeCloseTo(best.score, 5);
+
+    expect(inference.margin).toBeDefined();
+    expect(typeof inference.margin).toBe('number');
+  });
 });

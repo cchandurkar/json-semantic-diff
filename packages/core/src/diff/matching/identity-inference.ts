@@ -1,4 +1,4 @@
-import { CandidateStats, IdentityInference, JsonObject, JsonValue } from '../../models/diff.models.js';
+import { CandidateStats, IdentityInference, JsonObject, JsonValue, ScoreBreakdownTerm } from '../../models/diff.models.js';
 
 type FlatRow = Map<string, JsonValue>;
 
@@ -61,7 +61,8 @@ export function inferIdentity(left: JsonObject[], right: JsonObject[]): Identity
     alternatives: all.slice(1, 6),
     confidence,
     autoApply: confidence === 'high' && !ambiguous,
-    ambiguous
+    ambiguous,
+    margin
   };
 }
 
@@ -90,11 +91,40 @@ function scoreCandidate(paths: string[], left: FlatRow[], right: FlatRow[], comp
   const completeness = average(completenessA, completenessB);
   const uniquenessA = uniqueRatio(leftValues);
   const uniquenessB = uniqueRatio(rightValues);
+  const uniqueness = average(uniquenessA, uniquenessB);
   const overlap = jaccard(leftValues, rightValues);
   const matchCoverage = matchedCoverage(leftValues, rightValues, Math.min(left.length, right.length));
   const typeConsistency = average(typeConsistencyFor(paths, left), typeConsistencyFor(paths, right));
   const nameHint = Math.max(...paths.map(nameHintFor));
   const volatilityPenalty = Math.max(...paths.map(volatilityFor));
+
+  const scoreBreakdown: ScoreBreakdownTerm[] = [
+    { label: 'Uniqueness', value: uniqueness, weight: 0.26, contribution: 0.26 * uniqueness },
+    { label: 'Match coverage', value: matchCoverage, weight: 0.27, contribution: 0.27 * matchCoverage },
+    { label: 'Population overlap', value: overlap, weight: 0.15, contribution: 0.15 * overlap },
+    { label: 'Completeness', value: completeness, weight: 0.16, contribution: 0.16 * completeness },
+    { label: 'Type consistency', value: typeConsistency, weight: 0.1, contribution: 0.1 * typeConsistency },
+    { label: 'Name hint', value: nameHint, weight: 0.06, contribution: 0.06 * nameHint }
+  ];
+
+  if (volatilityPenalty > 0) {
+    scoreBreakdown.push({
+      label: 'Volatility penalty',
+      value: volatilityPenalty,
+      weight: 0.03,
+      contribution: -0.03 * volatilityPenalty
+    });
+  }
+
+  const extraFields = Math.max(0, paths.length - 1);
+  if (complexityPenalty > 0 && extraFields > 0) {
+    scoreBreakdown.push({
+      label: 'Complexity penalty',
+      value: extraFields,
+      weight: complexityPenalty,
+      contribution: -complexityPenalty * extraFields
+    });
+  }
 
   // Weights sum to 1.0 at full strength (excluding penalties). `nameHint` and
   // `volatilityPenalty` are intentionally small: they exist only to break ties
@@ -102,16 +132,8 @@ function scoreCandidate(paths: string[], left: FlatRow[], right: FlatRow[], comp
   // (uniqueness, completeness, matchCoverage, overlap). A field named
   // `updatedAt` whose VALUES are actually stable should still win; a field
   // named `id` whose VALUES don't overlap should still lose.
-  const score = clamp(
-    0.26 * average(uniquenessA, uniquenessB) +
-      0.27 * matchCoverage +
-      0.15 * overlap +
-      0.16 * completeness +
-      0.1 * typeConsistency +
-      0.06 * nameHint -
-      0.03 * volatilityPenalty -
-      complexityPenalty * Math.max(0, paths.length - 1)
-  );
+  const rawScore = scoreBreakdown.reduce((sum, term) => sum + term.contribution, 0);
+  const score = clamp(rawScore);
 
   return {
     paths,
@@ -125,7 +147,8 @@ function scoreCandidate(paths: string[], left: FlatRow[], right: FlatRow[], comp
     typeConsistency,
     nameHint,
     volatilityPenalty,
-    score
+    score,
+    scoreBreakdown
   };
 }
 

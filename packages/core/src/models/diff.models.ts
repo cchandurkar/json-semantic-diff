@@ -44,6 +44,13 @@ export interface ArrayMatchOverride {
   fields?: string[];
 }
 
+export interface ScoreBreakdownTerm {
+  label: string;
+  value: number;
+  weight: number;
+  contribution: number;
+}
+
 export interface CandidateStats {
   paths: string[];
   uniquenessA: number;
@@ -58,6 +65,7 @@ export interface CandidateStats {
   nameHint: number;
   volatilityPenalty: number;
   score: number;
+  scoreBreakdown?: ScoreBreakdownTerm[];
 }
 
 export interface IdentityInference {
@@ -66,6 +74,7 @@ export interface IdentityInference {
   confidence: 'high' | 'medium' | 'low';
   autoApply: boolean;
   ambiguous: boolean;
+  margin?: number;
 }
 
 export interface ArrayMatchAnalysis {
