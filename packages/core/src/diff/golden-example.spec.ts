@@ -320,7 +320,7 @@ const GOLDEN = {
       strategy: 'identity',
       keyPaths: ['userId'],
       confidence: 'high',
-      score: 0.9
+      score: 0.9625000000000001
     }
   ],
   summary: {

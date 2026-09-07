@@ -127,7 +127,7 @@ describe('Example 2 - Reordered Users', () => {
     expect(users.outcome).toBe('identity-applied');
     expect(users.strategy).toBe('identity');
     expect(users.confidence).toBe('high');
-    expect(users.inference?.best?.score).toBeCloseTo(0.9, 10);
+    expect(users.inference?.best?.score).toBeCloseTo(0.9625000000000001, 10);
   });
 
   it('detects the reordering', () => {
@@ -160,7 +160,7 @@ describe('Example 2 - Reordered Users', () => {
     expect(carol?.rightIndex).toBe(0);
   });
 
-  it('treats Alice\'s explicit-null nickname as unchanged against the missing field, via nullEqualsMissing', () => {
+  it("treats Alice's explicit-null nickname as unchanged against the missing field, via nullEqualsMissing", () => {
     expect(example('reordered-users').options).toEqual({ nullEqualsMissing: true });
 
     const alice = result.root.children?.find((c) => c.label === 'users')?.children?.find((c) => c.path === '$.users[101]');
@@ -182,10 +182,14 @@ describe('Example 3 - Inventory by Store', () => {
     expect(new Set(rows.map((r) => `${r.store}|${r.sku}`)).size).toBe(rows.length);
   });
 
-  it('keeps both key fields stable across the two payloads', () => {
+  it('keeps the original key set intact and adds one new identity in the changed payload', () => {
     const key = (doc: unknown) =>
       (doc as { inventory: { store: string; sku: string }[] }).inventory.map((r) => `${r.store}|${r.sku}`).sort();
-    expect(key(subject.changed)).toEqual(key(subject.original));
+    const originalKeys = key(subject.original);
+    const changedKeys = key(subject.changed);
+    expect(changedKeys.length).toBe(originalKeys.length + 1);
+    for (const k of originalKeys) expect(changedKeys).toContain(k);
+    expect(changedKeys).toContain('SEA|SKU-1002');
   });
 
   it('infers a composite identity containing both store and sku', () => {
@@ -194,7 +198,7 @@ describe('Example 3 - Inventory by Store', () => {
     expect(inventory.keyPaths).toContain('store');
     expect(inventory.keyPaths).toContain('sku');
     expect(inventory.confidence).toBe('high');
-    expect(inventory.inference?.best?.score).toBeCloseTo(0.97, 10);
+    expect(inventory.inference?.best?.score).toBeCloseTo(0.94, 10);
   });
 
   it('beats both single-field candidates, which is why the composite is needed', () => {
@@ -203,17 +207,18 @@ describe('Example 3 - Inventory by Store', () => {
     for (const single of singles) expect(best).toBeGreaterThan(single.score);
   });
 
-  it('reports exactly the two intended business changes', () => {
+  it('reports exactly the two intended business changes plus the one addition', () => {
     expect(changedLeaves(result.root)).toEqual([
       '$.inventory[sku=SKU-1001;store=BOS].quantity modified 24->19',
+      '$.inventory[sku=SKU-1002;store=SEA] added undefined->{"store":"SEA","sku":"SKU-1002","quantity":8,"price":9.99}',
       '$.inventory[sku=SKU-2004;store=NYC].price modified 8.75->9.25'
     ]);
-    expect(result.summary).toEqual({ added: 0, removed: 0, modified: 2, typeChanged: 0, unchanged: 14, totalChanges: 2 });
+    expect(result.summary).toEqual({ added: 1, removed: 0, modified: 2, typeChanged: 0, unchanged: 14, totalChanges: 3 });
   });
 
-  it('detects the reordering without producing add/remove noise', () => {
+  it('detects the reordering and reports the one real addition without extra noise', () => {
     expect(inventory.reordered).toBe(true);
-    expect(result.summary.added).toBe(0);
+    expect(result.summary.added).toBe(1);
     expect(result.summary.removed).toBe(0);
   });
 });

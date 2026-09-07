@@ -91,19 +91,25 @@ function scoreCandidate(paths: string[], left: FlatRow[], right: FlatRow[], comp
   const uniquenessA = uniqueRatio(leftValues);
   const uniquenessB = uniqueRatio(rightValues);
   const overlap = jaccard(leftValues, rightValues);
-  const matchCoverage = matchedCoverage(leftValues, rightValues, Math.max(left.length, right.length));
+  const matchCoverage = matchedCoverage(leftValues, rightValues, Math.min(left.length, right.length));
   const typeConsistency = average(typeConsistencyFor(paths, left), typeConsistencyFor(paths, right));
   const nameHint = Math.max(...paths.map(nameHintFor));
   const volatilityPenalty = Math.max(...paths.map(volatilityFor));
 
+  // Weights sum to 1.0 at full strength (excluding penalties). `nameHint` and
+  // `volatilityPenalty` are intentionally small: they exist only to break ties
+  // between otherwise-equal candidates, never to override data evidence
+  // (uniqueness, completeness, matchCoverage, overlap). A field named
+  // `updatedAt` whose VALUES are actually stable should still win; a field
+  // named `id` whose VALUES don't overlap should still lose.
   const score = clamp(
-    0.25 * average(uniquenessA, uniquenessB) +
-      0.25 * matchCoverage +
+    0.26 * average(uniquenessA, uniquenessB) +
+      0.27 * matchCoverage +
       0.15 * overlap +
-      0.15 * completeness +
+      0.16 * completeness +
       0.1 * typeConsistency +
-      0.1 * nameHint -
-      0.12 * volatilityPenalty -
+      0.06 * nameHint -
+      0.03 * volatilityPenalty -
       complexityPenalty * Math.max(0, paths.length - 1)
   );
 
@@ -145,7 +151,6 @@ function nameHintFor(path: string): number {
   const tokens = tokenize(path.split('.').at(-1) ?? path);
   if (tokens.some((t) => ID_TOKENS.has(t))) return 1;
   if (tokens.some((t) => STRONG_TOKENS.has(t))) return 0.7;
-  if (tokens.includes('name')) return 0.35;
   return 0;
 }
 
@@ -181,7 +186,8 @@ function typeConsistencyFor(paths: string[], rows: FlatRow[]): number {
 function matchedCoverage(a: string[], b: string[], denominator: number): number {
   if (!denominator) return 0;
   const bSet = new Set(b);
-  return a.filter((v) => bSet.has(v)).length / denominator;
+  const matched = new Set(a.filter((v) => bSet.has(v)));
+  return matched.size / denominator;
 }
 
 function jaccard(a: string[], b: string[]): number {
