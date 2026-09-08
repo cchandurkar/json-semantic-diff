@@ -2,7 +2,15 @@ import { DOCUMENT } from '@angular/common';
 import { ChangeDetectionStrategy, Component, OnDestroy, inject, output, signal } from '@angular/core';
 import { Meta, Title } from '@angular/platform-browser';
 import { RouterLink } from '@angular/router';
-import { ArrayMatchAnalysis, DEFAULT_DIFF_OPTIONS, DiffResult, ScoreBreakdownTerm, diffJson } from 'json-semantic-diff';
+import {
+  ArrayMatchAnalysis,
+  DEFAULT_DIFF_OPTIONS,
+  DiffResult,
+  IDENTITY_CONFIDENCE_THRESHOLDS,
+  IDENTITY_SCORING_WEIGHTS,
+  ScoreBreakdownTerm,
+  diffJson
+} from 'json-semantic-diff';
 import { DIFF_EXAMPLES, DiffExample } from '../examples';
 import { decimalPercent, percent } from '../shared/format';
 
@@ -19,11 +27,18 @@ export class HowItWorksComponent implements OnDestroy {
   private readonly metaService = inject(Meta);
   private readonly doc = inject(DOCUMENT);
 
+  /** Named constants imported directly from core scoring engine */
+  readonly weights = IDENTITY_SCORING_WEIGHTS;
+  readonly thresholds = IDENTITY_CONFIDENCE_THRESHOLDS;
+
   /** Fired when user wants to load this live example into the main diff workspace */
   readonly exampleRequested = output<DiffExample>();
 
   /** Interactive demo mode: smart identity matching vs naive positional matching */
   readonly demoMode = signal<'smart' | 'position'>('smart');
+
+  /** Compact interactive safety demo mode: normal addition (4 -> 5) vs extreme mismatch (3 -> 300) */
+  readonly safetyDemoMode = signal<'normal' | 'mismatch'>('normal');
 
   /** The real built-in Inventory by Store example */
   readonly example: DiffExample = DIFF_EXAMPLES.find((e) => e.id === 'inventory-by-store') ?? DIFF_EXAMPLES[0];
@@ -181,6 +196,10 @@ export class HowItWorksComponent implements OnDestroy {
 
   setDemoMode(mode: 'smart' | 'position'): void {
     this.demoMode.set(mode);
+  }
+
+  setSafetyDemoMode(mode: 'normal' | 'mismatch'): void {
+    this.safetyDemoMode.set(mode);
   }
 
   openInWorkspace(): void {

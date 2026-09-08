@@ -570,6 +570,120 @@
   color: var(--muted-foreground);
 }
 
+.ambiguity-card {
+  margin: 18px 0;
+  padding: 16px 18px;
+  border-radius: var(--radius);
+  background: var(--card);
+  border: 1px solid var(--border);
+  box-shadow: 0 2px 10px rgb(0 0 0 / 3%);
+}
+
+.ambiguity-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.ambiguity-badge {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--warning);
+}
+
+.ambiguity-margin {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--muted-foreground);
+}
+
+.ambiguity-candidates {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+  padding: 10px 14px;
+  background: var(--muted);
+  border-radius: var(--radius);
+  border: 1px solid var(--border-subtle);
+}
+
+.ambiguity-candidate {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.cand-name {
+  font-family: var(--mono);
+  font-weight: 600;
+  font-size: 12.5px;
+  color: var(--foreground);
+}
+
+.cand-score {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  color: var(--muted-foreground);
+}
+
+.ambiguity-vs {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--subtle-foreground);
+  text-transform: uppercase;
+}
+
+.ambiguity-verdict {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: var(--radius);
+  background: var(--warning-bg);
+  border: 1px solid var(--warning-border);
+  color: var(--warning);
+  font: 500 12px var(--sans);
+}
+
+.final-cta-card {
+  margin-top: 40px;
+  padding: 24px 28px;
+  border-radius: var(--radius);
+  background: var(--card);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.final-cta-content h3 {
+  margin: 0 0 4px;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--foreground);
+}
+
+.final-cta-content p {
+  margin: 0;
+  font-size: 13px;
+  color: var(--muted-foreground);
+}
+
+.cta-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
 @media (width <= 640px) {
   .comparison-grid {
     grid-template-columns: 1fr;
@@ -586,5 +700,16 @@
 
   .action-btn {
     justify-content: center;
+  }
+
+  .final-cta-card {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .ambiguity-candidates {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
   }
 }

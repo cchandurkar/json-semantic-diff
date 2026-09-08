@@ -20,6 +20,42 @@ const VOLATILE_TOKENS = new Set([
 ]);
 
 /**
+ * Weights for each term of the identity-candidate score formula (see
+ * `scoreCandidate`). The six positive weights sum to 1.0 at full strength;
+ * `volatilityPenalty` and `complexityPenaltyPerExtraField` are subtracted.
+ * Exported so consumers (e.g. the `/how-it-works` UI page) can document the
+ * exact formula without hard-coding a second copy of these numbers.
+ */
+export const IDENTITY_SCORING_WEIGHTS = {
+  uniqueness: 0.26,
+  matchCoverage: 0.27,
+  overlap: 0.15,
+  completeness: 0.16,
+  typeConsistency: 0.1,
+  nameHint: 0.06,
+  volatilityPenalty: 0.03,
+  complexityPenaltyPerExtraField: 0.03
+} as const;
+
+/**
+ * Confidence-gate thresholds applied to the best-scoring identity candidate
+ * (see `inferIdentity`). Exported for the same reason as
+ * `IDENTITY_SCORING_WEIGHTS` - a single source of truth for documentation.
+ */
+export const IDENTITY_CONFIDENCE_THRESHOLDS = {
+  highScore: 0.9,
+  highMargin: 0.05,
+  highMatchCoverage: 0.7,
+  highUniqueness: 0.95,
+  mediumScore: 0.75,
+  mediumMargin: 0.03,
+  mediumMatchCoverage: 0.5,
+  mediumUniqueness: 0.95,
+  ambiguousScore: 0.75,
+  ambiguousMargin: 0.05
+} as const;
+
+/**
  * Canonical field order for a composite key: alphabetical by path string.
  * A composite key is a SET of fields, not a sequence, so the same set must
  * always produce the same displayed path/id regardless of discovery order
@@ -48,7 +84,12 @@ export function inferIdentity(left: JsonObject[], right: JsonObject[]): Identity
   if (!singleIsIdentityQuality) {
     for (let i = 0; i < viable.length; i++) {
       for (let j = i + 1; j < viable.length; j++) {
-        const combo = scoreCandidate(sortFields([...viable[i].paths, ...viable[j].paths]), leftFlat, rightFlat, 0.03);
+        const combo = scoreCandidate(
+          sortFields([...viable[i].paths, ...viable[j].paths]),
+          leftFlat,
+          rightFlat,
+          IDENTITY_SCORING_WEIGHTS.complexityPenaltyPerExtraField
+        );
         if (combo) composites.push(combo);
       }
     }
@@ -58,13 +99,32 @@ export function inferIdentity(left: JsonObject[], right: JsonObject[]): Identity
   const best = all[0];
   const second = all[1];
   const margin = best && second ? best.score - second.score : best ? best.score : 0;
-  const ambiguous = !!best && !!second && best.score >= 0.75 && second.score >= 0.75 && margin < 0.05;
+  const ambiguous =
+    !!best &&
+    !!second &&
+    best.score >= IDENTITY_CONFIDENCE_THRESHOLDS.ambiguousScore &&
+    second.score >= IDENTITY_CONFIDENCE_THRESHOLDS.ambiguousScore &&
+    margin < IDENTITY_CONFIDENCE_THRESHOLDS.ambiguousMargin;
 
   let confidence: IdentityInference['confidence'] = 'low';
   if (best) {
-    const uniqueEnough = best.uniquenessA >= 0.95 && best.uniquenessB >= 0.95;
-    if (best.score >= 0.9 && margin >= 0.05 && best.matchCoverage >= 0.7 && uniqueEnough) confidence = 'high';
-    else if (best.score >= 0.75 && margin >= 0.03 && best.matchCoverage >= 0.5 && uniqueEnough) confidence = 'medium';
+    const uniqueEnough =
+      best.uniquenessA >= IDENTITY_CONFIDENCE_THRESHOLDS.highUniqueness &&
+      best.uniquenessB >= IDENTITY_CONFIDENCE_THRESHOLDS.highUniqueness;
+    if (
+      best.score >= IDENTITY_CONFIDENCE_THRESHOLDS.highScore &&
+      margin >= IDENTITY_CONFIDENCE_THRESHOLDS.highMargin &&
+      best.matchCoverage >= IDENTITY_CONFIDENCE_THRESHOLDS.highMatchCoverage &&
+      uniqueEnough
+    )
+      confidence = 'high';
+    else if (
+      best.score >= IDENTITY_CONFIDENCE_THRESHOLDS.mediumScore &&
+      margin >= IDENTITY_CONFIDENCE_THRESHOLDS.mediumMargin &&
+      best.matchCoverage >= IDENTITY_CONFIDENCE_THRESHOLDS.mediumMatchCoverage &&
+      uniqueEnough
+    )
+      confidence = 'medium';
   }
 
   return {
@@ -110,20 +170,50 @@ function scoreCandidate(paths: string[], left: FlatRow[], right: FlatRow[], comp
   const volatilityPenalty = Math.max(...paths.map(volatilityFor));
 
   const scoreBreakdown: ScoreBreakdownTerm[] = [
-    { label: 'Uniqueness', value: uniqueness, weight: 0.26, contribution: 0.26 * uniqueness },
-    { label: 'Match coverage', value: matchCoverage, weight: 0.27, contribution: 0.27 * matchCoverage },
-    { label: 'Population overlap', value: overlap, weight: 0.15, contribution: 0.15 * overlap },
-    { label: 'Completeness', value: completeness, weight: 0.16, contribution: 0.16 * completeness },
-    { label: 'Type consistency', value: typeConsistency, weight: 0.1, contribution: 0.1 * typeConsistency },
-    { label: 'Name hint', value: nameHint, weight: 0.06, contribution: 0.06 * nameHint }
+    {
+      label: 'Uniqueness',
+      value: uniqueness,
+      weight: IDENTITY_SCORING_WEIGHTS.uniqueness,
+      contribution: IDENTITY_SCORING_WEIGHTS.uniqueness * uniqueness
+    },
+    {
+      label: 'Match coverage',
+      value: matchCoverage,
+      weight: IDENTITY_SCORING_WEIGHTS.matchCoverage,
+      contribution: IDENTITY_SCORING_WEIGHTS.matchCoverage * matchCoverage
+    },
+    {
+      label: 'Population overlap',
+      value: overlap,
+      weight: IDENTITY_SCORING_WEIGHTS.overlap,
+      contribution: IDENTITY_SCORING_WEIGHTS.overlap * overlap
+    },
+    {
+      label: 'Completeness',
+      value: completeness,
+      weight: IDENTITY_SCORING_WEIGHTS.completeness,
+      contribution: IDENTITY_SCORING_WEIGHTS.completeness * completeness
+    },
+    {
+      label: 'Type consistency',
+      value: typeConsistency,
+      weight: IDENTITY_SCORING_WEIGHTS.typeConsistency,
+      contribution: IDENTITY_SCORING_WEIGHTS.typeConsistency * typeConsistency
+    },
+    {
+      label: 'Name hint',
+      value: nameHint,
+      weight: IDENTITY_SCORING_WEIGHTS.nameHint,
+      contribution: IDENTITY_SCORING_WEIGHTS.nameHint * nameHint
+    }
   ];
 
   if (volatilityPenalty > 0) {
     scoreBreakdown.push({
       label: 'Volatility penalty',
       value: volatilityPenalty,
-      weight: 0.03,
-      contribution: -0.03 * volatilityPenalty
+      weight: IDENTITY_SCORING_WEIGHTS.volatilityPenalty,
+      contribution: -IDENTITY_SCORING_WEIGHTS.volatilityPenalty * volatilityPenalty
     });
   }
 

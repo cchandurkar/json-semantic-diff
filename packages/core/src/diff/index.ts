@@ -6,7 +6,14 @@
  */
 export { diffJson } from './diff-engine.js';
 export { DEFAULT_DIFF_OPTIONS } from './options.js';
-export { inferIdentity, readPath, evaluateKey, eligibleKeyPaths } from './matching/identity-inference.js';
+export {
+  inferIdentity,
+  readPath,
+  evaluateKey,
+  eligibleKeyPaths,
+  IDENTITY_SCORING_WEIGHTS,
+  IDENTITY_CONFIDENCE_THRESHOLDS
+} from './matching/identity-inference.js';
 export { matchArrays, selectArrayStrategy, resolveOverride, pairByIdentity, pairByPosition } from './matching/matching.js';
 export type { ArrayMatchResult, MatchedPair } from './matching/matching.js';
 export { normalize, looksLikeTimestamp } from './normalization/normalization.js';

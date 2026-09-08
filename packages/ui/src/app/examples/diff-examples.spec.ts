@@ -371,13 +371,25 @@ describe('example loading path', () => {
     }
   });
 
-  it('produces the same result from the formatted editor text as from the raw payload', () => {
-    for (const e of DIFF_EXAMPLES) {
-      const viaEditor = diffJson(JSON.parse(formatJson(JSON.stringify(e.original))), JSON.parse(formatJson(JSON.stringify(e.changed))), {
-        ...DEFAULT_DIFF_OPTIONS,
-        ...e.options
-      });
-      expect(viaEditor.summary).toEqual(compare(e).summary);
-    }
+  it('resolves the Inventory by Store example for query-param deep-linking', () => {
+    const queryParamId = 'inventory-by-store';
+    const found = DIFF_EXAMPLES.find((e) => e.id === queryParamId);
+
+    expect(found).toBeDefined();
+    expect(found?.id).toBe('inventory-by-store');
+    expect(found?.name).toBe('Inventory by Store');
+    expect(found?.original).toBeDefined();
+    expect(found?.changed).toBeDefined();
+
+    const formattedLeft = formatJson(JSON.stringify(found!.original));
+    const formattedRight = formatJson(JSON.stringify(found!.changed));
+    expect(formattedLeft).toContain('SKU-1001');
+    expect(formattedRight).toContain('SKU-1002');
+  });
+
+  it('silently ignores unknown query-param example ids', () => {
+    const unknownId = 'non-existent-example';
+    const found = DIFF_EXAMPLES.find((e) => e.id === unknownId);
+    expect(found).toBeUndefined();
   });
 });

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { DEFAULT_DIFF_OPTIONS, diffJson } from 'json-semantic-diff';
+import { DEFAULT_DIFF_OPTIONS, IDENTITY_CONFIDENCE_THRESHOLDS, IDENTITY_SCORING_WEIGHTS, diffJson } from 'json-semantic-diff';
 import { DIFF_EXAMPLES } from '../examples';
 
 describe('HowItWorks worked example computation', () => {
@@ -26,7 +26,7 @@ describe('HowItWorks worked example computation', () => {
     expect(result.summary.totalChanges).toBe(3);
   });
 
-  it('accurately calculates the 6 scoring signals and composite penalty for store + sku', () => {
+  it('accurately calculates scoring signals consistent with IDENTITY_SCORING_WEIGHTS', () => {
     const result = diffJson(example.original, example.changed, DEFAULT_DIFF_OPTIONS);
     const best = result.arrays[0].inference?.best;
 
@@ -41,17 +41,30 @@ describe('HowItWorks worked example computation', () => {
     const breakdown = best?.scoreBreakdown ?? [];
     const termMap = new Map(breakdown.map((t) => [t.label, t]));
 
-    // Check weights matching the real current identity-inference.ts
-    expect(termMap.get('Uniqueness')?.weight).toBe(0.26);
-    expect(termMap.get('Match coverage')?.weight).toBe(0.27);
-    expect(termMap.get('Population overlap')?.weight).toBe(0.15);
-    expect(termMap.get('Completeness')?.weight).toBe(0.16);
-    expect(termMap.get('Type consistency')?.weight).toBe(0.1);
-    expect(termMap.get('Name hint')?.weight).toBe(0.06);
-    expect(termMap.get('Complexity penalty')?.weight).toBe(0.03);
+    expect(termMap.get('Uniqueness')?.weight).toBe(IDENTITY_SCORING_WEIGHTS.uniqueness);
+    expect(termMap.get('Match coverage')?.weight).toBe(IDENTITY_SCORING_WEIGHTS.matchCoverage);
+    expect(termMap.get('Population overlap')?.weight).toBe(IDENTITY_SCORING_WEIGHTS.overlap);
+    expect(termMap.get('Completeness')?.weight).toBe(IDENTITY_SCORING_WEIGHTS.completeness);
+    expect(termMap.get('Type consistency')?.weight).toBe(IDENTITY_SCORING_WEIGHTS.typeConsistency);
+    expect(termMap.get('Name hint')?.weight).toBe(IDENTITY_SCORING_WEIGHTS.nameHint);
+    expect(termMap.get('Complexity penalty')?.weight).toBe(IDENTITY_SCORING_WEIGHTS.complexityPenaltyPerExtraField);
 
     // Score is 0.94 (clearing auto-apply gate >= 0.90)
     expect(best?.score).toBe(0.94);
+  });
+
+  it('demonstrates safety demo metrics (4->5 normal addition vs 3->300 extreme mismatch)', () => {
+    // Normal addition: 4 items vs 5 items (4 shared)
+    const normalCoverage = 4 / Math.min(4, 5); // 1.0 (100%)
+    const normalOverlap = 4 / 5; // 0.8 (80%)
+    expect(normalCoverage).toBe(1.0);
+    expect(normalOverlap).toBe(0.8);
+
+    // Extreme mismatch: 3 items vs 300 items (3 shared)
+    const mismatchCoverage = 3 / Math.min(3, 300); // 1.0 (100%)
+    const mismatchOverlap = 3 / 300; // 0.01 (1%)
+    expect(mismatchCoverage).toBe(1.0);
+    expect(mismatchOverlap).toBe(0.01);
   });
 
   it('demonstrates the dramatic contrast with naive positional matching (17 vs 3 changes)', () => {
@@ -67,13 +80,13 @@ describe('HowItWorks worked example computation', () => {
     expect(positional.summary.modified).toBe(16);
   });
 
-  it('clears all decision gates: high confidence, margin >= 0.05, not ambiguous', () => {
+  it('clears all decision gates: high confidence, margin >= highMargin, not ambiguous', () => {
     const result = diffJson(example.original, example.changed, DEFAULT_DIFF_OPTIONS);
     const inference = result.arrays[0].inference;
 
     expect(inference?.autoApply).toBe(true);
     expect(inference?.ambiguous).toBe(false);
     expect(inference?.confidence).toBe('high');
-    expect(inference?.margin).toBeGreaterThanOrEqual(0.05);
+    expect(inference?.margin).toBeGreaterThanOrEqual(IDENTITY_CONFIDENCE_THRESHOLDS.highMargin);
   });
 });

@@ -40,7 +40,7 @@ import { formatChange, formatNewValue, formatOldValue, formatSemanticPath, forma
 import { ToastMessage, createToast } from './shared/toast';
 import { ThemePreference, applyTheme, readStoredTheme, storeTheme } from './shared/theme';
 import { Meta, Title } from '@angular/platform-browser';
-import { NavigationEnd, Router, RouterLink, RouterOutlet } from '@angular/router';
+import { ActivatedRoute, NavigationEnd, Router, RouterLink, RouterOutlet } from '@angular/router';
 import { filter } from 'rxjs';
 import {
   ANALYSIS_PANEL_DEFAULT_WIDTH,
@@ -51,7 +51,7 @@ import {
   storeAnalysisPanelWidth
 } from './shared/resizable-panel';
 import { flattenChanges } from './source';
-import { DiffExample } from './examples';
+import { DIFF_EXAMPLES, DiffExample } from './examples';
 
 const EDITOR_HEIGHT_DEFAULT = 260;
 const EDITOR_HEIGHT_COMPACT = 170;
@@ -180,12 +180,23 @@ export class AppComponent implements OnDestroy {
   private panelResizeStartWidth = 0;
 
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
   private readonly titleService = inject(Title);
   private readonly metaService = inject(Meta);
   private readonly doc = inject(DOCUMENT);
   readonly isHowItWorks = signal(false);
 
   constructor() {
+    this.route.queryParamMap.subscribe((params) => {
+      const exampleId = params.get('example');
+      if (!exampleId) return;
+      const found = DIFF_EXAMPLES.find((e) => e.id === exampleId);
+      if (found) {
+        this.loadExample(found);
+        this.router.navigate([], { replaceUrl: true, queryParams: {} });
+      }
+    });
+
     this.router.events.pipe(filter((e): e is NavigationEnd => e instanceof NavigationEnd)).subscribe((e) => {
       const onHowItWorks = e.urlAfterRedirects.startsWith('/how-it-works');
       this.isHowItWorks.set(onHowItWorks);

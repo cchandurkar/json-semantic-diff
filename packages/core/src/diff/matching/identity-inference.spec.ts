@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { JsonObject } from '../../models/diff.models';
-import { evaluateKey, inferIdentity } from './identity-inference';
+import { evaluateKey, IDENTITY_CONFIDENCE_THRESHOLDS, IDENTITY_SCORING_WEIGHTS, inferIdentity } from './identity-inference';
 
 /**
  * Regression tests for the array-identity-matching score formula.
@@ -15,6 +15,33 @@ import { evaluateKey, inferIdentity } from './identity-inference';
  */
 
 describe('identity-inference score formula regressions', () => {
+  it('0. exported scoring weights and confidence thresholds have the expected current values', () => {
+    // Snapshot-style guard: if these values ever drift, it must be an
+    // intentional, reviewed change - not an accidental refactor side effect.
+    expect(IDENTITY_SCORING_WEIGHTS).toEqual({
+      uniqueness: 0.26,
+      matchCoverage: 0.27,
+      overlap: 0.15,
+      completeness: 0.16,
+      typeConsistency: 0.1,
+      nameHint: 0.06,
+      volatilityPenalty: 0.03,
+      complexityPenaltyPerExtraField: 0.03
+    });
+    expect(IDENTITY_CONFIDENCE_THRESHOLDS).toEqual({
+      highScore: 0.9,
+      highMargin: 0.05,
+      highMatchCoverage: 0.7,
+      highUniqueness: 0.95,
+      mediumScore: 0.75,
+      mediumMargin: 0.03,
+      mediumMatchCoverage: 0.5,
+      mediumUniqueness: 0.95,
+      ambiguousScore: 0.75,
+      ambiguousMargin: 0.05
+    });
+  });
+
   it('1. inventory composite key (store, sku): reorder + modifications + one addition auto-matches', () => {
     // Mirrors packages/ui/src/app/examples/diff-examples.ts INVENTORY_BY_STORE
     // (left 4 rows, right 5 rows - one new store/sku added).
