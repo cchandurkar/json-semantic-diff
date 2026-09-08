@@ -15,6 +15,8 @@ test('compares two pasted JSON documents and shows the diff', async ({ page }) =
 
   await page.getByRole('button', { name: 'Compare JSON' }).click();
 
+  // Source is the default view; switch to Tree to verify it renders the diff.
+  await page.getByRole('tab', { name: 'Tree' }).click();
   const tree = page.getByRole('tree');
   await expect(tree).toBeVisible();
   await expect(tree).toContainText('Alice');

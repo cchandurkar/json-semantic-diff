@@ -16,6 +16,8 @@ test('loads the first built-in example and computes a diff automatically', async
   await expect(page.getByLabel('ORIGINAL JSON')).not.toBeEmpty();
   await expect(page.getByLabel('CHANGED JSON')).not.toBeEmpty();
 
+  // Source is the default view; switch to Tree to verify it renders too.
+  await page.getByRole('tab', { name: 'Tree' }).click();
   await expect(page.getByRole('tree')).toBeVisible();
 
   await page.getByRole('button', { name: 'Analysis' }).click();
