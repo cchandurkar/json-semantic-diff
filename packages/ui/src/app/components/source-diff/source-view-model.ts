@@ -11,7 +11,8 @@ import { DiffSegment, diffText } from '../../shared/text-diff';
  */
 
 /** One entry in the rendered stream: either a real row or a collapsed-region placeholder. */
-export type SourceViewItem = { kind: 'row'; row: SourceDiffRow } | { kind: 'collapsed'; key: string; hiddenLines: number };
+export type SourceViewItem =
+  { kind: 'row'; row: SourceDiffRow; trackId: string } | { kind: 'collapsed'; key: string; hiddenLines: number; trackId: string };
 
 /**
  * Flattens segments into the rendered stream, expanding only the regions whose
@@ -20,9 +21,9 @@ export type SourceViewItem = { kind: 'row'; row: SourceDiffRow } | { kind: 'coll
  */
 export function buildItems(segments: SourceSegment[], expanded: ReadonlySet<string>): SourceViewItem[] {
   return segments.flatMap<SourceViewItem>((segment) => {
-    if (segment.kind === 'rows') return segment.rows.map((row) => ({ kind: 'row', row }));
-    if (expanded.has(segment.key)) return segment.rows().map((row) => ({ kind: 'row', row }));
-    return [{ kind: 'collapsed', key: segment.key, hiddenLines: segment.hiddenLines }];
+    if (segment.kind === 'rows') return segment.rows.map((row) => ({ kind: 'row', row, trackId: row.nodeId }));
+    if (expanded.has(segment.key)) return segment.rows().map((row) => ({ kind: 'row', row, trackId: row.nodeId }));
+    return [{ kind: 'collapsed', key: segment.key, hiddenLines: segment.hiddenLines, trackId: segment.key }];
   });
 }
 

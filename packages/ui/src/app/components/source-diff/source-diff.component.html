@@ -5,7 +5,7 @@
   </p>
 
   <div class="source-scroll">
-    @for (item of items(); track $index) {
+    @for (item of items(); track item.trackId) {
       @if (item.kind === 'collapsed') {
         <button
           type="button"
