@@ -48,24 +48,51 @@
     </section>
 
     <section class="panel-section" data-tour="changes-by-area">
-      <h3 class="panel-heading">Changes by area</h3>
-      <div class="overview-content">
-        <app-change-overview [root]="diff.root" [selectedNodeId]="selectedNodeId()" (nodeSelected)="nodeSelected.emit($event)" />
-      </div>
+      <details class="panel-collapsible" open>
+        <summary class="panel-heading-summary">
+          <h3 class="panel-heading">Changes by area</h3>
+          <svg class="panel-chevron" width="10" height="10" viewBox="0 0 10 10" aria-hidden="true" focusable="false">
+            <path
+              d="M2 3.5l3 3 3-3"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+        </summary>
+        <div class="overview-content">
+          <app-change-overview [root]="diff.root" [selectedNodeId]="selectedNodeId()" (nodeSelected)="nodeSelected.emit($event)" />
+        </div>
+      </details>
     </section>
 
     @if (hasAnalysis()) {
       <section class="panel-section" data-tour="analysis-explanation">
-        <h3 class="panel-heading">Array matching analysis</h3>
-        <div class="summary-meta">
-          <span>{{ diff.arrays.length }} arrays analyzed</span>
-          <span>{{ diff.autoMatchedCount }} auto-matched</span>
-          <span>{{ diff.elapsedMs }} ms</span>
-        </div>
-        <div class="matching-content">
-          <app-array-picker [arrays]="diff.arrays" [selectedPath]="dropdownPath()" (pathSelected)="chooseArray($event)" />
+        <details class="panel-collapsible" open>
+          <summary class="panel-heading-summary">
+            <h3 class="panel-heading">Array matching analysis</h3>
+            <svg class="panel-chevron" width="10" height="10" viewBox="0 0 10 10" aria-hidden="true" focusable="false">
+              <path
+                d="M2 3.5l3 3 3-3"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+          </summary>
+          <div class="summary-meta">
+            <span>{{ diff.arrays.length }} arrays analyzed</span>
+            <span>{{ diff.autoMatchedCount }} auto-matched</span>
+            <span>{{ diff.elapsedMs }} ms</span>
+          </div>
+          <div class="matching-content">
+            <app-array-picker [arrays]="diff.arrays" [selectedPath]="dropdownPath()" (pathSelected)="chooseArray($event)" />
 
-          @if (analysis(); as match) {
+            @if (analysis(); as match) {
             @if (match.duplicateKeyCount) {
               <div class="notice warning">
                 ⚠ {{ match.duplicateKeyCount }} duplicate {{ match.duplicateKeyCount === 1 ? 'key' : 'keys' }} — rows sharing a key are
@@ -243,6 +270,7 @@
             <p class="panel-footnote">Scoring is deterministic and local. No ML or external service is used.</p>
           }
         </div>
+        </details>
       </section>
     }
   } @else {

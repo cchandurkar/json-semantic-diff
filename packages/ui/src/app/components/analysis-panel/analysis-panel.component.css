@@ -91,6 +91,45 @@
   text-transform: uppercase;
 }
 
+.panel-collapsible {
+  display: block;
+}
+
+.panel-heading-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 0 0 8px;
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+}
+
+.panel-heading-summary::-webkit-details-marker {
+  display: none;
+}
+
+.panel-heading-summary:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+  border-radius: var(--radius);
+}
+
+.panel-heading-summary .panel-heading {
+  margin: 0;
+}
+
+.panel-chevron {
+  flex: none;
+  color: var(--muted-foreground);
+  transition: transform 0.15s ease;
+}
+
+.panel-collapsible[open] > .panel-heading-summary .panel-chevron {
+  transform: rotate(180deg);
+}
+
 .panel-empty-callout {
   display: flex;
   align-items: flex-start;
