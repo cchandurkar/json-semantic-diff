@@ -19,3 +19,6 @@ test-results/
 
 # Demo recording artifacts (packages/ui/demo/record.mjs output)
 packages/ui/demo/output/
+
+# AI
+.opencode
