@@ -46,30 +46,35 @@ This alias causes `ng build`/`ng test` to print `File '...' not found in TypeScr
 
 ## Architecture
 
-- `packages/core/src/index.ts` — public API of the diff core (the npm package's entry point). Consumers import from here, not from the modules below.
-- `packages/core/src/diff/index.ts` — re-exported by the package entry point; internal barrel for the diff engine's own modules.
-- `packages/core/src/diff/diff-engine.ts` — recursive structural diff and diff node generation.
-- `packages/core/src/diff/options.ts` — `DiffOptions` and `DEFAULT_DIFF_OPTIONS`.
-- `packages/core/src/diff/path.ts` — path segment model plus the `path` and stable `id` serializers.
-- `packages/core/src/diff/matching/identity-inference.ts` — deterministic candidate discovery and scoring.
-- `packages/core/src/diff/matching/matching.ts` — array strategy selection, element pairing, reorder detection.
-- `packages/core/src/diff/normalization/normalization.ts` — timestamp and numeric-string normalization.
-- `packages/core/src/diff/ignore/ignore-rules.ts` — ignore-rule wildcard evaluation.
-- `packages/core/src/models/diff.models.ts` — shared domain models (canonical diff result).
-- `packages/ui/src/app/app.routes.ts` / `app.routes.server.ts` / `app.config.server.ts` / `src/main.server.ts` — prerendering scaffolding only (see "Prerendering" above); not a real routing/navigation layer.
-- `packages/ui/src/app/source/index.ts` — public API of the Source presentation layer (framework-free, but app-side: consumes `DiffResult` from `json-semantic-diff`).
-- `packages/ui/src/app/source/source-emitter.ts` — turns a `DiffResult` into side-by-side source rows; re-runs no diff logic.
-- `packages/ui/src/app/source/source-segments.ts` — changes-only segmentation with lazy collapsed regions.
-- `packages/ui/src/app/examples/diff-examples.ts` — built-in demo payloads (pure JSON + optional `DiffOptions`).
-- `packages/ui/src/app/shared/format.ts` — presentation-only formatting helpers shared by components.
-- `packages/ui/src/app/shared/format-json.ts` — pretty-print helper for the raw JSON textareas (UI-only, not part of the diff engine's contract).
-- `packages/ui/src/app/shared/node-navigation.ts` — pure ancestor/lookup/prev-next helpers keyed on `DiffNode.id`.
-- `packages/ui/src/app/components/json-input/` — JSON paste/drop/open surface.
-- `packages/ui/src/app/components/diff-tree/` — primary tree result renderer.
-- `packages/ui/src/app/components/source-diff/` — side-by-side Source renderer; `source-view-model.ts` holds its pure logic.
-- `packages/ui/src/app/components/example-picker/` — dropdown for loading the built-in examples.
-- `packages/ui/src/app/components/analysis-panel/` — explainability surface for identity inference.
-- `packages/ui/src/app/app.component.*` — page composition and comparison-level state.
+This is a directory-level map, not a file inventory — it intentionally omits individual
+filenames except where a specific file is load-bearing for a rule elsewhere in this document.
+New files added inside an existing directory don't require updating this section; new
+top-level directories or a change in a directory's responsibility do.
+
+**`packages/core/src/`** — the framework-free diff engine.
+
+- `index.ts` is the published npm package's entry point; consumers (including `packages/ui`)
+  must import only from here, never reach into modules below it directly.
+- `diff/` — recursive structural diff, array-matching strategy/identity-inference/reorder
+  detection, timestamp/numeric-string normalization, and ignore-rule wildcard evaluation.
+- `models/` — shared domain models (`DiffResult`, `DiffNode`, `DiffOptions`, etc.).
+
+**`packages/ui/src/app/`** — the Angular app.
+
+- `app.routes.ts` / `app.routes.server.ts` / `app.config.server.ts` / `src/main.server.ts` —
+  prerendering scaffolding (see "Prerendering" above); route additions here are a routing
+  decision, not incidental to prerendering.
+- `components/` — one directory per UI feature (json-input, diff-tree, source-diff,
+  analysis-panel, array-matching, array-picker, change-overview, example-picker, sidebar,
+  search-control, toast, code-editor, etc.); each owns its own template/styles/spec.
+- `source/` — framework-free Source (side-by-side) view-model layer; `index.ts` is its public
+  surface. Consumes `DiffResult` only and re-runs no diff logic of its own.
+- `shared/` — framework-adjacent pure/presentational utilities consumed across components
+  (formatting, clipboard, tooltip, node navigation/actions, search indexing, storage helpers).
+- `examples/` — built-in demo payloads (pure JSON + optional `DiffOptions`).
+- `how-it-works/` — static informational page content (see the one-page principle above for
+  the constraint this must stay within).
+- `app.component.*` — page composition and comparison-level state.
 
 Keep diff/domain logic framework-independent. It should be testable without Angular.
 `packages/core` must not import Angular, RxJS, or DOM APIs; `packages/ui` components are
