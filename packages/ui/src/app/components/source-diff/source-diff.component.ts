@@ -95,16 +95,18 @@ export class SourceDiffComponent {
   }
 
   /**
-   * Copy-only menu for a source row (§9).
+   * Copy + Comparison menu for a source row (§9).
    *
    * Source rows map to canonical node ids, so the same `buildNodeMenu` model is
-   * reused and then filtered to the copy group: ignore and matching actions need
-   * tree context (the containing array) that a flat row does not carry.
+   * reused. `target` is omitted (and so is the "Array matching" group): pinning
+   * a matching key needs the containing array's ancestor chain, which a flat
+   * row does not carry - `deriveMatchingTarget` requires the full tree. Ignore
+   * actions don't take a target at all, so they're safe to expose here.
    */
   rowMenu(nodeId: string): NodeMenuGroup[] {
     const node = this.nodeFor(nodeId);
     if (!node) return [];
-    return buildNodeMenu(node).filter((group) => group.title === 'Copy');
+    return buildNodeMenu(node).filter((group) => group.title === 'Copy' || group.title === 'Comparison');
   }
 
   emitAction(action: NodeActionId, nodeId: string): void {

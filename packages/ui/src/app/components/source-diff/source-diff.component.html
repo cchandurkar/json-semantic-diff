@@ -102,17 +102,21 @@
 <!-- prettier-ignore -->
 <ng-template #highlighted let-text>@for (part of matchSpans(text, searchQuery()); track $index) {@if (part.hit) {<mark class="search-hit">{{ part.text }}</mark>} @else {<ng-container>{{ part.text }}</ng-container>}}</ng-template>
 
-<!-- Copy-only menu shared by the row right-click trigger and the "⋯" button. -->
+<!-- Copy/Comparison menu shared by the row right-click trigger and the "⋯" button. -->
 <ng-template #rowActions let-nodeId>
   <div cdkMenu aria-label="Row actions">
-    @for (group of rowMenu(nodeId); track group.title) {
+    @for (group of rowMenu(nodeId); track group.title; let last = $last) {
       <div cdkMenuGroup [attr.aria-label]="group.title">
+        <p class="node-menu-title">{{ group.title }}</p>
         @for (item of group.items; track item.id) {
           <button type="button" cdkMenuItem (cdkMenuItemTriggered)="emitAction(item.id, nodeId)">
             {{ item.label }}
           </button>
         }
       </div>
+      @if (!last) {
+        <hr class="node-menu-separator" aria-hidden="true" />
+      }
     }
   </div>
 </ng-template>
