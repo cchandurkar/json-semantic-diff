@@ -376,7 +376,11 @@ export class AppComponent implements OnDestroy {
     const right = this.parse(rightText, this.rightError);
     if (left === undefined || right === undefined) return;
     const firstCompare = !this.result();
-    this.result.set(diffJson(left, right, this.options()));
+    try {
+      this.result.set(diffJson(left, right, this.options()));
+    } catch (error) {
+      this.showToast(`Comparison failed: ${error instanceof Error ? error.message : String(error)}. Try simplifying the input.`, 'error');
+    }
     this.dirty.set(false);
     // Entering compact mode shrinks both editors; later recompares keep the user's size.
     if (firstCompare) this.editorHeight.set(EDITOR_HEIGHT_COMPACT);
@@ -723,7 +727,13 @@ export class AppComponent implements OnDestroy {
   private recompareSilently(): void {
     const left = this.safeParse(this.leftText());
     const right = this.safeParse(this.rightText());
-    if (left !== undefined && right !== undefined) this.result.set(diffJson(left, right, this.options()));
+    if (left !== undefined && right !== undefined) {
+      try {
+        this.result.set(diffJson(left, right, this.options()));
+      } catch (error) {
+        this.showToast(`Comparison failed: ${error instanceof Error ? error.message : String(error)}. Try simplifying the input.`, 'error');
+      }
+    }
   }
 
   private parse(text: string, errorSignal: { set(value: string | null): void }): JsonValue | undefined {
