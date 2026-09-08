@@ -25,6 +25,7 @@ import { ToastComponent } from './components/toast/toast.component';
 import { ArrayMatchingContext } from './components/array-matching/array-matching.component';
 import { ArrayMatchAnalysis, DEFAULT_DIFF_OPTIONS, DiffOptions, DiffResult, JsonValue, diffJson } from 'json-semantic-diff';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import type { HowItWorksComponent } from './how-it-works/how-it-works.component';
 import { formatJson } from './shared/format-json';
 import { findNodeById, findNodeByPath, stepChange, subtreeIds } from './shared/node-navigation';
 import { buildSearchIndex, searchDiff, stepSearchResult } from './shared/search-index';
@@ -475,9 +476,7 @@ export class AppComponent implements OnDestroy {
   }
 
   onRouteActivate(componentRef: unknown): void {
-    const component = componentRef as {
-      exampleRequested?: { subscribe: (fn: (example: DiffExample) => void) => void };
-    };
+    const component = componentRef as HowItWorksComponent;
     component.exampleRequested?.subscribe((example: DiffExample) => {
       this.loadExample(example);
       this.navigateToDiff();
