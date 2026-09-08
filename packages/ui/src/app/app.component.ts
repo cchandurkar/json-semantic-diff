@@ -555,7 +555,9 @@ export class AppComponent implements OnDestroy {
     return (event.target as HTMLInputElement).checked;
   }
 
-  inputStatus(text: string, error: string | null): string {
+  readonly inputStatus = computed(() => {
+    const text = this.leftText();
+    const error = this.leftError();
     if (error) return 'Invalid JSON';
     if (!text.trim()) return '';
     try {
@@ -566,7 +568,7 @@ export class AppComponent implements OnDestroy {
     } catch {
       return 'Ready to validate';
     }
-  }
+  });
 
   /** Fired by the Tree's match pill: selects that array in the (always-visible) analysis panel. */
   openAnalysis(path: string): void {

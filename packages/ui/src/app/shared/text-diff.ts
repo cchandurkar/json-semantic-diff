@@ -6,6 +6,26 @@ export interface DiffSegment {
 /** Above this many token pairs, the O(n·m) LCS table is skipped entirely. */
 const MAX_TOKEN_PRODUCT = 200_000;
 
+/** Memoization cache for diffText: keyed by the serialized token pair so the
+ * O(n·m) LCS table is rebuilt only when the actual text changes, not on every
+ * change-detection tick. */
+const diffTextCache = new Map<string, { left: DiffSegment[]; right: DiffSegment[] }>();
+
+/** Key for cache entry: oldText + NUL + newText (both strings are already
+ * normalised by the caller via display(), so the key is deterministic). */
+function cacheKey(oldText: string, newText: string): string {
+  return oldText + '\0' + newText;
+}
+
+/** Caches `result` under `key`, evicting the whole cache once it grows past a
+ * bound (simpler than LRU; diff sessions only ever have a bounded number of
+ * distinct modified-value pairs visible/scrolled through at once). */
+function remember(key: string, result: { left: DiffSegment[]; right: DiffSegment[] }): { left: DiffSegment[]; right: DiffSegment[] } {
+  if (diffTextCache.size > 200) diffTextCache.clear();
+  diffTextCache.set(key, result);
+  return result;
+}
+
 /**
  * Word-level diff between two scalar-value strings, GitHub-style: unchanged
  * tokens (words, whitespace runs, individual punctuation chars) stay
@@ -13,21 +33,25 @@ const MAX_TOKEN_PRODUCT = 200_000;
  * existing whole-row highlight, never a replacement for it.
  */
 export function diffText(oldText: string, newText: string): { left: DiffSegment[]; right: DiffSegment[] } {
+  const key = cacheKey(oldText, newText);
+  const cached = diffTextCache.get(key);
+  if (cached) return cached;
+
   if (oldText === newText) {
-    return { left: toSingleSegment(oldText, false), right: toSingleSegment(newText, false) };
+    return remember(key, { left: toSingleSegment(oldText, false), right: toSingleSegment(newText, false) });
   }
 
   const oldTokens = tokenize(oldText);
   const newTokens = tokenize(newText);
 
   if (oldTokens.length * newTokens.length > MAX_TOKEN_PRODUCT) {
-    return { left: toSingleSegment(oldText, true), right: toSingleSegment(newText, true) };
+    return remember(key, { left: toSingleSegment(oldText, true), right: toSingleSegment(newText, true) });
   }
 
   const ops = lcsOps(oldTokens, newTokens);
   const left = merge(ops.filter((op) => op.kind !== 'insert').map((op) => ({ text: op.text, changed: op.kind !== 'equal' })));
   const right = merge(ops.filter((op) => op.kind !== 'delete').map((op) => ({ text: op.text, changed: op.kind !== 'equal' })));
-  return { left, right };
+  return remember(key, { left, right });
 }
 
 function toSingleSegment(text: string, changed: boolean): DiffSegment[] {
