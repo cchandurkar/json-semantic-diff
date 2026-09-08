@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { DEFAULT_DIFF_OPTIONS, DiffNode, diffJson } from 'json-semantic-diff';
 import { findNodeById } from './node-navigation';
-import { ChangeAreaNode, buildChangeOverview } from './change-overview';
+import { ChangeAreaNode, buildChangeOverview, defaultCollapsedAreaIds } from './change-overview';
 
 /** Sums every area's own count recursively, i.e. the top-level totals. */
 function totalCount(areas: ChangeAreaNode[]): number {
@@ -82,5 +82,45 @@ describe('buildChangeOverview', () => {
       expect(node, `no node for id ${area.nodeId}`).toBeDefined();
       expect(node!.path).toBe(area.path);
     }
+  });
+});
+
+describe('defaultCollapsedAreaIds', () => {
+  it('leaves only the root level expanded', () => {
+    const original = { a: { b: { c: 1 } } };
+    const changed = { a: { b: { c: 2 } } };
+    const { root } = diffJson(original, changed, DEFAULT_DIFF_OPTIONS);
+
+    const areas = buildChangeOverview(root);
+    const collapsed = defaultCollapsedAreaIds(areas);
+
+    const a = areas[0];
+    expect(collapsed.has(a.nodeId)).toBe(false);
+  });
+
+  it('collapses areas at depth 1 and deeper that have children', () => {
+    const original = { a: { b: { c: { d: 1 } } } };
+    const changed = { a: { b: { c: { d: 2 } } } };
+    const { root } = diffJson(original, changed, DEFAULT_DIFF_OPTIONS);
+
+    const areas = buildChangeOverview(root);
+    const collapsed = defaultCollapsedAreaIds(areas);
+
+    const a = areas[0];
+    const b = a.children[0];
+    const c = b.children[0];
+    expect(collapsed.has(b.nodeId)).toBe(true);
+    expect(collapsed.has(c.nodeId)).toBe(true);
+  });
+
+  it('never collapses a leaf area (nothing to expand)', () => {
+    const original = { a: 1 };
+    const changed = { a: 2 };
+    const { root } = diffJson(original, changed, DEFAULT_DIFF_OPTIONS);
+
+    const areas = buildChangeOverview(root);
+    const collapsed = defaultCollapsedAreaIds(areas);
+
+    expect(collapsed.size).toBe(0);
   });
 });

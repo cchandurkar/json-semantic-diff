@@ -21,6 +21,24 @@ export function buildChangeOverview(root: DiffNode): ChangeAreaNode[] {
     .filter((area): area is ChangeAreaNode => area !== null);
 }
 
+/**
+ * Default collapsed-node set for a fresh "Changes by Area" render: only the
+ * root areas (depth 0) start expanded, everything deeper starts collapsed
+ * until the user opens it. Keeps the initial outline readable for deeply
+ * nested diffs without hiding the areas most likely to matter first.
+ */
+export function defaultCollapsedAreaIds(areas: ChangeAreaNode[]): Set<string> {
+  const collapsed = new Set<string>();
+  const walk = (nodes: ChangeAreaNode[], depth: number): void => {
+    for (const node of nodes) {
+      if (depth >= 1 && node.children.length) collapsed.add(node.nodeId);
+      walk(node.children, depth + 1);
+    }
+  };
+  walk(areas, 0);
+  return collapsed;
+}
+
 function toAreaNode(node: DiffNode): ChangeAreaNode | null {
   if (!node.hasChanges) return null;
   const children = naturalOrderChildren(node)

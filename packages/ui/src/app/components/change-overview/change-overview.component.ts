@@ -1,7 +1,7 @@
-import { ChangeDetectionStrategy, Component, computed, input, output, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, input, output, signal } from '@angular/core';
 import { NgTemplateOutlet } from '@angular/common';
 import { DiffNode } from 'json-semantic-diff';
-import { ChangeAreaNode, buildChangeOverview } from '../../shared/change-overview';
+import { ChangeAreaNode, buildChangeOverview, defaultCollapsedAreaIds } from '../../shared/change-overview';
 
 /**
  * Compact navigable outline of where changes are concentrated in the diff,
@@ -33,8 +33,16 @@ export class ChangeOverviewComponent {
   });
   readonly maxCount = computed(() => Math.max(1, ...this.areas().map((a) => a.count)));
 
-  /** Collapsed-by-default outline: a compact table of contents, expanded on demand. */
+  /**
+   * Areas deeper than the root start collapsed (see `defaultCollapsedAreaIds`);
+   * only root areas start open. Resets to that default whenever the diff
+   * changes, so a fresh comparison always opens readable.
+   */
   readonly collapsed = signal(new Set<string>());
+
+  constructor() {
+    effect(() => this.collapsed.set(defaultCollapsedAreaIds(this.areas())));
+  }
 
   isExpanded(nodeId: string): boolean {
     return !this.collapsed().has(nodeId);
