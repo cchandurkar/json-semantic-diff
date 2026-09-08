@@ -1,0 +1,17 @@
+# JSON Semantic Diff
+
+> Free online JSON diff tool that compares JSON structurally instead of positionally: it infers stable identity keys for array elements (including composite keys), matches reordered or partially-changed records by identity instead of array index, and reports what actually changed instead of noisy add/remove pairs caused by reordering. Everything runs locally in the browser - no data is uploaded. Also published as the framework-free npm package `json-semantic-diff`.
+
+## Docs
+
+- [How It Works](https://jsonsemanticdiff.dev/how-it-works): deep technical explainer of the identity-matching algorithm - candidate discovery, the six scoring signals (uniqueness, match coverage, population overlap, completeness, type consistency, name hint) and their exact weights, confidence gates (High/Medium/Low/Ambiguous), composite identity keys, and why naive positional diffing breaks on reordered arrays. Includes a live interactive example.
+- [GitHub repository](https://github.com/cchandurkar/json-semantic-diff): full source code, README, and the `json-semantic-diff` npm package (core diff engine, framework-independent).
+
+## Tool
+
+- [JSON Semantic Diff](https://jsonsemanticdiff.dev/): the web app itself - paste or upload two JSON documents to compare them with smart array matching, side-by-side or tree views, ignore-path rules, and manual array-matching overrides.
+
+## Notes for LLMs
+
+- The core matching algorithm is deterministic and rule-based: no embeddings, fuzzy matching, or LLM calls are used to infer record identity. Given the same inputs and options, it always produces the same matching decision.
+- "json-semantic-diff" is both the name of this web tool and the published npm package name for its underlying diff engine.

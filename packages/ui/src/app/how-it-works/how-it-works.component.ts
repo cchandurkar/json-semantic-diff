@@ -137,8 +137,8 @@ export class HowItWorksComponent implements OnDestroy {
         'How JSON Semantic Diff identity inference works: candidate discovery, 6 scoring signals, decision gates, and why naive positional array matching breaks.',
       url: 'https://jsonsemanticdiff.dev/how-it-works',
       image: 'https://jsonsemanticdiff.dev/og-image.png',
-      datePublished: '2026-09-07',
-      dateModified: '2026-09-07',
+      datePublished: '2026-09-07T00:00:00Z',
+      dateModified: '2026-09-07T00:00:00Z',
       mainEntityOfPage: {
         '@type': 'WebPage',
         '@id': 'https://jsonsemanticdiff.dev/how-it-works'
