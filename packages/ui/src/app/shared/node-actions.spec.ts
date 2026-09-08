@@ -8,6 +8,7 @@ import {
   ignoreFieldEverywhereRule,
   ignoreThisPathRule,
   isNamedField,
+  matchingIgnoreRules,
   matchingKeyOverride,
   overridePatternFor
 } from './node-actions';
@@ -299,6 +300,32 @@ describe('ignore rule builders', () => {
   });
 });
 
+describe('matchingIgnoreRules', () => {
+  const result = run(INVENTORY, INVENTORY_CHANGED);
+
+  it('finds every configured rule that applies to a node, not just the one it would itself generate', () => {
+    const ignorePaths = ['**.price', '$.other.thing'];
+    const ignored = run(INVENTORY, INVENTORY_CHANGED, { ignorePaths });
+    const node = findNodeById(ignored.root, '$.inventory[sku=SKU-2004;store=NYC].price')!;
+
+    expect(matchingIgnoreRules(node, ignorePaths)).toEqual(['**.price']);
+  });
+
+  it('returns every matching rule when more than one applies', () => {
+    const ignorePaths = ['**.price', '$.inventory[*].price'];
+    const ignored = run(INVENTORY, INVENTORY_CHANGED, { ignorePaths });
+    const node = findNodeById(ignored.root, '$.inventory[sku=SKU-2004;store=NYC].price')!;
+
+    expect(matchingIgnoreRules(node, ignorePaths)).toEqual(ignorePaths);
+  });
+
+  it('returns an empty array when no configured rule matches', () => {
+    const node = findNodeById(result.root, '$.inventory[sku=SKU-2004;store=NYC].price')!;
+
+    expect(matchingIgnoreRules(node, ['**.quantity'])).toEqual([]);
+  });
+});
+
 describe('buildNodeMenu', () => {
   const result = run(INVENTORY, INVENTORY_CHANGED);
   const price = findNodeById(result.root, '$.inventory[sku=SKU-2004;store=NYC].price')!;
@@ -357,6 +384,16 @@ describe('buildNodeMenu', () => {
 
   it('omits the Array matching group entirely when there is no target', () => {
     expect(buildNodeMenu(price).map((g) => g.title)).toEqual(['Copy', 'Comparison']);
+  });
+
+  it('offers "Remove ignored path" instead of the ignore actions once a node is ignored', () => {
+    const ignored = run(INVENTORY, INVENTORY_CHANGED, { ignorePaths: ['**.price'] });
+    const node = findNodeById(ignored.root, '$.inventory[sku=SKU-2004;store=NYC].price')!;
+
+    expect(node.ignored).toBe(true);
+    expect(itemIds(node)).toContain('remove-ignore');
+    expect(itemIds(node)).not.toContain('ignore-path');
+    expect(itemIds(node)).not.toContain('ignore-field-everywhere');
   });
 
   it('labels the matching action with the field name', () => {

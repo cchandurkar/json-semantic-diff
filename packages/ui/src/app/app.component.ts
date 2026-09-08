@@ -23,7 +23,7 @@ import { SearchControlComponent } from './components/search-control/search-contr
 import { SidebarComponent } from './components/sidebar/sidebar.component';
 import { ToastComponent } from './components/toast/toast.component';
 import { ArrayMatchingContext } from './components/array-matching/array-matching.component';
-import { ArrayMatchAnalysis, DEFAULT_DIFF_OPTIONS, DiffOptions, DiffResult, JsonValue, diffJson } from 'json-semantic-diff';
+import { ArrayMatchAnalysis, DEFAULT_DIFF_OPTIONS, DiffNode, DiffOptions, DiffResult, JsonValue, diffJson } from 'json-semantic-diff';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import type { HowItWorksComponent } from './how-it-works/how-it-works.component';
 import { formatJson } from './shared/format-json';
@@ -35,6 +35,7 @@ import {
   applyOverrideToOptions,
   ignoreFieldEverywhereRule,
   ignoreThisPathRule,
+  matchingIgnoreRules,
   matchingKeyOverride
 } from './shared/node-actions';
 import { ClipboardService } from './shared/clipboard/clipboard.service';
@@ -594,6 +595,8 @@ export class AppComponent implements OnDestroy {
         return this.applyIgnore(ignoreThisPathRule(node));
       case 'ignore-field-everywhere':
         return this.applyIgnore(ignoreFieldEverywhereRule(node));
+      case 'remove-ignore':
+        return this.removeIgnoreRulesFor(node);
       case 'use-as-key':
       case 'add-to-key':
         if (!target) return;
@@ -720,6 +723,23 @@ export class AppComponent implements OnDestroy {
     if (this.options().ignorePaths.includes(rule)) return this.showToast(`Already ignoring ${rule}`);
     this.addIgnore(rule);
     this.showToast(`Ignored ${rule}`, 'info', 'Undo', () => this.removeIgnore(rule));
+  }
+
+  /**
+   * Reverses whichever ignore rule(s) currently apply to a node, not just the
+   * one `ignoreThisPathRule`/`ignoreFieldEverywhere` would have written - the
+   * match could equally be a wildcard or a hand-typed rule.
+   */
+  private removeIgnoreRulesFor(node: DiffNode): void {
+    const rules = matchingIgnoreRules(node, this.options().ignorePaths);
+    if (!rules.length) return;
+    this.options.update((o) => ({ ...o, ignorePaths: o.ignorePaths.filter((r) => !rules.includes(r)) }));
+    this.recompareSilently();
+    const undo = () => this.options.update((o) => ({ ...o, ignorePaths: [...o.ignorePaths, ...rules] }));
+    this.showToast(rules.length === 1 ? `Stopped ignoring ${rules[0]}` : `Stopped ignoring ${rules.length} rules`, 'info', 'Undo', () => {
+      undo();
+      this.recompareSilently();
+    });
   }
 
   private showToast(text: string, tone: 'info' | 'error' = 'info', undoLabel?: string, undo?: () => void): void {

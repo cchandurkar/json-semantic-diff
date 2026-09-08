@@ -1,4 +1,4 @@
-import { ArrayMatchAnalysis, ArrayMatchOverride, DiffOptions, DiffNode } from 'json-semantic-diff';
+import { ArrayMatchAnalysis, ArrayMatchOverride, DiffOptions, DiffNode, matchesPathPattern } from 'json-semantic-diff';
 import { diffNodeActions } from './clipboard/diff-clipboard';
 import { nodeChain } from './node-navigation';
 
@@ -19,6 +19,7 @@ export type NodeActionId =
   | 'copy-change'
   | 'ignore-path'
   | 'ignore-field-everywhere'
+  | 'remove-ignore'
   | 'use-as-key'
   | 'add-to-key';
 
@@ -135,6 +136,18 @@ export function ignoreFieldEverywhereRule(node: DiffNode): string {
 }
 
 /**
+ * Every currently-configured ignore rule that applies to this node's path or id.
+ *
+ * A node can be ignored by a rule the user never typed against this exact node
+ * (a wildcard, a field-everywhere rule, or one written by hand), so "un-ignore"
+ * has to find and remove whichever rule(s) actually match rather than assuming
+ * it was `ignoreThisPathRule`/`ignoreFieldEverywhereRule`'s own output.
+ */
+export function matchingIgnoreRules(node: DiffNode, ignorePaths: string[]): string[] {
+  return ignorePaths.filter((rule) => matchesPathPattern(node.path, rule) || matchesPathPattern(node.id, rule));
+}
+
+/**
  * True when the node is an object property rather than an array element.
  * Array elements are labelled `[0]` / `[userId=102]` and have no field name to
  * ignore everywhere.
@@ -159,8 +172,10 @@ export function buildNodeMenu(node: DiffNode, target?: MatchingTarget): NodeMenu
   if (copyable.copyChange) copy.push({ id: 'copy-change', label: 'Copy change' });
   if (copy.length) groups.push({ title: 'Copy', items: copy });
 
-  const comparison: NodeMenuItem[] = [{ id: 'ignore-path', label: 'Ignore this path' }];
-  if (isNamedField(node)) {
+  const comparison: NodeMenuItem[] = node.ignored
+    ? [{ id: 'remove-ignore', label: 'Remove ignored path' }]
+    : [{ id: 'ignore-path', label: 'Ignore this path' }];
+  if (!node.ignored && isNamedField(node)) {
     comparison.push({ id: 'ignore-field-everywhere', label: `Ignore "${node.label}" everywhere` });
   }
   groups.push({ title: 'Comparison', items: comparison });
