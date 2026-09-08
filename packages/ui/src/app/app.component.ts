@@ -24,6 +24,7 @@ import { SidebarComponent } from './components/sidebar/sidebar.component';
 import { ToastComponent } from './components/toast/toast.component';
 import { ArrayMatchingContext } from './components/array-matching/array-matching.component';
 import { ArrayMatchAnalysis, DEFAULT_DIFF_OPTIONS, DiffOptions, DiffResult, JsonValue, diffJson } from 'json-semantic-diff';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { formatJson } from './shared/format-json';
 import { findNodeById, findNodeByPath, stepChange, subtreeIds } from './shared/node-navigation';
 import { buildSearchIndex, searchDiff, stepSearchResult } from './shared/search-index';
@@ -187,7 +188,7 @@ export class AppComponent implements OnDestroy {
   readonly isHowItWorks = signal(false);
 
   constructor() {
-    this.route.queryParamMap.subscribe((params) => {
+    this.route.queryParamMap.pipe(takeUntilDestroyed()).subscribe((params) => {
       const exampleId = params.get('example');
       if (!exampleId) return;
       const found = DIFF_EXAMPLES.find((e) => e.id === exampleId);
@@ -197,86 +198,89 @@ export class AppComponent implements OnDestroy {
       }
     });
 
-    this.router.events.pipe(filter((e): e is NavigationEnd => e instanceof NavigationEnd)).subscribe((e) => {
-      const onHowItWorks = e.urlAfterRedirects.startsWith('/how-it-works');
-      this.isHowItWorks.set(onHowItWorks);
-      if (!onHowItWorks) {
-        this.titleService.setTitle('JSON Semantic Diff — Compare JSON Online with Smart Array Matching');
-        this.metaService.updateTag({
-          name: 'description',
-          content:
-            'Free online JSON diff tool that understands what changed, not just where. Compares JSON structurally, matches reordered array records by identity, and never uploads your data - everything runs locally in your browser.'
-        });
-        this.metaService.updateTag({
-          property: 'og:type',
-          content: 'website'
-        });
-        this.metaService.updateTag({
-          property: 'og:site_name',
-          content: 'JSON Semantic Diff'
-        });
-        this.metaService.updateTag({
-          property: 'og:locale',
-          content: 'en_US'
-        });
-        this.metaService.updateTag({
-          name: 'robots',
-          content: 'index, follow'
-        });
-        this.metaService.updateTag({
-          property: 'og:url',
-          content: 'https://jsonsemanticdiff.dev/'
-        });
-        this.metaService.updateTag({
-          property: 'og:title',
-          content: 'JSON Semantic Diff — Compare JSON Online with Smart Array Matching'
-        });
-        this.metaService.updateTag({
-          property: 'og:description',
-          content:
-            'Free online JSON diff tool that understands what changed, not just where. Compares JSON structurally, matches reordered array records by identity, and never uploads your data.'
-        });
-        this.metaService.updateTag({
-          property: 'og:image',
-          content: 'https://jsonsemanticdiff.dev/og-image.png'
-        });
-        this.metaService.updateTag({
-          property: 'og:image:width',
-          content: '1639'
-        });
-        this.metaService.updateTag({
-          property: 'og:image:height',
-          content: '1223'
-        });
+    this.router.events
+      .pipe(filter((e): e is NavigationEnd => e instanceof NavigationEnd))
+      .pipe(takeUntilDestroyed())
+      .subscribe((e) => {
+        const onHowItWorks = e.urlAfterRedirects.startsWith('/how-it-works');
+        this.isHowItWorks.set(onHowItWorks);
+        if (!onHowItWorks) {
+          this.titleService.setTitle('JSON Semantic Diff — Compare JSON Online with Smart Array Matching');
+          this.metaService.updateTag({
+            name: 'description',
+            content:
+              'Free online JSON diff tool that understands what changed, not just where. Compares JSON structurally, matches reordered array records by identity, and never uploads your data - everything runs locally in your browser.'
+          });
+          this.metaService.updateTag({
+            property: 'og:type',
+            content: 'website'
+          });
+          this.metaService.updateTag({
+            property: 'og:site_name',
+            content: 'JSON Semantic Diff'
+          });
+          this.metaService.updateTag({
+            property: 'og:locale',
+            content: 'en_US'
+          });
+          this.metaService.updateTag({
+            name: 'robots',
+            content: 'index, follow'
+          });
+          this.metaService.updateTag({
+            property: 'og:url',
+            content: 'https://jsonsemanticdiff.dev/'
+          });
+          this.metaService.updateTag({
+            property: 'og:title',
+            content: 'JSON Semantic Diff — Compare JSON Online with Smart Array Matching'
+          });
+          this.metaService.updateTag({
+            property: 'og:description',
+            content:
+              'Free online JSON diff tool that understands what changed, not just where. Compares JSON structurally, matches reordered array records by identity, and never uploads your data.'
+          });
+          this.metaService.updateTag({
+            property: 'og:image',
+            content: 'https://jsonsemanticdiff.dev/og-image.png'
+          });
+          this.metaService.updateTag({
+            property: 'og:image:width',
+            content: '1639'
+          });
+          this.metaService.updateTag({
+            property: 'og:image:height',
+            content: '1223'
+          });
 
-        this.metaService.updateTag({
-          name: 'twitter:card',
-          content: 'summary_large_image'
-        });
-        this.metaService.updateTag({
-          name: 'twitter:title',
-          content: 'JSON Semantic Diff — Compare JSON Online with Smart Array Matching'
-        });
-        this.metaService.updateTag({
-          name: 'twitter:description',
-          content:
-            'Free online JSON diff tool that understands what changed, not just where. Compares JSON structurally, matches reordered array records by identity, and never uploads your data.'
-        });
-        this.metaService.updateTag({
-          name: 'twitter:image',
-          content: 'https://jsonsemanticdiff.dev/og-image.png'
-        });
+          this.metaService.updateTag({
+            name: 'twitter:card',
+            content: 'summary_large_image'
+          });
+          this.metaService.updateTag({
+            name: 'twitter:title',
+            content: 'JSON Semantic Diff — Compare JSON Online with Smart Array Matching'
+          });
+          this.metaService.updateTag({
+            name: 'twitter:description',
+            content:
+              'Free online JSON diff tool that understands what changed, not just where. Compares JSON structurally, matches reordered array records by identity, and never uploads your data.'
+          });
+          this.metaService.updateTag({
+            name: 'twitter:image',
+            content: 'https://jsonsemanticdiff.dev/og-image.png'
+          });
 
-        const link = this.doc.querySelector('link[rel="canonical"]');
-        if (link) {
-          link.setAttribute('href', 'https://jsonsemanticdiff.dev/');
+          const link = this.doc.querySelector('link[rel="canonical"]');
+          if (link) {
+            link.setAttribute('href', 'https://jsonsemanticdiff.dev/');
+          }
+          const howItWorksScript = this.doc.getElementById('how-it-works-jsonld');
+          if (howItWorksScript) {
+            howItWorksScript.remove();
+          }
         }
-        const howItWorksScript = this.doc.getElementById('how-it-works-jsonld');
-        if (howItWorksScript) {
-          howItWorksScript.remove();
-        }
-      }
-    });
+      });
     this.isHowItWorks.set(this.router.url.startsWith('/how-it-works'));
 
     effect(() => {
