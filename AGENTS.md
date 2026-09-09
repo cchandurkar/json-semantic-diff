@@ -9,7 +9,7 @@ JSON Semantic Diff is a local-first JSON comparison utility. Its defining behavi
 - JSON content must remain in the browser. Do not add network calls that upload, persist, log, or analyze user JSON.
 - Identity inference must remain deterministic and explainable. Do not add ML/AI models to the diff path.
 - Never silently guess an identity when confidence is low or candidate scores are ambiguous. Fall back to position and expose the analysis.
-- Keep the primary workflow one-page: paste/drop two JSON documents, compare, inspect results. `packages/ui/src/app/app.routes.ts` defines a single route (`{ path: '', component: AppComponent }`) purely because Angular's build-time prerendering is route-based and there is no router-less prerender path — this is not an invitation to add real navigation/multiple pages. Do not add a second route without deliberately revisiting this principle first.
+- Keep the primary workflow one-page: paste/drop two JSON documents, compare, inspect results, all on a single route (`{ path: '', component: AppComponent }`). A second, static informational/marketing page (`/how-it-works`, no comparison workflow of its own) is permitted alongside it — this is the only sanctioned exception. Do not add a third route, and do not add any interactive comparison functionality outside the `''` route, without deliberately revisiting this principle first.
 - Avoid IDE-like chrome. No permanent console or settings sidebar for V1.
 - Advanced detail should be progressive: inline match badges -> analysis drawer.
 - Preserve responsive desktop-first behavior; JSON comparison is optimized for laptop/desktop widths.
@@ -42,7 +42,7 @@ This alias causes `ng build`/`ng test` to print `File '...' not found in TypeScr
 - Use a `typeof window === 'undefined'` / `typeof localStorage === 'undefined'` / `typeof document === 'undefined'` guard (or `isPlatformBrowser(inject(PLATFORM_ID))`) for simpler read/write helpers — see `packages/ui/src/app/shared/theme.ts` and `packages/ui/src/app/shared/resizable-panel.ts`.
 - Do not assume a lifecycle hook is browser-only. `ngOnInit`/`ngAfterViewInit`/effects all run during server-side prerendering.
 
-`packages/ui/src/app/app.routes.ts` exists solely to satisfy this (Angular's prerendering is route-based; see the one-page principle note above) — it is not an invitation to add real multi-page navigation.
+`packages/ui/src/app/app.routes.ts` exists solely to satisfy this (Angular's prerendering is route-based; see the one-page principle above) — it is not an invitation to add real multi-page navigation.
 
 ## Architecture
 
@@ -72,8 +72,8 @@ top-level directories or a change in a directory's responsibility do.
 - `shared/` — framework-adjacent pure/presentational utilities consumed across components
   (formatting, clipboard, tooltip, node navigation/actions, search indexing, storage helpers).
 - `examples/` — built-in demo payloads (pure JSON + optional `DiffOptions`).
-- `how-it-works/` — static informational page content (see the one-page principle above for
-  the constraint this must stay within).
+- `how-it-works/` — static informational page content; the sanctioned second route (see the
+  one-page principle above for the constraint this must stay within).
 - `app.component.*` — page composition and comparison-level state.
 
 Keep diff/domain logic framework-independent. It should be testable without Angular.
