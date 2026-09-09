@@ -43,7 +43,16 @@ import { formatChange, formatNewValue, formatOldValue, formatSemanticPath, forma
 import { ToastMessage, createToast } from './shared/toast';
 import { ThemePreference, applyTheme, readStoredTheme, storeTheme } from './shared/theme';
 import { Meta, Title } from '@angular/platform-browser';
-import { ActivatedRoute, NavigationEnd, Router, RouterLink, RouterOutlet } from '@angular/router';
+import {
+  ActivatedRoute,
+  NavigationCancel,
+  NavigationEnd,
+  NavigationError,
+  NavigationStart,
+  Router,
+  RouterLink,
+  RouterOutlet
+} from '@angular/router';
 import { filter } from 'rxjs';
 import {
   ANALYSIS_PANEL_DEFAULT_WIDTH,
@@ -200,11 +209,32 @@ export class AppComponent implements OnDestroy {
       }
     });
 
+    // Flip eagerly on NavigationStart (before the how-it-works lazy chunk even
+    // starts downloading) so the main app shell hides immediately on click
+    // instead of staying visible until the async loadComponent()/activation
+    // completes on NavigationEnd — that gap was showing a "flash" of the main
+    // app right after navigating to /how-it-works.
     this.router.events
-      .pipe(filter((e): e is NavigationEnd => e instanceof NavigationEnd))
+      .pipe(filter((e): e is NavigationStart => e instanceof NavigationStart))
       .pipe(takeUntilDestroyed())
       .subscribe((e) => {
-        const onHowItWorks = e.urlAfterRedirects.startsWith('/how-it-works');
+        this.isHowItWorks.set(e.url.startsWith('/how-it-works'));
+      });
+
+    // Reconcile once navigation actually settles: NavigationEnd confirms the
+    // eager guess (accounting for redirects), while NavigationCancel/Error
+    // revert it if the navigation never completed.
+    this.router.events
+      .pipe(
+        filter(
+          (e): e is NavigationEnd | NavigationCancel | NavigationError =>
+            e instanceof NavigationEnd || e instanceof NavigationCancel || e instanceof NavigationError
+        )
+      )
+      .pipe(takeUntilDestroyed())
+      .subscribe((e) => {
+        const onHowItWorks =
+          e instanceof NavigationEnd ? e.urlAfterRedirects.startsWith('/how-it-works') : this.router.url.startsWith('/how-it-works');
         this.isHowItWorks.set(onHowItWorks);
         if (!onHowItWorks) {
           this.titleService.setTitle('JSON Semantic Diff — Compare JSON Online with Smart Array Matching');
