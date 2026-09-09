@@ -74,7 +74,19 @@ top-level directories or a change in a directory's responsibility do.
 - `examples/` — built-in demo payloads (pure JSON + optional `DiffOptions`).
 - `how-it-works/` — static informational page content; the sanctioned second route (see the
   one-page principle above for the constraint this must stay within).
-- `app.component.*` — page composition and comparison-level state.
+- `home/` — `HomeComponent`, the comparison-workflow page, normally routed at `path: ''`
+  alongside `/how-it-works` through the shell's single `<router-outlet>`. Its workspace state
+  (JSON inputs, diff view, search, matching overrides, toast) lives in this directory's
+  `WorkspaceStateService` (root-provided), not on the component itself, so an in-progress
+  comparison survives HomeComponent being destroyed/recreated when the user navigates to/from
+  `/how-it-works`. HomeComponent itself retains only state that's fine to lose on remount:
+  analysis-panel resize-drag tracking, and the local Router-driven flag that lets its `.hero`
+  section's `animate.leave` handler distinguish "navigating away" from a genuine compare().
+- `app.component.*` — thin bootstrap-root shell: persistent header/nav, theme, SEO/router-event
+  plumbing, and the single `<router-outlet>` serving both `''` and `/how-it-works`. Injects
+  `WorkspaceStateService` directly (not through the routed component, which may not be mounted)
+  to bridge the how-it-works "open in workspace" action, the brand-click reset, and the
+  `?example=` deep link into workspace state. Holds no comparison-workflow state of its own.
 
 Keep diff/domain logic framework-independent. It should be testable without Angular.
 `packages/core` must not import Angular, RxJS, or DOM APIs; `packages/ui` components are
