@@ -17,6 +17,7 @@ import {
 import { ConnectedPosition, Overlay, OverlayRef } from '@angular/cdk/overlay';
 import { TemplatePortal } from '@angular/cdk/portal';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import type { OutputRefSubscription } from '@angular/core';
 import type { HowItWorksComponent } from './how-it-works/how-it-works.component';
 import { darkMode as sharedDarkMode } from './shared/dark-mode-state';
 import { ThemePreference, applyTheme, readStoredTheme, storeTheme } from './shared/theme';
@@ -64,6 +65,7 @@ export class AppComponent implements OnDestroy, AfterViewInit {
   private readonly themeTrigger = viewChild<ElementRef<HTMLButtonElement>>('themeTrigger');
   private readonly themeMenuTemplate = viewChild<TemplateRef<unknown>>('themeMenuTpl');
   private themeOverlayRef?: OverlayRef;
+  private exampleRequestedSubscription?: OutputRefSubscription;
   private mediaQueryList?: MediaQueryList;
   private mediaQueryListener?: (event: MediaQueryListEvent) => void;
 
@@ -223,6 +225,7 @@ export class AppComponent implements OnDestroy, AfterViewInit {
     }
     this.themeOverlayRef?.dispose();
     this.themeOverlayRef = undefined;
+    this.exampleRequestedSubscription?.unsubscribe();
   }
 
   navigateToDiff(): void {
@@ -231,10 +234,15 @@ export class AppComponent implements OnDestroy, AfterViewInit {
 
   onRouteActivate(componentRef: unknown): void {
     const component = componentRef as HowItWorksComponent;
-    component.exampleRequested?.subscribe((example: DiffExample) => {
+    this.exampleRequestedSubscription = component.exampleRequested?.subscribe((example: DiffExample) => {
       this.workspace.loadExample(example);
       this.navigateToDiff();
     });
+  }
+
+  onRouteDeactivate(): void {
+    this.exampleRequestedSubscription?.unsubscribe();
+    this.exampleRequestedSubscription = undefined;
   }
 
   onBrandClick(event: MouseEvent): void {

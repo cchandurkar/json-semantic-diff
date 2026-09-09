@@ -174,6 +174,8 @@ export class WorkspaceStateService {
     this.selectedAnalysis.set(null);
     this.selectedNodeId.set(null);
     this.options.set({ ...DEFAULT_DIFF_OPTIONS, ...example.options });
+    // Defer to a macrotask so CodeEditorComponent's effect-driven CodeMirror update has
+    // flushed the leftText/rightText signal writes above before compare() reads them.
     setTimeout(() => this.compare());
   }
 

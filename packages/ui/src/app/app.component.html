@@ -136,4 +136,4 @@
   </div>
 </ng-template>
 
-<router-outlet (activate)="onRouteActivate($event)" />
+<router-outlet (activate)="onRouteActivate($event)" (deactivate)="onRouteDeactivate()" />

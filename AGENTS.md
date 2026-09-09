@@ -29,7 +29,7 @@ This alias causes `ng build`/`ng test` to print `File '...' not found in TypeScr
 - Node: pinned via `.nvmrc` (currently `v24.17.0`) — this is the single source of truth for the required Node version (all CI workflows read it via `node-version-file`). There is deliberately no `engines` field in the root `package.json` (removed; it duplicated `.nvmrc` and could drift out of sync with zero functional benefit — see git history).
 - TypeScript: 6.0.x
 - UI primitives: Angular CDK where interaction primitives are required.
-- Styling: Tailwind CSS 4 plus application CSS variables/components. Do not introduce a second full visual component system without a clear need.
+- Styling: Tailwind CSS 4 plus application CSS variables/components. Tailwind utilities are used sparingly, mainly on the `home`/`how-it-works` marketing-style surfaces; most components use hand-rolled component CSS by design. Don't Tailwind-ify existing component styles without a clear reason. Do not introduce a second full visual component system without a clear need.
 - State: Angular signals. Prefer local/component state over global stores until cross-feature state actually warrants one.
 
 ## Prerendering
@@ -153,6 +153,7 @@ A high-quality but ambiguous candidate must not be auto-applied.
 - Keep functions small and deterministic in core diff modules.
 - Use strict TypeScript and avoid `any`; template-only `$any()` is acceptable for raw DOM event extraction when needed.
 - Add comments only for non-obvious algorithmic decisions, not for self-explanatory code.
+- New interactive components must be keyboard-operable and carry appropriate ARIA roles/labels; ESLint's template accessibility rules are enforced, not advisory.
 
 ## Testing expectations
 
@@ -169,6 +170,12 @@ Before merging changes to diff logic, cover at minimum:
 - ignore rules
 - timestamp normalization across timezone offsets
 - input parse failures
+
+`packages/ui` components are generally thin renderers over tested pure logic (`shared/`,
+`source/`, feature-local services like `WorkspaceStateService`). Most components therefore have
+no `*.component.spec.ts` by design — prefer adding/extending a framework-free unit test on the
+underlying helper/service over writing a shallow component spec, unless the component itself
+owns non-trivial logic beyond template wiring.
 
 ## Scope discipline
 
