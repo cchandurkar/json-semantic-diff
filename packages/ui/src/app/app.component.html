@@ -136,9 +136,9 @@
   </div>
 </ng-template>
 
-@if (isHowItWorks()) {
-  <router-outlet (activate)="onRouteActivate($event)" />
-} @else {
+<router-outlet (activate)="onRouteActivate($event)" />
+
+@if (!isHowItWorks()) {
   <div class="shell-row">
   <app-sidebar
     [normalizeTimestamps]="options().normalizeTimestamps"
