@@ -2,7 +2,13 @@
 
 ![JSON Semantic Diff screenshot showing a side-by-side inventory comparison with tree diff, change summary, and array matching analysis](docs/icons/icon.svg)
 
-## JSON Semantic Diff
+<div id="toc">
+  <ul style="list-style: none; margin-top:0">
+    <summary>
+      <h2>JSON Semantic Diff</h2>
+    </summary>
+  </ul>
+</div>
 
 [![CI](https://github.com/cchandurkar/json-semantic-diff/actions/workflows/ci.yml/badge.svg)](https://github.com/cchandurkar/json-semantic-diff/actions/workflows/ci.yml) [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
@@ -20,7 +26,7 @@ JSON Semantic Diff is a local-first JSON comparison app focused on meaningful di
 
 </div>
 
-# Why it's different
+## Why it's different
 
 Click **Load example** in the demo. The `inventory` array is deliberately reordered and partially edited between inputs. Most JSON diff tools would report every reordered row as fully added/removed. JSON Semantic Diff instead infers an identity key (e.g. `store + sku`), matches rows across inputs by that identity, and surfaces only the fields that actually changed — with a confidence score and reasoning breakdown for every match, and a manual override if you disagree with its inference.
 
