@@ -345,7 +345,12 @@ h1 span {
   width: 10px;
   height: 10px;
   border-radius: 50%;
-  background: var(--card);
+
+  /* var(--card) is a no-go here: it's identical to var(--muted) (the track's
+   * unchecked background) in dark theme, making the thumb invisible.
+   * var(--muted-foreground) contrasts against the track in both themes and
+   * both checked/unchecked states. */
+  background: var(--muted-foreground);
   box-shadow: 0 1px 2px rgb(0 0 0 / 25%);
   transition: transform 0.15s ease;
 }
@@ -357,6 +362,7 @@ h1 span {
 
 .toolbar-toggle input:checked::after {
   transform: translateX(10px);
+  background: #fff;
 }
 
 .nav-group {
