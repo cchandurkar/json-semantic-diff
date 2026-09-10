@@ -5,41 +5,6 @@
   min-height: 0;
 }
 
-.panel-toggle {
-  display: none;
-  align-items: center;
-  gap: 7px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  background: var(--card);
-  color: var(--foreground);
-  font: 500 12px var(--sans);
-  padding: 8px 12px;
-  cursor: pointer;
-}
-
-.panel-toggle:hover {
-  background: var(--accent);
-}
-
-.panel-toggle:focus-visible {
-  outline: 2px solid var(--primary);
-  outline-offset: 2px;
-}
-
-.toggle-badge {
-  display: inline-flex;
-  min-width: 16px;
-  height: 16px;
-  align-items: center;
-  justify-content: center;
-  border-radius: 999px;
-  background: var(--primary);
-  color: var(--primary-foreground);
-  font: 700 10px var(--mono);
-  padding: 0 4px;
-}
-
 .panel-backdrop {
   display: none;
 }
@@ -493,10 +458,6 @@ app-array-picker {
 @media (width <= 1280px) {
   :host {
     height: auto;
-  }
-
-  .panel-toggle {
-    display: inline-flex;
   }
 
   .panel-backdrop {

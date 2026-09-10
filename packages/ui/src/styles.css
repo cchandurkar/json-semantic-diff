@@ -435,6 +435,36 @@ textarea:focus-visible {
   border-top-color: var(--card);
 }
 
+/*
+ * Pre-hydration paint override: forces the same visual result as
+ * `.panel-resize-handle.is-collapsed`/`effectiveAnalysisPanelWidth() === 0`
+ * before Angular has hydrated and corrected `analysisPanelCollapsed` (see
+ * that signal's doc comment in home.component.ts). Driven by the
+ * `data-analysis-panel-collapsed` attribute set synchronously in
+ * `src/index.html`'s inline script, never by Angular's own bindings - so it
+ * can't cause a hydration mismatch. `!important` is required since it must
+ * beat the bound `[style.width.px]` inline style.
+ *
+ * Lives here (global styles.css), not in home.component.css: Angular's
+ * emulated view encapsulation prepends its `_ngcontent` scoping attribute to
+ * EVERY compound selector in a rule, including `:root` - but `:root` is
+ * `<html>`, outside any component's template, and can never carry that
+ * attribute. A scoped version of this rule is therefore permanently dead CSS
+ * (confirmed via the compiled output: `[_ngcontent-x]:root[...]` never
+ * matches). Global stylesheets aren't scoped, so `:root` here works as
+ * intended - matching how `:root[data-theme='dark']` above is also global.
+ */
+@media (width > 1280px) {
+  :root[data-analysis-panel-collapsed='true'] app-analysis-panel {
+    width: 0 !important;
+  }
+
+  :root[data-analysis-panel-collapsed='true'] .panel-resize-handle {
+    flex-basis: 14px;
+    background: var(--muted);
+  }
+}
+
 .driver-popover-arrow-side-bottom {
   border-bottom-color: var(--card);
 }

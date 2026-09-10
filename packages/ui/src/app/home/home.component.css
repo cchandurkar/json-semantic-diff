@@ -2,6 +2,81 @@
   display: contents;
 }
 
+/*
+ * Unified stand-in for the sidebar's/analysis panel's own off-canvas
+ * trigger buttons below their drawer breakpoints (see SidebarComponent's
+ * doc comment for the full rationale): one slim bar, styled like a
+ * continuation of the site header, instead of two buttons stranded at
+ * opposite screen edges. Hidden entirely above 1280px, where both panels
+ * are always-visible flex columns with no drawer to trigger.
+ */
+.mobile-panel-bar {
+  display: none;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 10px clamp(16px, 3vw, 28px);
+  background: var(--card);
+  border-bottom: 1px solid var(--border);
+}
+
+.mobile-panel-btn {
+  display: none;
+  align-items: center;
+  gap: 7px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--card);
+  color: var(--foreground);
+  font: 500 12px var(--sans);
+  padding: 7px 12px;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.mobile-panel-btn:hover {
+  background: var(--accent);
+}
+
+.mobile-panel-btn:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* Pushes the analysis toggle to the far right whenever setup is also showing (<=1100px); flex's own flex-end already right-aligns it when setup is hidden. */
+.mobile-panel-btn.setup-toggle {
+  margin-right: auto;
+}
+
+.mobile-panel-badge {
+  display: inline-flex;
+  min-width: 16px;
+  height: 16px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: var(--primary);
+  color: var(--primary-foreground);
+  font: 700 10px var(--mono);
+  padding: 0 4px;
+}
+
+@media (width <= 1280px) {
+  .mobile-panel-bar {
+    display: flex;
+  }
+
+  .analysis-toggle {
+    display: inline-flex;
+  }
+}
+
+@media (width <= 1100px) {
+  .setup-toggle {
+    display: inline-flex;
+  }
+}
+
 .shell-row {
   flex: 1;
   min-height: 0;
@@ -20,6 +95,7 @@ app-sidebar {
   cursor: col-resize;
   touch-action: none;
   border-left: 1px solid var(--border);
+  transition: flex-basis 0.15s ease;
 }
 
 .panel-resize-handle::after {
@@ -38,14 +114,94 @@ app-sidebar {
   background: var(--primary);
 }
 
+/* Collapsed: a little wider so the chevron chip stays an easy target, and a
+   faint fill so the strip itself reads as "there's something hidden here". */
+.panel-resize-handle.is-collapsed {
+  flex-basis: 14px;
+  background: var(--muted);
+}
+
+/*
+ * Collapse/expand affordance embedded in the resize handle rather than a
+ * separate toolbar button, so it reads as "more of the same control" rather
+ * than new chrome. Sized well past the 6px handle so it stays an easy click
+ * target; position:absolute keeps it from affecting the handle's own layout
+ * width. Its own pointerdown is stopped before it reaches the handle (see
+ * template) so clicking it toggles collapse instead of starting a drag.
+ */
+.panel-collapse-toggle {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 40px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--card);
+  color: var(--muted-foreground);
+  cursor: pointer;
+
+  /* Generated content (::after below) paints after real children regardless
+   * of source order, so without an explicit z-index it would sit on top of
+   * this button and swallow its clicks. */
+  z-index: 1;
+  transition:
+    color 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.panel-collapse-toggle:hover {
+  color: var(--foreground);
+  border-color: var(--border-strong);
+}
+
+.panel-collapse-toggle:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.panel-collapse-toggle svg {
+  display: block;
+  flex-shrink: 0;
+}
+
+/* Echoes the mobile toggle's .toggle-badge: a hint that the hidden panel still has something to show. */
+.collapse-badge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  min-width: 14px;
+  height: 14px;
+  padding: 0 3px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: var(--primary);
+  color: var(--primary-foreground);
+  font: 700 9px var(--mono);
+}
+
 app-analysis-panel {
   flex: 0 0 auto;
   min-width: 0;
+  overflow: hidden;
+  transition: width 0.18s ease;
+}
+
+app-analysis-panel.no-transition {
+  transition: none;
 }
 
 @media (width <= 1100px) {
   app-sidebar {
     flex: 0 0 auto;
+    align-self: flex-start;
     border-right: 0;
   }
 }
@@ -57,7 +213,10 @@ app-analysis-panel {
 
   app-analysis-panel {
     flex: 0 0 auto;
+    align-self: flex-start;
     width: auto !important;
+    overflow: visible;
+    transition: none;
   }
 }
 
@@ -416,6 +575,10 @@ h1 span {
 
   .hero-leave {
     animation-duration: 0.01ms;
+  }
+
+  app-analysis-panel {
+    transition: none;
   }
 }
 

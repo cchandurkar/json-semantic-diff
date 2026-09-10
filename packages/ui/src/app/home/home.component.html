@@ -1,5 +1,44 @@
+
+<!--
+  Below the drawer breakpoints, this replaces the two panels' own trigger
+  buttons (see SidebarComponent's doc comment for why they were pulled out
+  of the panels and unified here): one shared bar instead of a lone "Setup"
+  button stranded at one edge of the screen and a lone "Analysis" button
+  stranded at the other. "Setup" only shows once the sidebar itself has gone
+  off-canvas (<=1100px); "Analysis" once the analysis panel has (<=1280px) -
+  same breakpoints the two panels already used, just applied to buttons that
+  now live in one place.
+-->
+<div class="mobile-panel-bar">
+  <button
+    #sidebarToggleButton
+    type="button"
+    class="mobile-panel-btn setup-toggle"
+    aria-controls="app-sidebar-panel"
+    [attr.aria-expanded]="sidebarDrawerOpen()"
+    (click)="sidebarDrawerOpen.set(!sidebarDrawerOpen())"
+  >
+    <span aria-hidden="true">☰</span> Setup
+  </button>
+  <button
+    #analysisToggleButton
+    type="button"
+    class="mobile-panel-btn analysis-toggle"
+    data-tour="analysis-toggle"
+    aria-controls="app-analysis-panel"
+    [attr.aria-expanded]="analysisDrawerOpen()"
+    (click)="analysisDrawerOpen.set(!analysisDrawerOpen())"
+  >
+    Analysis
+    @if (workspace.result(); as diff) {
+      <span class="mobile-panel-badge">{{ diff.summary.totalChanges }}</span>
+    }
+  </button>
+</div>
+
 <div class="shell-row">
   <app-sidebar
+    [(open)]="sidebarDrawerOpen"
     [normalizeTimestamps]="workspace.options().normalizeTimestamps"
     [numericStringsAsNumbers]="workspace.options().numericStringsAsNumbers"
     [nullEqualsMissing]="workspace.options().nullEqualsMissing"
@@ -15,6 +54,7 @@
     (ignoreRemoved)="workspace.removeIgnore($event)"
     (overrideChanged)="workspace.applyMatchingOverride($event)"
     (arraySelected)="workspace.openAnalysis($event)"
+    (restoreFocusRequested)="restoreSidebarToggleFocus()"
   />
 
   <main class="main-column">
@@ -168,15 +208,43 @@
   <div
     class="panel-resize-handle"
     [class.is-resizing]="resizingAnalysisPanel()"
+    [class.is-collapsed]="analysisPanelCollapsed()"
     (pointerdown)="startPanelResize($event)"
     (pointermove)="onPanelResizeMove($event)"
     (pointerup)="endPanelResize($event)"
     (pointercancel)="endPanelResize($event)"
-  ></div>
+  >
+    <button
+      type="button"
+      class="panel-collapse-toggle"
+      aria-controls="app-analysis-panel"
+      [attr.aria-expanded]="!analysisPanelCollapsed()"
+      [attr.aria-label]="analysisPanelCollapsed() ? 'Expand analysis panel' : 'Collapse analysis panel'"
+      (pointerdown)="$event.stopPropagation()"
+      (click)="toggleAnalysisPanelCollapsed()"
+    >
+      <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true" focusable="false">
+        <path
+          [attr.d]="analysisPanelCollapsed() ? 'M9 2L4 7l5 5' : 'M5 2l5 5-5 5'"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.6"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+      </svg>
+      @if (analysisPanelCollapsed() && workspace.result()) {
+        <span class="collapse-badge">{{ workspace.result()?.summary?.totalChanges }}</span>
+      }
+    </button>
+  </div>
 
   <app-analysis-panel
     data-tour="analysis-panel"
-    [style.width.px]="analysisPanelWidth()"
+    [(open)]="analysisDrawerOpen"
+    [class.is-collapsed]="analysisPanelCollapsed()"
+    [class.no-transition]="resizingAnalysisPanel()"
+    [style.width.px]="effectiveAnalysisPanelWidth()"
     [result]="workspace.result()"
     [analysis]="workspace.displayedAnalysis()"
     [selectedPath]="workspace.selectedAnalysis()?.path ?? workspace.result()?.primaryAnalysis?.path ?? null"
@@ -184,6 +252,7 @@
     (arraySelected)="workspace.openAnalysis($event)"
     (nodeSelected)="workspace.selectNode($event)"
     (exampleRequested)="workspace.loadExample($event)"
+    (restoreFocusRequested)="restoreAnalysisToggleFocus()"
   />
 </div>
 

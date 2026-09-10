@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, ElementRef, afterNextRender, effect, input, output, signal, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, afterNextRender, effect, input, model, output, signal } from '@angular/core';
 import { isValidIgnorePattern } from 'json-semantic-diff';
 import { version } from '../../../../package.json';
 import { DIFF_EXAMPLES, DiffExample } from '../../examples';
@@ -13,9 +13,14 @@ import { ExamplePickerComponent } from '../example-picker/example-picker.compone
  * examples, view/normalization toggles, ignore rules and array matching.
  *
  * Above the drawer breakpoint it is a sticky grid column. Below it, the panel
- * becomes an off-canvas drawer behind a toggle button, driven purely by a
- * signal - no overlay container is needed because the panel has no anchor to
- * track and never has to escape a clipping ancestor.
+ * becomes an off-canvas drawer, driven by the `open` model() - no overlay
+ * container is needed because the panel has no anchor to track and never has
+ * to escape a clipping ancestor. The trigger button that opens it lives in
+ * HomeComponent's shared mobile panel bar (`.mobile-panel-bar`), not here:
+ * a lone "Setup" button at one edge of the screen and a lone "Analysis"
+ * button at the other, each stranded in its own full-height flex column,
+ * read as bolted-on rather than a single deliberate control surface. Housing
+ * both triggers together lets them share one small toolbar instead.
  */
 @Component({
   selector: 'app-sidebar',
@@ -30,8 +35,6 @@ import { ExamplePickerComponent } from '../example-picker/example-picker.compone
 })
 export class SidebarComponent {
   readonly version = version;
-
-  private readonly toggleButton = viewChild.required<ElementRef<HTMLButtonElement>>('toggleButton');
 
   /** Comparison toggles, owned by the app. */
   readonly normalizeTimestamps = input(false);
@@ -56,8 +59,23 @@ export class SidebarComponent {
   /** Fired when the user picks a different array via the matching section's own select. */
   readonly arraySelected = output<string>();
 
-  /** Drawer state; only meaningful below the breakpoint, where the toggle shows. */
-  readonly open = signal(false);
+  /**
+   * Drawer state; only meaningful below the breakpoint, where the trigger
+   * button shows. A model() rather than a plain signal so the mobile trigger
+   * button - which lives in HomeComponent's shared panel bar, not here, see
+   * that component's doc comment - can drive it via `[(open)]`.
+   */
+  readonly open = model(false);
+
+  /**
+   * Escape and the drawer's own "×" close the drawer AND should return focus
+   * to the external trigger button; HomeComponent listens for this to do
+   * that, since it owns that button and this component has no reference to
+   * it. Loading an example / the guided tour's own close()/toggle() calls
+   * deliberately don't emit this - focus already belongs somewhere sensible
+   * in those cases (the example picker, a tour popover).
+   */
+  readonly restoreFocusRequested = output<void>();
 
   /** Inline validation error for the ignore path input. */
   readonly ignoreError = signal<string | null>(null);
@@ -82,13 +100,17 @@ export class SidebarComponent {
   onEscape(event: Event): void {
     const target = event.target as Element | null;
     if (target?.closest?.('.cdk-overlay-container')) return;
-    this.close(true);
+    this.closeAndRestoreFocus();
   }
 
-  close(restoreFocus = false): void {
-    if (!this.open()) return;
+  close(): void {
     this.open.set(false);
-    if (restoreFocus) this.toggleButton().nativeElement.focus();
+  }
+
+  closeAndRestoreFocus(): void {
+    if (!this.open()) return;
+    this.close();
+    this.restoreFocusRequested.emit();
   }
 
   /** Reads the new state off a checkbox change event. */

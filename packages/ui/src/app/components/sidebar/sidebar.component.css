@@ -5,28 +5,6 @@
   min-height: 0;
 }
 
-.sidebar-toggle {
-  display: none;
-  align-items: center;
-  gap: 7px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  background: var(--card);
-  color: var(--foreground);
-  font: 500 12px var(--sans);
-  padding: 8px 12px;
-  cursor: pointer;
-}
-
-.sidebar-toggle:hover {
-  background: var(--accent);
-}
-
-.sidebar-toggle:focus-visible {
-  outline: 2px solid var(--primary);
-  outline-offset: 2px;
-}
-
 .sidebar-backdrop {
   display: none;
 }
@@ -450,10 +428,6 @@
 @media (width <= 1100px) {
   :host {
     height: auto;
-  }
-
-  .sidebar-toggle {
-    display: inline-flex;
   }
 
   .sidebar-backdrop {
