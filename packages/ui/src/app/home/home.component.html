@@ -52,8 +52,20 @@
         @if (workspace.dirty() && workspace.result()) {
           <span class="dirty-note">Inputs changed</span>
         }
-        <button type="button" class="primary-button" [disabled]="!workspace.canCompare()" (click)="workspace.compare()" data-tour="compare-button">
-          Compare JSON
+        <button
+          type="button"
+          class="primary-button"
+          [disabled]="!workspace.canCompare() || workspace.comparing()"
+          [attr.aria-busy]="workspace.comparing()"
+          (click)="workspace.compare()"
+          data-tour="compare-button"
+        >
+          @if (workspace.comparing()) {
+            <span class="spinner" aria-hidden="true"></span>
+            Comparing…
+          } @else {
+            Compare JSON
+          }
         </button>
       </div>
     </section>

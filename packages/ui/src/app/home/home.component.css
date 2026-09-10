@@ -173,6 +173,27 @@ h1 span {
   cursor: not-allowed;
 }
 
+.spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid color-mix(in srgb, currentcolor 30%, transparent);
+  border-top-color: currentcolor;
+  border-radius: 50%;
+  vertical-align: -2px;
+
+  /* Continuous loading affordance, not a one-shot transition — the project's
+     subtle-motion convention (<250ms) applies to one-shot transitions, not
+     ongoing loading indicators. */
+  animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .primary-button:hover:not(:disabled) {
   background: var(--primary-hover);
   border-color: var(--primary-hover);

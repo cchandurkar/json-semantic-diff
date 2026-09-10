@@ -41,6 +41,7 @@ export class WorkspaceStateService {
   readonly searchQuery = signal('');
   readonly searchResultIndex = signal(0);
   readonly toast = signal<ToastMessage | null>(null);
+  readonly comparing = signal(false);
 
   private readonly clipboard = inject(ClipboardService);
   private undoAction: (() => void) | null = null;
@@ -99,6 +100,22 @@ export class WorkspaceStateService {
   });
 
   compare(): void {
+    this.comparing.set(true);
+    // Double rAF: guarantees the browser has painted the disabled/spinner state
+    // (which the signal write above just triggered) before the potentially
+    // long synchronous diff computation blocks the main thread below.
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        try {
+          this.runCompare();
+        } finally {
+          this.comparing.set(false);
+        }
+      });
+    });
+  }
+
+  private runCompare(): void {
     const leftText = formatJson(this.leftText());
     const rightText = formatJson(this.rightText());
     this.leftText.set(leftText);
