@@ -2,6 +2,7 @@ import { ArrayMatchingContext } from '../components/array-matching/array-matchin
 import { Injectable, computed, effect, inject, signal } from '@angular/core';
 import { ArrayMatchAnalysis, DEFAULT_DIFF_OPTIONS, DiffNode, DiffOptions, DiffResult, JsonValue, diffJson } from 'json-semantic-diff';
 import { formatJson } from '../shared/format-json';
+import { DiffTaskResponse } from './diff-worker-task';
 import { findNodeById, findNodeByPath, stepChange, subtreeIds } from '../shared/node-navigation';
 import { buildSearchIndex, searchDiff, stepSearchResult } from '../shared/search-index';
 import {
@@ -46,6 +47,11 @@ export class WorkspaceStateService {
   private readonly clipboard = inject(ClipboardService);
   private undoAction: (() => void) | null = null;
   private toastTimer?: ReturnType<typeof setTimeout>;
+  // No ngOnDestroy: this service is providedIn 'root' and lives for the whole
+  // SPA session, so there's no natural destruction point to terminate this
+  // from - the terminate-on-next-call in getWorker() is the actual cleanup path.
+  private worker: Worker | null = null;
+  private nextRequestId = 0;
 
   private readonly syncSelectedArrayAnalysis = effect(() => {
     const id = this.selectedNodeId();
@@ -100,19 +106,85 @@ export class WorkspaceStateService {
   });
 
   compare(): void {
+    this.runViaWorkerOrFallback();
+  }
+
+  /**
+   * Runs the parse+format+diff pipeline in a Web Worker when available,
+   * falling back to the original synchronous in-place computation otherwise
+   * (SSR/prerendering per Angular's docs, or any environment without `Worker`).
+   */
+  private runViaWorkerOrFallback(): void {
     this.comparing.set(true);
-    // Double rAF: guarantees the browser has painted the disabled/spinner state
-    // (which the signal write above just triggered) before the potentially
-    // long synchronous diff computation blocks the main thread below.
-    requestAnimationFrame(() => {
+    const worker = this.getWorker();
+    if (!worker) {
+      // No worker: the computation below still blocks the main thread, so we
+      // still need the double rAF to let the disabled/spinner state paint first.
       requestAnimationFrame(() => {
-        try {
-          this.runCompare();
-        } finally {
-          this.comparing.set(false);
-        }
+        requestAnimationFrame(() => {
+          try {
+            this.runCompare();
+          } finally {
+            this.comparing.set(false);
+          }
+        });
       });
-    });
+      return;
+    }
+
+    const requestId = ++this.nextRequestId;
+    const request = { requestId, leftText: this.leftText(), rightText: this.rightText(), options: this.options() };
+
+    worker.onmessage = ({ data }: MessageEvent<DiffTaskResponse>) => {
+      // getWorker() always terminates the previous worker before creating a new
+      // one, so a stale response for an outdated requestId shouldn't normally
+      // arrive - this check is a defensive no-op guard, not the primary
+      // cancellation mechanism.
+      if (data.requestId !== requestId) return;
+      this.applyDiffTaskResponse(data);
+      this.comparing.set(false);
+    };
+    worker.onerror = () => {
+      this.showToast('Comparison failed: worker crashed. Try simplifying the input.', 'error');
+      this.comparing.set(false);
+    };
+    worker.postMessage(request);
+  }
+
+  private applyDiffTaskResponse(data: DiffTaskResponse): void {
+    switch (data.kind) {
+      case 'success': {
+        const firstCompare = !this.result();
+        this.leftText.set(data.leftFormatted);
+        this.rightText.set(data.rightFormatted);
+        this.leftError.set(null);
+        this.rightError.set(null);
+        this.result.set(data.result);
+        this.dirty.set(false);
+        if (firstCompare) this.editorHeight.set(EDITOR_HEIGHT_COMPACT);
+        return;
+      }
+      case 'parse-error':
+        if (data.leftFormatted !== undefined) this.leftText.set(data.leftFormatted);
+        if (data.rightFormatted !== undefined) this.rightText.set(data.rightFormatted);
+        this.leftError.set(data.leftError ?? null);
+        this.rightError.set(data.rightError ?? null);
+        return;
+      case 'diff-error':
+        this.leftText.set(data.leftFormatted);
+        this.rightText.set(data.rightFormatted);
+        this.showToast(`Comparison failed: ${data.message}. Try simplifying the input.`, 'error');
+        return;
+    }
+  }
+
+  private getWorker(): Worker | null {
+    if (typeof Worker === 'undefined') return null; // SSR/prerender or unsupported env - caller falls back to runCompare()
+    // Terminate-and-restart: a fresh call always cancels any prior in-flight
+    // computation instead of letting a stale result race the latest one.
+    this.worker?.terminate();
+    this.worker = new Worker(new URL('./diff.worker', import.meta.url), { type: 'module' });
+    return this.worker;
   }
 
   private runCompare(): void {
@@ -309,15 +381,10 @@ export class WorkspaceStateService {
   }
 
   private recompareSilently(): void {
-    const left = this.safeParse(this.leftText());
-    const right = this.safeParse(this.rightText());
-    if (left !== undefined && right !== undefined) {
-      try {
-        this.result.set(diffJson(left, right, this.options()));
-      } catch (error) {
-        this.showToast(`Comparison failed: ${error instanceof Error ? error.message : String(error)}. Try simplifying the input.`, 'error');
-      }
-    }
+    // Recomparing after an option/ignore-rule change reruns the exact same
+    // worker/fallback pipeline as a manual compare - the inputs are already
+    // valid JSON at this point (a result exists), so this is just a rerun.
+    this.runViaWorkerOrFallback();
   }
 
   private parse(text: string, errorSignal: { set(value: string | null): void }): JsonValue | undefined {
@@ -327,14 +394,6 @@ export class WorkspaceStateService {
       return parsed;
     } catch (error) {
       errorSignal.set(error instanceof Error ? error.message : 'Invalid JSON');
-      return undefined;
-    }
-  }
-
-  private safeParse(text: string): JsonValue | undefined {
-    try {
-      return JSON.parse(text) as JsonValue;
-    } catch {
       return undefined;
     }
   }
