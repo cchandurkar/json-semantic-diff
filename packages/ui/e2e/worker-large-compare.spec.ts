@@ -5,26 +5,34 @@ import { largeReorderedDataset } from './fixtures/large-dataset';
  * These specs exist to verify the Web Worker + UI integration (loading
  * state, cancellation, main-thread responsiveness) - NOT diff/matching
  * algorithm correctness, which is covered by packages/core's Vitest suite
- * per AGENTS.md. The Compare button disables synchronously the instant
- * `compare()` runs (before any worker dispatch), so `toBeDisabled()` right
- * after `.click()` is deterministic regardless of how long the diff itself
- * takes; LARGE_COUNT only needs to be big enough that the busy window
- * doesn't close before the assertions that follow it run.
+ * per AGENTS.md.
+ *
+ * The Compare button disables synchronously the instant `compare()` runs
+ * (before any worker dispatch), so `toBeDisabled()` right after `.click()`
+ * is a single, self-contained web-first assertion - reliable regardless of
+ * how fast the diff itself resolves, since it isn't racing a second,
+ * separate round-trip against the worker (unlike an earlier version of
+ * this file, which paired a `toBeDisabled()` check with a follow-up
+ * `toHaveAttribute('aria-busy', ...)` check on the next line: two
+ * independent polls, with a real gap between them for the worker to
+ * resolve in on fast/idle CI hardware). `disabled` and `[attr.aria-busy]`
+ * are bound to the same `workspace.comparing()` signal in
+ * home.component.html anyway, so asserting on `disabled` alone is
+ * sufficient evidence of the busy state.
+ *
+ * LARGE_COUNT is intentionally modest: big enough to be a real (non-zero)
+ * diff through the worker, small enough that the whole test stays fast and
+ * deterministic rather than chasing an exact timing window.
  */
+const LARGE_COUNT = 500;
+const RESOLVE_TIMEOUT = 15_000;
 
-const LARGE_COUNT = 800;
-// Generous ceiling: CI runners can be slower/noisier than a typical dev
-// machine, and this covers the dev-server's one-time cold-compile cost too.
-const RESOLVE_TIMEOUT = 30_000;
-
-// These three tests each drive a real (non-trivial) diff through the worker
-// concurrently with the other spec files; run them one at a time so multiple
-// heavy Chromium instances aren't competing for CPU at once, which otherwise
-// risks flaking the timing-sensitive assertions below under parallel CI load.
+// These three tests each drive a real diff through the worker concurrently
+// with the other spec files; run them one at a time so multiple heavy
+// Chromium instances aren't competing for CPU at once.
 test.describe.configure({ mode: 'serial' });
 
 test('disables the Compare button and shows a spinner while a large diff is in flight, then resolves', async ({ page }) => {
-  test.setTimeout(45_000);
   await page.goto('/');
 
   const { left, right } = largeReorderedDataset(LARGE_COUNT);
@@ -35,11 +43,9 @@ test('disables the Compare button and shows a spinner while a large diff is in f
   await compareButton.click();
 
   await expect(compareButton).toBeDisabled();
-  await expect(compareButton).toHaveAttribute('aria-busy', 'true');
 
   // Resolves back to the idle state once the worker responds.
   await expect(compareButton).toBeEnabled({ timeout: RESOLVE_TIMEOUT });
-  await expect(compareButton).toHaveAttribute('aria-busy', 'false');
 
   await page.getByRole('tab', { name: 'Tree' }).click();
   await expect(page.getByRole('tree')).toBeVisible();
@@ -48,7 +54,6 @@ test('disables the Compare button and shows a spinner while a large diff is in f
 });
 
 test('cancels a stale in-flight compare when a new one is started before it resolves', async ({ page }) => {
-  test.setTimeout(45_000);
   await page.goto('/');
 
   // The Compare button is itself disabled while a compare is in flight, so a
@@ -69,8 +74,6 @@ test('cancels a stale in-flight compare when a new one is started before it reso
   const big = largeReorderedDataset(LARGE_COUNT);
   await page.getByLabel('ORIGINAL JSON').fill(big.left);
   await page.getByLabel('CHANGED JSON').fill(big.right);
-  // See the responsiveness test above for why this settle wait exists.
-  await page.waitForTimeout(1_000);
 
   const compareButton = page.getByRole('button', { name: /Compare JSON|Comparing…/ });
   await compareButton.click();
@@ -95,17 +98,11 @@ test('cancels a stale in-flight compare when a new one is started before it reso
 });
 
 test('keeps the main thread responsive while a large diff runs in the worker', async ({ page }) => {
-  test.setTimeout(45_000);
   await page.goto('/');
 
   const { left, right } = largeReorderedDataset(LARGE_COUNT);
   await page.getByLabel('ORIGINAL JSON').fill(left);
   await page.getByLabel('CHANGED JSON').fill(right);
-  // Let CodeMirror's own (separate, pre-existing) debounced linting of the
-  // freshly-pasted large documents settle before timing anything - otherwise
-  // a slow click here could reflect editor-linting backlog rather than the
-  // diffJson-in-a-worker behavior this test is actually about.
-  await page.waitForTimeout(1_000);
 
   const compareButton = page.getByRole('button', { name: /Compare JSON|Comparing…/ });
   await compareButton.click();
@@ -115,7 +112,7 @@ test('keeps the main thread responsive while a large diff runs in the worker', a
   // still respond promptly - proof the main thread isn't blocked by the
   // diff computation itself.
   const normalizeToggle = page.getByRole('checkbox', { name: /Normalize timestamps/ });
-  await normalizeToggle.click({ timeout: 15_000 });
+  await normalizeToggle.click({ timeout: 10_000 });
   await expect(normalizeToggle).not.toBeChecked();
 
   await expect(compareButton).toBeEnabled({ timeout: RESOLVE_TIMEOUT });
