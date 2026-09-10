@@ -20,7 +20,7 @@ JSON Semantic Diff is a local-first JSON comparison app focused on meaningful di
 
 </div>
 
-## Why it's different
+# Why it's different
 
 Click **Load example** in the demo. The `inventory` array is deliberately reordered and partially edited between inputs. Most JSON diff tools would report every reordered row as fully added/removed. JSON Semantic Diff instead infers an identity key (e.g. `store + sku`), matches rows across inputs by that identity, and surfaces only the fields that actually changed — with a confidence score and reasoning breakdown for every match, and a manual override if you disagree with its inference.
 
