@@ -81,16 +81,37 @@
 .toggle-row {
   display: flex;
   align-items: center;
-  gap: 9px;
+  gap: 6px;
   border-radius: var(--radius);
   padding: 6px 8px;
   cursor: pointer;
 }
 
+/*
+ * Re-skinned native checkbox: keeps <input type="checkbox"> for free
+ * keyboard support/screen-reader semantics, appearance:none just strips the
+ * default box so a pill track + sliding thumb can be drawn instead.
+ */
 .toggle-row input {
+  flex: none;
   margin: 0;
-  accent-color: var(--primary);
+  appearance: none;
+
+  /* Firefox (Gecko) doesn't render ::before/::after on <input> at all unless
+   * -moz-appearance is explicitly reset - Chrome/Safari/Edge already allow it
+   * without this. Without this line the switch's thumb is invisible in Firefox. */
+  /* stylelint-disable-next-line property-no-vendor-prefix -- required, not accidental prefix creep; see comment above */
+  -moz-appearance: none;
+  width: 24px;
+  height: 14px;
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
+  background: var(--muted);
   cursor: pointer;
+  position: relative;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease;
 }
 
 .toggle-row:has(input:focus-visible) {
@@ -113,8 +134,8 @@
 
 .hint-icon {
   flex: none;
-  width: 16px;
-  height: 16px;
+  width: 14px;
+  height: 14px;
   display: grid;
   place-items: center;
   border: 1px solid var(--border);
@@ -230,6 +251,29 @@
 
 .ignore-row input.has-error:focus-visible {
   outline-color: var(--danger);
+}
+
+/* Toggle-switch thumb/checked state; kept below .ignore-row's `input` rules to satisfy stylelint's no-descending-specificity ordering. */
+.toggle-row input::after {
+  content: '';
+  position: absolute;
+  top: 1px;
+  left: 1px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--card);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 25%);
+  transition: transform 0.15s ease;
+}
+
+.toggle-row input:checked {
+  background: var(--primary);
+  border-color: var(--primary);
+}
+
+.toggle-row input:checked::after {
+  transform: translateX(10px);
 }
 
 .ignore-error {
@@ -367,7 +411,7 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  font: 500 11px var(--mono);
+  font: 400 11px var(--mono);
   color: var(--subtle-foreground);
   letter-spacing: 0.02em;
 }
