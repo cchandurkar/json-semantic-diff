@@ -1,13 +1,24 @@
-# JSON Semantic Diff
+<div align="center">
 
-[![CI](https://github.com/cchandurkar/json-semantic-diff/actions/workflows/ci.yml/badge.svg)](https://github.com/cchandurkar/json-semantic-diff/actions/workflows/ci.yml)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+![JSON Semantic Diff screenshot showing a side-by-side inventory comparison with tree diff, change summary, and array matching analysis](docs/icons/icon.svg)
+
+## JSON Semantic Diff
+
+[![CI](https://github.com/cchandurkar/json-semantic-diff/actions/workflows/ci.yml/badge.svg)](https://github.com/cchandurkar/json-semantic-diff/actions/workflows/ci.yml) [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 JSON Semantic Diff is a local-first JSON comparison app focused on meaningful differences rather than line-oriented text changes. It matches reordered array rows by inferred identity, normalizes noisy fields like timestamps, and shows you what actually changed — not just where the bytes moved.
 
-![JSON Semantic Diff screenshot showing a side-by-side inventory comparison with tree diff, change summary, and array matching analysis](docs/screenshot.png)
+![JSON Semantic Diff screenshot showing a side-by-side inventory comparison with tree diff, change summary, and array matching analysis](docs/screenshots/main.png)
 
-**[Try the live demo →](https://jsonsemanticdiff.dev)**
+<a href="https://jsonsemanticdiff.dev">
+  <img
+    src="./docs/icons/try-it-now.svg"
+    alt="Try JSON Semantic Diff"
+    height="40"
+  />
+</a>
+
+</div>
 
 ## Why it's different
 
@@ -74,7 +85,9 @@ Node version is pinned via [`.nvmrc`](.nvmrc) (currently v24.17.0) — run `nvm 
 
 ## Scoring model
 
-Identity inference lives in `packages/core/src/diff/matching/identity-inference.ts`. Candidate quality considers uniqueness, completeness, match coverage, overlap, type consistency, a weak field-name hint, and volatility penalties. JSON Semantic Diff only auto-applies a candidate when both its score and its lead over competing candidates are strong enough.
+Identity inference lives in [`packages/core/src/diff/matching/identity-inference.ts`](packages/core/src/diff/matching/identity-inference.ts). Candidate quality considers uniqueness, completeness, match coverage, overlap, type consistency, a weak field-name hint, and volatility penalties. JSON Semantic Diff only auto-applies a candidate when both its score and its lead over competing candidates are strong enough.
+
+![JSON Semantic Diff screenshot showing a side-by-side inventory comparison with tree diff, change summary, and array matching analysis](docs/screenshots/how-is-score-calculated.png)
 
 ## Analytics
 
