@@ -10,6 +10,7 @@ import {
 } from 'json-semantic-diff';
 import { percent } from '../../shared/format';
 import { MatchingOverrideChange, overridePatternFor } from '../../shared/node-actions';
+import { TooltipDirective } from '../../shared/tooltip/tooltip.directive';
 import { ArrayPickerComponent } from '../array-picker/array-picker.component';
 
 /** One configurable array: its core analysis plus the node holding the rows. */
@@ -30,7 +31,7 @@ type Strategy = 'auto' | 'key' | 'position';
 @Component({
   selector: 'app-array-matching',
   standalone: true,
-  imports: [ArrayPickerComponent],
+  imports: [ArrayPickerComponent, TooltipDirective],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './array-matching.component.html',
   styleUrl: './array-matching.component.css'
