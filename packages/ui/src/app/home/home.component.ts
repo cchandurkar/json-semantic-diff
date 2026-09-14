@@ -33,6 +33,9 @@ import {
 } from '../shared/resizable-panel';
 import { WorkspaceStateService } from './workspace-state.service';
 
+/** Pointer movement (px) required before a resize-handle pointerdown counts as a drag rather than a click. */
+const PANEL_DRAG_THRESHOLD_PX = 4;
+
 @Component({
   selector: 'app-home',
   standalone: true,
@@ -97,6 +100,8 @@ export class HomeComponent {
 
   private panelResizeStartX = 0;
   private panelResizeStartWidth = 0;
+  private panelResizeActive = false;
+  private panelDragConfirmed = false;
 
   private readonly applyStoredPanelState = afterNextRender(() => {
     const storedWidth = readStoredAnalysisPanelWidth();
@@ -173,32 +178,52 @@ export class HomeComponent {
 
   startPanelResize(event: PointerEvent): void {
     event.preventDefault();
-    // Dragging a collapsed handle re-expands it: unhide first so the drag
-    // resizes from the panel's last real width instead of the 0 it's
-    // rendering at, which would otherwise make the first pixels of the drag
-    // do nothing.
-    if (this.analysisPanelCollapsed()) {
-      this.analysisPanelCollapsed.set(false);
-      storeAnalysisPanelCollapsed(false);
-    }
+    // Don't act on collapse/resizing state yet - a plain click fires
+    // pointerdown+pointerup with no real movement in between, and doing any
+    // of that here would apply within the same event-handler call as the
+    // eventual pointerup, so Angular's (zoneless, batched) next render would
+    // apply the resulting width change and `.no-transition` class together,
+    // skipping the CSS transition entirely. See onPanelResizeMove/endPanelResize.
     this.panelResizeStartX = event.clientX;
     this.panelResizeStartWidth = this.analysisPanelWidth();
-    this.resizingAnalysisPanel.set(true);
+    this.panelResizeActive = true;
+    this.panelDragConfirmed = false;
     (event.target as HTMLElement).setPointerCapture(event.pointerId);
   }
 
   onPanelResizeMove(event: PointerEvent): void {
-    if (!this.resizingAnalysisPanel()) return;
+    if (!this.panelResizeActive) return;
+    // Collapsed handle can only be opened by a click (or the chevron
+    // button), never a drag - ignore movement entirely until the panel is
+    // expanded.
+    if (this.analysisPanelCollapsed()) return;
     const delta = this.panelResizeStartX - event.clientX;
+    if (!this.panelDragConfirmed) {
+      // Ignore small jitters so a plain click never registers as a drag.
+      if (Math.abs(delta) < PANEL_DRAG_THRESHOLD_PX) return;
+      this.panelDragConfirmed = true;
+      this.resizingAnalysisPanel.set(true);
+    }
     const viewportWidth = typeof window !== 'undefined' ? window.innerWidth : ANALYSIS_PANEL_MAX_WIDTH;
     const maxWidth = Math.min(ANALYSIS_PANEL_MAX_WIDTH, viewportWidth * 0.4);
     this.analysisPanelWidth.set(clampWidth(this.panelResizeStartWidth + delta, ANALYSIS_PANEL_MIN_WIDTH, maxWidth));
   }
 
   endPanelResize(event: PointerEvent): void {
-    if (!this.resizingAnalysisPanel()) return;
-    this.resizingAnalysisPanel.set(false);
+    if (!this.panelResizeActive) return;
+    this.panelResizeActive = false;
     (event.target as HTMLElement).releasePointerCapture(event.pointerId);
+    if (!this.panelDragConfirmed) {
+      // No real drag happened - treat it as a click, toggling collapsed
+      // exactly like the chevron button so it animates via the normal width
+      // transition instead of the drag path's instant `.no-transition` jump.
+      if (this.analysisPanelCollapsed()) {
+        this.analysisPanelCollapsed.set(false);
+        storeAnalysisPanelCollapsed(false);
+      }
+      return;
+    }
+    this.resizingAnalysisPanel.set(false);
     storeAnalysisPanelWidth(this.analysisPanelWidth());
   }
 
