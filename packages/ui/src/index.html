@@ -101,6 +101,55 @@
       var tourSeen =
         tourStored === 'permanent' || (tourStored && Date.now() - Number(tourStored) < 14 * 24 * 60 * 60 * 1000);
       if (tourSeen) document.documentElement.dataset.tourSeen = 'true';
+
+      // Visually collapses the analysis panel before first paint if it was
+      // left collapsed, so a reload never flashes it open. Angular's
+      // analysisPanelCollapsed signal must still start false (see
+      // home.component.ts) to avoid a hydration mismatch - this is a pure
+      // CSS visual override on top of that, not a change to what Angular
+      // itself thinks is rendered, so it can't create a mismatch. Mirrors
+      // ANALYSIS_PANEL_COLLAPSED_STORAGE_KEY in
+      // src/app/shared/resizable-panel.ts - change both together.
+      var analysisPanelCollapsed = false;
+      try {
+        analysisPanelCollapsed = localStorage.getItem('json-semantic-diff.analysisPanelCollapsed') === 'true';
+      } catch (e) {
+        /* storage blocked */
+      }
+      if (analysisPanelCollapsed) document.documentElement.dataset.analysisPanelCollapsed = 'true';
+
+      // Applies the saved analysis panel width before first paint so a reload
+      // never flashes the default width before snapping to the real one.
+      // Angular's analysisPanelWidth signal must still start at
+      // ANALYSIS_PANEL_DEFAULT_WIDTH (see home.component.ts) to avoid a
+      // hydration mismatch - this is a pure CSS visual override via a
+      // dynamically injected <style> tag (not part of any Angular-compiled
+      // stylesheet, so Angular's per-selector _ngcontent scoping can't make it
+      // dead CSS the way a component-scoped rule would). Removed once
+      // Angular's own signal has been corrected to the same value (see
+      // applyStoredPanelState in home.component.ts), so it never overrides a
+      // later user-driven resize. Mirrors ANALYSIS_PANEL_WIDTH_STORAGE_KEY/
+      // ANALYSIS_PANEL_MIN_WIDTH/ANALYSIS_PANEL_MAX_WIDTH in
+      // src/app/shared/resizable-panel.ts - change all together.
+      var storedWidthRaw = null;
+      var storedWidth = NaN;
+      var widthOverrideStyle = null;
+      if (!analysisPanelCollapsed) {
+        try {
+          storedWidthRaw = localStorage.getItem('json-semantic-diff.analysisPanelWidth');
+        } catch (e) {
+          /* storage blocked */
+        }
+        storedWidth = storedWidthRaw ? parseInt(storedWidthRaw, 10) : NaN;
+        if (!isNaN(storedWidth)) {
+          storedWidth = Math.min(480, Math.max(260, storedWidth));
+          widthOverrideStyle = document.createElement('style');
+          widthOverrideStyle.id = 'analysis-panel-width-override';
+          widthOverrideStyle.textContent =
+            '@media (width > 1280px) { app-analysis-panel { width: ' + storedWidth + 'px !important; } }';
+          document.head.appendChild(widthOverrideStyle);
+        }
+      }
     </script>
   </head>
   <body>

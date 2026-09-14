@@ -45,3 +45,34 @@ export function storeAnalysisPanelWidth(width: number): void {
     /* ignored */
   }
 }
+
+/**
+ * Separate from the width itself: collapsing hides the panel without
+ * discarding the width the user dragged it to, so re-expanding (via the
+ * collapse toggle or by dragging the handle) restores exactly what they had.
+ */
+export const ANALYSIS_PANEL_COLLAPSED_STORAGE_KEY = 'json-semantic-diff.analysisPanelCollapsed';
+
+/**
+ * Returns false (i.e. "expanded") when storage is unavailable (private mode,
+ * blocked cookies, or a non-browser environment such as build-time
+ * prerendering) or when there is no saved choice.
+ */
+export function readStoredAnalysisPanelCollapsed(): boolean {
+  if (typeof localStorage === 'undefined') return false;
+  try {
+    return localStorage.getItem(ANALYSIS_PANEL_COLLAPSED_STORAGE_KEY) === 'true';
+  } catch {
+    return false;
+  }
+}
+
+/** Storage failures are non-fatal: the collapsed state still applies for this session. */
+export function storeAnalysisPanelCollapsed(collapsed: boolean): void {
+  if (typeof localStorage === 'undefined') return;
+  try {
+    localStorage.setItem(ANALYSIS_PANEL_COLLAPSED_STORAGE_KEY, String(collapsed));
+  } catch {
+    /* ignored */
+  }
+}

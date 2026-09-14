@@ -1,15 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  ElementRef,
-  afterNextRender,
-  computed,
-  effect,
-  input,
-  output,
-  signal,
-  viewChild
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, afterNextRender, computed, effect, input, model, output, signal } from '@angular/core';
 import { ArrayMatchAnalysis, CandidateStats, DiffResult, ScoreBreakdownTerm } from 'json-semantic-diff';
 import { DIFF_EXAMPLES, DiffExample } from '../../examples';
 import { decimalPercent, percent } from '../../shared/format';
@@ -28,8 +17,10 @@ import { pickRandomExample } from './analysis-panel-example';
  * mutates comparison options, it just always shows the currently selected one.
  *
  * Above the drawer breakpoint it is a flex column with its own scroll. Below
- * it, the panel becomes an off-canvas drawer behind a toggle button - the same
- * signal-driven pattern used by `SidebarComponent`.
+ * it, the panel becomes an off-canvas drawer, driven by the `open` model() -
+ * the same pattern used by `SidebarComponent`. Its trigger button lives in
+ * HomeComponent's shared mobile panel bar rather than here; see that
+ * component's doc comment and `SidebarComponent`'s for why.
  */
 @Component({
   selector: 'app-analysis-panel',
@@ -43,8 +34,6 @@ import { pickRandomExample } from './analysis-panel-example';
   }
 })
 export class AnalysisPanelComponent {
-  private readonly toggleButton = viewChild.required<ElementRef<HTMLButtonElement>>('toggleButton');
-
   readonly result = input<DiffResult | null>(null);
   /** The array currently explained; the parent defaults this to `primaryAnalysis`. */
   readonly analysis = input<ArrayMatchAnalysis | null>(null);
@@ -60,8 +49,20 @@ export class AnalysisPanelComponent {
   /** Fired when the user clicks the empty-state "Try [Example] example" link. */
   readonly exampleRequested = output<DiffExample>();
 
-  /** Drawer state; only meaningful below the breakpoint, where the toggle shows. */
-  readonly open = signal(false);
+  /**
+   * Drawer state; only meaningful below the breakpoint, where the trigger
+   * button shows. A model() rather than a plain signal so the mobile trigger
+   * button - which lives in HomeComponent's shared panel bar, not here, see
+   * that component's doc comment - can drive it via `[(open)]`.
+   */
+  readonly open = model(false);
+
+  /**
+   * Escape and the drawer's own "×" close the drawer AND should return focus
+   * to the external trigger button; HomeComponent listens for this to do
+   * that, since it owns that button and this component has no reference to it.
+   */
+  readonly restoreFocusRequested = output<void>();
 
   /**
    * Always starts with DIFF_EXAMPLES[0] so server-prerendered HTML and the
@@ -118,13 +119,17 @@ export class AnalysisPanelComponent {
   onEscape(event: Event): void {
     const target = event.target as Element | null;
     if (target?.closest?.('.cdk-overlay-container')) return;
-    this.close(true);
+    this.closeAndRestoreFocus();
   }
 
-  close(restoreFocus = false): void {
-    if (!this.open()) return;
+  close(): void {
     this.open.set(false);
-    if (restoreFocus) this.toggleButton().nativeElement.focus();
+  }
+
+  closeAndRestoreFocus(): void {
+    if (!this.open()) return;
+    this.close();
+    this.restoreFocusRequested.emit();
   }
 
   /** Heading for the selected-key section, branching on provenance not mechanism. */

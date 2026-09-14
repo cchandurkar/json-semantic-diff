@@ -20,7 +20,7 @@ app-array-picker {
 
 .toggle-row {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 9px;
   border-radius: var(--radius);
   padding: 6px 8px;
@@ -36,7 +36,7 @@ app-array-picker {
 }
 
 .toggle-row input {
-  margin: 1px 0 0;
+  margin: 0;
   accent-color: var(--primary);
   cursor: pointer;
 }
@@ -47,6 +47,7 @@ app-array-picker {
 }
 
 .toggle-text {
+  flex: 1;
   display: flex;
   flex-direction: column;
   gap: 2px;
@@ -58,9 +59,29 @@ app-array-picker {
   font: 500 12px var(--sans);
 }
 
-.toggle-hint {
-  color: var(--muted-foreground);
-  font: 11px/1.4 var(--sans);
+.hint-icon {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--subtle-foreground);
+  font: 600 10px var(--sans);
+  line-height: 1;
+  cursor: help;
+}
+
+.hint-icon:hover {
+  color: var(--foreground);
+  border-color: var(--border-strong);
+}
+
+.hint-icon:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
 }
 
 .field-list {
@@ -171,7 +192,8 @@ app-array-picker {
 }
 
 .matching-fieldset:disabled .toggle-row,
-.matching-fieldset:disabled .toggle-row input {
+.matching-fieldset:disabled .toggle-row input,
+.matching-fieldset:disabled .hint-icon {
   cursor: not-allowed;
 }
 

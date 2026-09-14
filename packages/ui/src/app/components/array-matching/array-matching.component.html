@@ -6,24 +6,45 @@
       <input type="radio" name="matching-strategy-disabled" checked disabled />
       <span class="toggle-text">
         <span class="toggle-name">Auto</span>
-        <span class="toggle-hint">JSON Semantic Diff chooses the best identity.</span>
       </span>
+      <button
+        type="button"
+        class="hint-icon"
+        appTooltip="JSON Semantic Diff chooses the best identity."
+        aria-label="What does Auto matching do?"
+      >
+        ?
+      </button>
     </label>
 
     <label class="toggle-row">
       <input type="radio" name="matching-strategy-disabled" disabled />
       <span class="toggle-text">
         <span class="toggle-name">Match by fields</span>
-        <span class="toggle-hint">Pick one or more fields that identify a record.</span>
       </span>
+      <button
+        type="button"
+        class="hint-icon"
+        appTooltip="Pick one or more fields that identify a record."
+        aria-label="What does Match by fields do?"
+      >
+        ?
+      </button>
     </label>
 
     <label class="toggle-row">
       <input type="radio" name="matching-strategy-disabled" disabled />
       <span class="toggle-text">
         <span class="toggle-name">Position</span>
-        <span class="toggle-hint">Compare elements by array position.</span>
       </span>
+      <button
+        type="button"
+        class="hint-icon"
+        appTooltip="Compare elements by array position."
+        aria-label="What does Position matching do?"
+      >
+        ?
+      </button>
     </label>
 
     <div class="matching-actions">
@@ -38,16 +59,30 @@
     <input type="radio" name="matching-strategy" [checked]="strategy() === 'auto'" (change)="strategy.set('auto')" />
     <span class="toggle-text">
       <span class="toggle-name">Auto</span>
-      <span class="toggle-hint">JSON Semantic Diff chooses the best identity.</span>
     </span>
+    <button
+      type="button"
+      class="hint-icon"
+      appTooltip="JSON Semantic Diff chooses the best identity."
+      aria-label="What does Auto matching do?"
+    >
+      ?
+    </button>
   </label>
 
   <label class="toggle-row" [class.is-active]="strategy() === 'key'">
     <input type="radio" name="matching-strategy" [checked]="strategy() === 'key'" (change)="strategy.set('key')" />
     <span class="toggle-text">
       <span class="toggle-name">Match by fields</span>
-      <span class="toggle-hint">Pick one or more fields that identify a record.</span>
     </span>
+    <button
+      type="button"
+      class="hint-icon"
+      appTooltip="Pick one or more fields that identify a record."
+      aria-label="What does Match by fields do?"
+    >
+      ?
+    </button>
   </label>
 
   @if (strategy() === 'key') {
@@ -84,8 +119,15 @@
     <input type="radio" name="matching-strategy" [checked]="strategy() === 'position'" (change)="strategy.set('position')" />
     <span class="toggle-text">
       <span class="toggle-name">Position</span>
-      <span class="toggle-hint">Compare elements by array position.</span>
     </span>
+    <button
+      type="button"
+      class="hint-icon"
+      appTooltip="Compare elements by array position."
+      aria-label="What does Position matching do?"
+    >
+      ?
+    </button>
   </label>
 
   @if (context.analysis.duplicateKeyCount) {
