@@ -60,6 +60,7 @@ export class HomeComponent {
   );
 
   readonly workspace = inject(WorkspaceStateService);
+  readonly editorsCollapsed = signal(false);
 
   readonly analysisPanelWidth = signal(ANALYSIS_PANEL_DEFAULT_WIDTH);
   readonly resizingAnalysisPanel = signal(false);
@@ -240,6 +241,10 @@ export class HomeComponent {
 
   isChecked(event: Event): boolean {
     return (event.target as HTMLInputElement).checked;
+  }
+
+  toggleEditorsCollapsed(): void {
+    this.editorsCollapsed.update((value) => !value);
   }
 
   /** SidebarComponent emits this when Escape/its own "×" close the drawer; see its doc comment. */

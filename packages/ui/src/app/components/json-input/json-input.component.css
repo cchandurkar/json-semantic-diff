@@ -27,8 +27,18 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 14px;
+  padding: 0 8px;
   border-bottom: 1px solid var(--border);
+}
+
+.input-card.is-collapsed .input-card__header {
+  border-bottom: 0;
+}
+
+.header-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .eyebrow {
@@ -73,6 +83,10 @@
 
 .file-button svg {
   display: block;
+}
+
+.collapse-button {
+  padding: 6px;
 }
 
 .file-button:disabled {

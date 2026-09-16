@@ -87,7 +87,9 @@
           [error]="workspace.leftError()"
           [statusText]="workspace.inputStatus()"
           [darkMode]="darkMode()"
+          [collapsed]="editorsCollapsed()"
           [(editorHeight)]="workspace.editorHeight"
+          (collapseToggle)="toggleEditorsCollapsed()"
           (valueChange)="workspace.leftText.set($event); workspace.markDirty()"
         />
         <app-json-input
@@ -96,7 +98,9 @@
           [error]="workspace.rightError()"
           [statusText]="workspace.inputStatus()"
           [darkMode]="darkMode()"
+          [collapsed]="editorsCollapsed()"
           [(editorHeight)]="workspace.editorHeight"
+          (collapseToggle)="toggleEditorsCollapsed()"
           (valueChange)="workspace.rightText.set($event); workspace.markDirty()"
         />
       </div>
