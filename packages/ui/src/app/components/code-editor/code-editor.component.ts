@@ -57,13 +57,18 @@ const jsonHighlightStyle = HighlightStyle.define([
   selector: 'app-code-editor',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: { '[style.height.px]': 'editorHeight()' },
+  host: {
+    '[class.fill-height]': 'fillHeight()',
+    '[style.height]': "fillHeight() ? '100%' : null",
+    '[style.height.px]': 'fillHeight() ? null : editorHeight()'
+  },
   templateUrl: './code-editor.component.html',
   styleUrl: './code-editor.component.css'
 })
 export class CodeEditorComponent implements OnDestroy {
   readonly value = model<string>('');
   readonly editorHeight = model<number>(260);
+  readonly fillHeight = input(false);
   readonly darkMode = input(false);
   readonly ariaLabel = input('');
   readonly placeholder = input('');
