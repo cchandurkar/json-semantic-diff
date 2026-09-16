@@ -88,9 +88,25 @@ export const REORDER_TOOLTIP =
   'The matching key comes from the existing comparison result.';
 
 export interface CellRender {
-  key?: string;
-  segments: DiffSegment[];
-  tail: string;
+  keyTokens: TokenSpan[];
+  segments: RenderSegment[];
+  tailTokens: TokenSpan[];
+}
+
+export interface RenderSegment {
+  changed: boolean;
+  tokens: TokenSpan[];
+}
+
+export type TokenKind = 'punctuation' | 'key' | 'string' | 'number' | 'boolean' | 'null' | 'whitespace' | 'text';
+
+export interface TokenSpan {
+  text: string;
+  kind: TokenKind;
+}
+
+export function tokenClass(kind: TokenKind): string {
+  return `tok-${kind}`;
 }
 
 /**
@@ -106,11 +122,117 @@ export function renderCell(row: SourceDiffRow, side: 'left' | 'right'): CellRend
   const other = side === 'left' ? row.right : row.left;
   const isModification = row.changeKind === 'modified' || row.changeKind === 'type-changed';
   if (!isModification || cell.value === undefined || other?.value === undefined) {
-    return { segments: [{ text: cell.text, changed: false }], tail: '' };
+    return {
+      keyTokens: [],
+      segments: [{ changed: false, tokens: tokenizeJsonSnippet(cell.text) }],
+      tailTokens: []
+    };
   }
-  const tail = cell.text.slice((cell.key?.length ?? 0) + cell.value.length);
+  const key = cell.key ?? '';
+  const tail = cell.text.slice(key.length + cell.value.length);
   const { left, right } = diffText(row.left!.value!, row.right!.value!);
-  return { key: cell.key, segments: side === 'left' ? left : right, tail };
+  return {
+    keyTokens: key ? [{ text: key, kind: 'key' }] : [],
+    segments: toRenderSegments(side === 'left' ? left : right),
+    tailTokens: tokenizeJsonSnippet(tail)
+  };
+}
+
+function toRenderSegments(segments: DiffSegment[]): RenderSegment[] {
+  return segments.map((segment) => ({
+    changed: segment.changed,
+    tokens: tokenizeJsonSnippet(segment.text)
+  }));
+}
+
+function tokenizeJsonSnippet(text: string): TokenSpan[] {
+  if (!text) return [{ text: '', kind: 'text' }];
+  const out: TokenSpan[] = [];
+  let i = 0;
+
+  while (i < text.length) {
+    const ch = text[i]!;
+
+    if (/\s/.test(ch)) {
+      const start = i;
+      i += 1;
+      while (i < text.length && /\s/.test(text[i]!)) i += 1;
+      out.push({ text: text.slice(start, i), kind: 'whitespace' });
+      continue;
+    }
+
+    if (isPunctuation(ch)) {
+      out.push({ text: ch, kind: 'punctuation' });
+      i += 1;
+      continue;
+    }
+
+    if (ch === '"') {
+      const start = i;
+      i += 1;
+      let escaped = false;
+      while (i < text.length) {
+        const current = text[i]!;
+        i += 1;
+        if (escaped) {
+          escaped = false;
+          continue;
+        }
+        if (current === '\\') {
+          escaped = true;
+          continue;
+        }
+        if (current === '"') break;
+      }
+      const tokenText = text.slice(start, i);
+      out.push({ text: tokenText, kind: isObjectKeyToken(text, i) ? 'key' : 'string' });
+      continue;
+    }
+
+    const numberMatch = text.slice(i).match(NUMBER_TOKEN_RE);
+    if (numberMatch) {
+      out.push({ text: numberMatch[0], kind: 'number' });
+      i += numberMatch[0].length;
+      continue;
+    }
+
+    const booleanMatch = text.slice(i).match(BOOLEAN_TOKEN_RE);
+    if (booleanMatch) {
+      out.push({ text: booleanMatch[0], kind: 'boolean' });
+      i += booleanMatch[0].length;
+      continue;
+    }
+
+    const nullMatch = text.slice(i).match(NULL_TOKEN_RE);
+    if (nullMatch) {
+      out.push({ text: nullMatch[0], kind: 'null' });
+      i += nullMatch[0].length;
+      continue;
+    }
+
+    const start = i;
+    i += 1;
+    while (i < text.length && !/\s/.test(text[i]!) && !isPunctuation(text[i]!) && text[i] !== '"') {
+      i += 1;
+    }
+    out.push({ text: text.slice(start, i), kind: 'text' });
+  }
+
+  return out;
+}
+
+const NUMBER_TOKEN_RE = /^-?(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE][+-]?\d+)?/;
+const BOOLEAN_TOKEN_RE = /^(?:true|false)(?![A-Za-z0-9_])/;
+const NULL_TOKEN_RE = /^null(?![A-Za-z0-9_])/;
+
+function isPunctuation(ch: string): boolean {
+  return ch === '{' || ch === '}' || ch === '[' || ch === ']' || ch === ':' || ch === ',';
+}
+
+function isObjectKeyToken(line: string, nextIndex: number): boolean {
+  let i = nextIndex;
+  while (i < line.length && /\s/.test(line[i]!)) i += 1;
+  return line[i] === ':';
 }
 
 function isRemovedSide(kind: DiffChangeKind): boolean {

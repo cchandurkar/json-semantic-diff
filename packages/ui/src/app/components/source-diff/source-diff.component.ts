@@ -14,6 +14,7 @@ import {
   matchSpans,
   matchSummary,
   renderCell,
+  tokenClass,
   rightMarker,
   rowMatchesQuery
 } from './source-view-model';
@@ -79,6 +80,7 @@ export class SourceDiffComponent {
   readonly reorderTooltip = REORDER_TOOLTIP;
   readonly rowMatchesQuery = rowMatchesQuery;
   readonly matchSpans = matchSpans;
+  readonly tokenClass = tokenClass;
 
   constructor() {
     // Scrolling to the selected node is the one place this view touches the DOM.

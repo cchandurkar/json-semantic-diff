@@ -42,8 +42,8 @@
   grid-template-columns: subgrid;
   grid-column: 1 / -1;
   align-items: stretch;
-  border-bottom: 1px solid var(--border-subtle);
   font: 12px/1.6 var(--mono);
+  font-weight: 500;
   cursor: pointer;
 }
 
@@ -84,6 +84,44 @@
   padding: 3px 10px 3px calc(10px + var(--depth) * 14px);
   white-space: pre;
   color: var(--foreground);
+}
+
+.tok-punctuation,
+.tok-whitespace,
+.tok-text {
+  color: inherit;
+}
+
+.tok-key {
+  color: var(--json-key);
+}
+
+.tok-string {
+  color: var(--json-string);
+}
+
+.tok-number {
+  color: var(--json-number);
+}
+
+.tok-boolean,
+.tok-null {
+  color: var(--json-boolean);
+}
+
+.tok-null {
+  color: var(--json-null);
+}
+
+.diff-mark .tok-key,
+.diff-mark .tok-string,
+.diff-mark .tok-number,
+.diff-mark .tok-boolean,
+.diff-mark .tok-null,
+.diff-mark .tok-punctuation,
+.diff-mark .tok-whitespace,
+.diff-mark .tok-text {
+  color: inherit;
 }
 
 .code.right {
@@ -149,6 +187,7 @@
 
 .diff-mark {
   border-radius: 2px;
+  color: var(--card-foreground) !important;
 }
 
 .kind-modified .left .diff-mark,

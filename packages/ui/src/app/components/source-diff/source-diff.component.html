@@ -36,13 +36,19 @@
           <span class="marker left-marker" aria-hidden="true">{{ leftMarker(item.row) }}</span>
           <span class="code left" [style.--depth]="item.row.depth">
             @if (renderCell(item.row, 'left'); as cell) {
-              <ng-container *ngTemplateOutlet="highlighted; context: { $implicit: cell.key ?? '' }"></ng-container>
-              @for (seg of cell.segments; track $index) {
-                <span [class.diff-mark]="seg.changed"
-                  ><ng-container *ngTemplateOutlet="highlighted; context: { $implicit: seg.text }"></ng-container
-                ></span>
+              @for (tok of cell.keyTokens; track $index) {
+                <ng-container *ngTemplateOutlet="highlightedToken; context: { $implicit: tok }"></ng-container>
               }
-              <ng-container *ngTemplateOutlet="highlighted; context: { $implicit: cell.tail }"></ng-container>
+              @for (seg of cell.segments; track $index) {
+                <span [class.diff-mark]="seg.changed">
+                  @for (tok of seg.tokens; track $index) {
+                    <ng-container *ngTemplateOutlet="highlightedToken; context: { $implicit: tok }"></ng-container>
+                  }
+                </span>
+              }
+              @for (tok of cell.tailTokens; track $index) {
+                <ng-container *ngTemplateOutlet="highlightedToken; context: { $implicit: tok }"></ng-container>
+              }
             }
           </span>
 
@@ -51,13 +57,19 @@
           <span class="code right" [style.--depth]="item.row.depth">
             <span class="code-text">
               @if (renderCell(item.row, 'right'); as cell) {
-                <ng-container *ngTemplateOutlet="highlighted; context: { $implicit: cell.key ?? '' }"></ng-container>
-                @for (seg of cell.segments; track $index) {
-                  <span [class.diff-mark]="seg.changed"
-                    ><ng-container *ngTemplateOutlet="highlighted; context: { $implicit: seg.text }"></ng-container
-                  ></span>
+                @for (tok of cell.keyTokens; track $index) {
+                  <ng-container *ngTemplateOutlet="highlightedToken; context: { $implicit: tok }"></ng-container>
                 }
-                <ng-container *ngTemplateOutlet="highlighted; context: { $implicit: cell.tail }"></ng-container>
+                @for (seg of cell.segments; track $index) {
+                  <span [class.diff-mark]="seg.changed">
+                    @for (tok of seg.tokens; track $index) {
+                      <ng-container *ngTemplateOutlet="highlightedToken; context: { $implicit: tok }"></ng-container>
+                    }
+                  </span>
+                }
+                @for (tok of cell.tailTokens; track $index) {
+                  <ng-container *ngTemplateOutlet="highlightedToken; context: { $implicit: tok }"></ng-container>
+                }
               }
             </span>
             @if (item.row.arrayMatch; as match) {
@@ -93,14 +105,17 @@
   </div>
 </div>
 
-<!-- Splits any rendered text around the current search query for inline <mark> highlighting;
-     shared by both sides' key/segment/tail so it isn't triplicated per row.
-     Kept on ONE line: `.code`/`.code-text` use `white-space:pre`, so any whitespace-only text
-     node this template introduces (e.g. from normal multi-line indentation around `{{ part.text }}`)
-     would render as a literal, word-breaking space - Angular's default whitespace stripping does
-     not reliably remove it right next to an interpolation the way it does between element tags. -->
-<!-- prettier-ignore -->
-<ng-template #highlighted let-text>@for (part of matchSpans(text, searchQuery()); track $index) {@if (part.hit) {<mark class="search-hit">{{ part.text }}</mark>} @else {<ng-container>{{ part.text }}</ng-container>}}</ng-template>
+<ng-template #highlightedToken let-token>
+  <span [class]="tokenClass(token.kind)">
+    @for (part of matchSpans(token.text, searchQuery()); track $index) {
+      @if (part.hit) {
+        <mark class="search-hit">{{ part.text }}</mark>
+      } @else {
+        <ng-container>{{ part.text }}</ng-container>
+      }
+    }
+  </span>
+</ng-template>
 
 <!-- Copy/Comparison menu shared by the row right-click trigger and the "⋯" button. -->
 <ng-template #rowActions let-nodeId>
