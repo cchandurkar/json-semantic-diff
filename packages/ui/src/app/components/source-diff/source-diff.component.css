@@ -64,7 +64,7 @@
   padding: 3px 8px;
   text-align: right;
   color: var(--subtle-foreground);
-  background: var(--muted);
+  background: transparent;
   border-right: 1px solid var(--border-subtle);
   user-select: none;
   font-variant-numeric: tabular-nums;
