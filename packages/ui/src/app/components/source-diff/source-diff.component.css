@@ -42,8 +42,8 @@
   grid-template-columns: subgrid;
   grid-column: 1 / -1;
   align-items: stretch;
+  border-bottom: 1px solid var(--border-subtle);
   font: 12px/1.6 var(--mono);
-  font-weight: 500;
   cursor: pointer;
 }
 
