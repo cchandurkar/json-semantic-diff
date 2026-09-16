@@ -31,7 +31,7 @@ const PANEL_POSITIONS: ConnectedPosition[] = [
   { originX: 'end', originY: 'top', overlayX: 'end', overlayY: 'bottom', offsetY: -6 }
 ];
 
-const FLASH_CYCLE_MS = 1100;
+const FLASH_CYCLE_MS = 720;
 const FLASH_REPEAT_COUNT = 4;
 
 /**
