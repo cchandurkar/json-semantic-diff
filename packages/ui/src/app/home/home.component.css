@@ -262,9 +262,25 @@ h1 span {
 .hero p {
   margin: 0 auto;
   color: var(--muted-foreground);
-  font-size: 14px;
+  font-size: 15px;
   line-height: 1.6;
   max-width: 560px;
+}
+
+.product-hunt-badge {
+  display: inline-flex;
+  margin-top: 16px;
+}
+
+.product-hunt-badge img {
+  display: block;
+  width: 175px;
+  height: auto;
+}
+
+:host-context(html[data-theme='dark']) .product-hunt-badge img {
+  border: 1px solid rgb(255 255 255 / 55%);
+  border-radius: 8px;
 }
 
 .main-column {

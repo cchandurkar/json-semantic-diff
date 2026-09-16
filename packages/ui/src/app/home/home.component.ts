@@ -54,6 +54,10 @@ const PANEL_DRAG_THRESHOLD_PX = 4;
 })
 export class HomeComponent {
   readonly darkMode = sharedDarkMode;
+  readonly productHuntBadgeSrc = computed(
+    () =>
+      `https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1251785&theme=${this.darkMode() ? 'dark' : 'light'}&t=1789527498370`
+  );
 
   readonly workspace = inject(WorkspaceStateService);
 
