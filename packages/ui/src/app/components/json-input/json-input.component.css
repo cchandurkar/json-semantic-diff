@@ -3,18 +3,11 @@
   min-width: 0;
 }
 
-:host.fill-height {
-  height: 100%;
-}
-
 .input-card {
   border: 1px solid var(--border);
   background: var(--card);
   border-radius: var(--radius);
   overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  height: 100%;
   transition:
     border-color 0.18s,
     box-shadow 0.18s;
@@ -108,8 +101,6 @@
 
 .json-editor {
   display: block;
-  flex: 1 1 auto;
-  min-height: 0;
   color: var(--foreground);
 }
 

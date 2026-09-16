@@ -5,12 +5,6 @@
   min-height: 120px;
 }
 
-:host.fill-height {
-  height: 100%;
-  min-height: 0;
-  resize: none;
-}
-
 .code-editor {
   height: 100%;
 }

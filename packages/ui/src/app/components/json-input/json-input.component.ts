@@ -7,9 +7,6 @@ import { formatJson } from '../../shared/format-json';
   standalone: true,
   imports: [CodeEditorComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: {
-    '[class.fill-height]': 'fillHeight()'
-  },
   templateUrl: './json-input.component.html',
   styleUrl: './json-input.component.css'
 })
@@ -19,7 +16,6 @@ export class JsonInputComponent {
   readonly error = input<string | null>(null);
   readonly statusText = input('Waiting for JSON');
   readonly darkMode = input(false);
-  readonly fillHeight = input(false);
   readonly collapsed = input(false);
   readonly editorHeight = model<number>(260);
   readonly valueChange = output<string>();
