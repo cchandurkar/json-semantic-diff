@@ -32,7 +32,7 @@
           [cdkContextMenuTriggerFor]="rowActions"
           [cdkContextMenuTriggerData]="{ $implicit: item.row.nodeId }"
         >
-          <span class="gutter">{{ item.row.left?.lineNumber }}</span>
+          <span class="gutter left-gutter">{{ item.row.left?.lineNumber }}</span>
           <span class="marker left-marker" aria-hidden="true">{{ leftMarker(item.row) }}</span>
           <span class="code left" [style.--depth]="item.row.depth">
             @if (renderCell(item.row, 'left'); as cell) {
@@ -46,7 +46,7 @@
             }
           </span>
 
-          <span class="gutter">{{ item.row.right?.lineNumber }}</span>
+          <span class="gutter right-gutter">{{ item.row.right?.lineNumber }}</span>
           <span class="marker right-marker" aria-hidden="true">{{ rightMarker(item.row) }}</span>
           <span class="code right" [style.--depth]="item.row.depth">
             <span class="code-text">

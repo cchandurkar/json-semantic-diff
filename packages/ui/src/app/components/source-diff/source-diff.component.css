@@ -101,11 +101,21 @@
   background: var(--diff-added-bg);
 }
 
+.kind-added .right-gutter,
+.kind-added .right-marker {
+  background: var(--diff-added-bg);
+}
+
 .kind-added .right-marker {
   color: var(--diff-added);
 }
 
 .kind-removed .left {
+  background: var(--diff-removed-bg);
+}
+
+.kind-removed .left-gutter,
+.kind-removed .left-marker {
   background: var(--diff-removed-bg);
 }
 
@@ -118,8 +128,22 @@
   background: var(--diff-removed-bg);
 }
 
+.kind-modified .left-gutter,
+.kind-modified .left-marker,
+.kind-type-changed .left-gutter,
+.kind-type-changed .left-marker {
+  background: var(--diff-removed-bg);
+}
+
 .kind-modified .right,
 .kind-type-changed .right {
+  background: var(--diff-added-bg);
+}
+
+.kind-modified .right-gutter,
+.kind-modified .right-marker,
+.kind-type-changed .right-gutter,
+.kind-type-changed .right-marker {
   background: var(--diff-added-bg);
 }
 
