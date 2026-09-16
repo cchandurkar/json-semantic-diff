@@ -1,4 +1,12 @@
-<button #trigger type="button" class="picker-trigger" aria-haspopup="menu" [attr.aria-expanded]="open()" (click)="toggle()">
+<button
+  #trigger
+  type="button"
+  class="picker-trigger"
+  [class.flash-hint]="flashHint()"
+  aria-haspopup="menu"
+  [attr.aria-expanded]="open()"
+  (click)="toggle()"
+>
   <span class="trigger-label">{{ label() }}</span>
   <span class="caret" aria-hidden="true"
     ><svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true" focusable="false">

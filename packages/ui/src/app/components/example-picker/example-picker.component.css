@@ -16,6 +16,35 @@
   cursor: pointer;
 }
 
+.picker-trigger.flash-hint {
+  animation: example-trigger-flash-hint 1.1s ease-out 4;
+}
+
+@keyframes example-trigger-flash-hint {
+  0% {
+    border-color: color-mix(in srgb, var(--primary) 22%, var(--border));
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--primary) 34%, transparent);
+  }
+
+  40% {
+    border-color: color-mix(in srgb, var(--primary) 62%, var(--border));
+    box-shadow: 0 0 0 7px color-mix(in srgb, var(--primary) 20%, transparent);
+  }
+
+  100% {
+    border-color: var(--border);
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--primary) 0%, transparent);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .picker-trigger.flash-hint {
+    animation: none;
+    border-color: color-mix(in srgb, var(--primary) 42%, var(--border));
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary) 18%, transparent);
+  }
+}
+
 .picker-trigger:hover {
   background: var(--accent);
 }
