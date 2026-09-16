@@ -69,7 +69,7 @@ export class AppComponent implements OnDestroy, AfterViewInit {
   private mediaQueryList?: MediaQueryList;
   private mediaQueryListener?: (event: MediaQueryListEvent) => void;
 
-  private readonly workspace = inject(WorkspaceStateService);
+  readonly workspace = inject(WorkspaceStateService);
 
   private readonly applyStoredUiState = afterNextRender(() => {
     const storedPref = readStoredTheme() ?? 'system';

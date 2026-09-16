@@ -272,6 +272,10 @@ h1 span {
   margin-top: 16px;
 }
 
+.hero-product-hunt-mobile {
+  display: none;
+}
+
 .product-hunt-badge img {
   display: block;
   width: 175px;
@@ -293,6 +297,12 @@ h1 span {
 :host-context(html[data-theme='dark']) .product-hunt-badge img {
   border: 1px solid rgb(255 255 255 / 55%);
   border-radius: 8px;
+}
+
+@media (width <= 600px) {
+  .hero-product-hunt-mobile {
+    display: inline-flex;
+  }
 }
 
 .main-column {

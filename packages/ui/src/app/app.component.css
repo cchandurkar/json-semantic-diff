@@ -105,6 +105,35 @@ nav {
   gap: 6px;
 }
 
+.header-product-hunt-badge {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.header-product-hunt-badge img {
+  display: block;
+  width: 150px;
+  height: auto;
+}
+
+.header-product-hunt-badge .badge-dark {
+  display: none;
+}
+
+:host-context(html[data-theme='dark']) .header-product-hunt-badge .badge-light {
+  display: none;
+}
+
+:host-context(html[data-theme='dark']) .header-product-hunt-badge .badge-dark {
+  display: block;
+}
+
+:host-context(html[data-theme='dark']) .header-product-hunt-badge img {
+  border: 1px solid rgb(255 255 255 / 55%);
+  border-radius: 8px;
+}
+
 .link-button,
 .theme-toggle {
   border: 0;
@@ -157,6 +186,14 @@ nav {
 @media (width <= 600px) {
   .header-inner {
     padding: 0 16px;
+  }
+
+  .header-product-hunt-badge {
+    display: none;
+  }
+
+  .header-product-hunt-badge img {
+    width: 120px;
   }
 
   .nav-label {
