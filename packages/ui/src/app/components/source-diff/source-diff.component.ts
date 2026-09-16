@@ -2,17 +2,16 @@ import { ChangeDetectionStrategy, Component, computed, effect, input, output, si
 import { NgTemplateOutlet } from '@angular/common';
 import { CdkContextMenuTrigger, CdkMenu, CdkMenuGroup, CdkMenuItem, CdkMenuTrigger } from '@angular/cdk/menu';
 import { DiffNode, DiffResult } from 'json-semantic-diff';
+import { formatArrayMatchBadge } from '../../shared/array-match-badge';
 import { findNodeById } from '../../shared/node-navigation';
 import { NodeActionEvent, NodeActionId, NodeMenuGroup, buildNodeMenu } from '../../shared/node-actions';
 import { DEFAULT_CONTEXT_LINES, emitSourceRows, segmentRows } from '../../source';
 import {
-  REORDER_TOOLTIP,
   buildItems,
   changeLabel,
   collapsedKeyContaining,
   leftMarker,
   matchSpans,
-  matchSummary,
   renderCell,
   tokenClass,
   rightMarker,
@@ -75,9 +74,8 @@ export class SourceDiffComponent {
   readonly leftMarker = leftMarker;
   readonly rightMarker = rightMarker;
   readonly changeLabel = changeLabel;
-  readonly matchSummary = matchSummary;
+  readonly formatArrayMatchBadge = formatArrayMatchBadge;
   readonly renderCell = renderCell;
-  readonly reorderTooltip = REORDER_TOOLTIP;
   readonly rowMatchesQuery = rowMatchesQuery;
   readonly matchSpans = matchSpans;
   readonly tokenClass = tokenClass;

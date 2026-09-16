@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, effect, input, output, si
 import { NgTemplateOutlet } from '@angular/common';
 import { CdkContextMenuTrigger, CdkMenu, CdkMenuGroup, CdkMenuItem, CdkMenuTrigger } from '@angular/cdk/menu';
 import { DiffNode, JsonValue } from 'json-semantic-diff';
-import { percent } from '../../shared/format';
+import { ArrayMatchBadge, formatArrayMatchBadge } from '../../shared/array-match-badge';
 import { ancestorPaths } from '../../shared/node-navigation';
 import { NodeActionEvent, NodeActionId, buildNodeMenu, deriveMatchingTarget } from '../../shared/node-actions';
 import { DiffSegment, diffText } from '../../shared/text-diff';
@@ -182,21 +182,10 @@ export class DiffTreeComponent {
     }
   }
 
-  /** True for the pill that opens the matching panel: auto identity or a pinned key. */
-  showsKeyPill(node: DiffNode): boolean {
-    const outcome = node.arrayMatch?.outcome;
-    return outcome === 'identity-applied' || outcome === 'manual-key';
+  arrayMatchBadge(node: DiffNode): ArrayMatchBadge | undefined {
+    return formatArrayMatchBadge(node.arrayMatch);
   }
 
-  /** `Matched by store + sku · Manual` for an override, `· 97%` for inference. */
-  keyPillSuffix(node: DiffNode): string {
-    const match = node.arrayMatch;
-    if (!match) return '';
-    return match.override ? 'Manual' : percent(match.inference?.best?.score);
-  }
-
-  /** Re-exported for the template; formatting lives in shared/format.ts. */
-  readonly percent = percent;
   /** Re-exported for the template. */
   readonly splitMatch = splitMatch;
 }

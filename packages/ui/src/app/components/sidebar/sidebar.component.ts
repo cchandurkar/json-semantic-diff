@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, afterNextRender, effect, input, model, output, signal } from '@angular/core';
 import { isValidIgnorePattern } from 'json-semantic-diff';
 import { version } from '../../../../package.json';
-import { DIFF_EXAMPLES, DiffExample } from '../../examples';
+import { DiffExample } from '../../examples';
 import { MatchingOverrideChange } from '../../shared/node-actions';
 import { readTourSeen, storeTourDismissed, storeTourStarted } from '../../shared/tour-storage';
 import { TooltipDirective } from '../../shared/tooltip/tooltip.directive';
@@ -160,16 +160,8 @@ export class SidebarComponent {
     storeTourStarted();
     if (typeof window === 'undefined') return;
 
-    const example = DIFF_EXAMPLES.find((e) => e.id === 'reordered-users');
-    if (example) {
-      this.exampleSelected.emit(example);
-    }
-
     // Dynamic import inside click handler to keep driver.js out of the initial bundle
     const { driver } = await import('driver.js');
-
-    // Wait for the example comparison to run and render
-    await new Promise((resolve) => setTimeout(resolve, 100));
 
     // Close the mobile drawer if open so the workspace is visible
     this.close();
@@ -200,25 +192,45 @@ export class SidebarComponent {
           element: '[data-tour="compare-button"]',
           popover: {
             title: 'Compare JSON',
-            description: 'Click Compare to trigger the semantic diff engine, inferring object identities and detecting reordered elements.',
+            description:
+              "Once you've entered two JSON documents, click Compare to trigger the semantic diff engine, inferring object identities and detecting reordered elements. For now, let's load a built-in example instead.",
             side: 'bottom',
             align: 'center'
-          },
-          onHighlightStarted: () => {
-            // Force-switch to Tree view so the diff tree and its nodes are rendered in the DOM before Step 3 looks them up
-            const treeTab = document.querySelector<HTMLButtonElement>('[data-tour="tree-tab"]');
-            if (treeTab && treeTab.getAttribute('aria-selected') !== 'true') {
-              treeTab.click();
+          }
+        },
+        {
+          element: '[data-tour="load-example-chip"]',
+          popover: {
+            title: 'Load a Built-in Example',
+            description:
+              'Click Next to instantly load a built-in example — a realistic API response with added, removed, and modified fields — so you can see this tool in action without pasting anything.',
+            side: 'bottom',
+            align: 'start',
+            onNextClick: async () => {
+              if (isMobile) {
+                this.close();
+              }
+              const chip = document.querySelector<HTMLButtonElement>('[data-tour="load-example-chip"]');
+              if (chip) {
+                chip.click();
+              }
+              // Give the worker-based diff time to finish and render before advancing to the next step,
+              // which queries the resulting tree DOM.
+              await new Promise((resolve) => setTimeout(resolve, 350));
+              driverObj.moveNext();
             }
           }
         },
         {
           element: () =>
-            document.querySelector('[data-node-id="$.users"]') ?? document.querySelector('[data-tour="tree-view"]') ?? document.body,
+            document.querySelector('.diff-row:has(.match-pill)') ??
+            document.querySelector('.match-pill') ??
+            document.querySelector('[data-tour="tree-view"]') ??
+            document.body,
           popover: {
             title: 'Semantic Diff Tree',
             description:
-              'Notice the "Matched by userId" pill on the users array. DiffLens tracked Carol and Bob across position shifts instead of generating false additions and removals.',
+              'Notice the matching badge on the array row. The semantic diff engine tracked items across position shifts instead of generating false additions and removals.',
             side: 'top',
             align: 'start'
           },
@@ -239,10 +251,16 @@ export class SidebarComponent {
             align: 'start'
           },
           onHighlightStarted: () => {
-            // Live selection demonstration: programmatically select the users array row in the diff tree
-            const labelBtn = document.querySelector<HTMLButtonElement>('[data-node-id="$.users"] .label');
-            if (labelBtn) {
-              labelBtn.click();
+            // Live selection demonstration: programmatically select the matched array row in the diff tree
+            const matchedRow =
+              document.querySelector<HTMLElement>('.diff-row:has(.match-pill)') ?? document.querySelector<HTMLElement>('.diff-row');
+            if (matchedRow) {
+              const label = matchedRow.querySelector<HTMLElement>('.label');
+              if (label) {
+                label.click();
+              } else {
+                matchedRow.click();
+              }
             }
             if (isNarrow) {
               const toggle = document.querySelector<HTMLButtonElement>('[data-tour="analysis-toggle"]');
@@ -257,7 +275,7 @@ export class SidebarComponent {
           popover: {
             title: 'Identity Analysis & Scores',
             description:
-              'Below the breakdown, the Analysis panel explains candidate scores, uniqueness, and completeness for the selected array, explaining why it matched records by userId.',
+              'Below the breakdown, the Analysis panel explains candidate scores, uniqueness, and completeness for the selected array, explaining why it matched records by their inferred keys.',
             side: 'left',
             align: 'start'
           },
@@ -290,13 +308,32 @@ export class SidebarComponent {
           popover: {
             title: 'Sidebar Array Matching Sync',
             description:
-              'The sidebar stays synchronized too: selecting users in the tree also selected it here in the Array matching picker, where you can inspect candidate keys or override the strategy.',
+              'The sidebar stays synchronized too: selecting an array in the tree also selects it here in the Array matching picker, where you can inspect candidate keys or override the strategy.',
             side: 'right',
             align: 'start'
           },
           onHighlightStarted: () => {
             if (isMobile) {
               this.toggle();
+            }
+          }
+        },
+        {
+          element: '[data-tour="list-tab"]',
+          popover: {
+            title: 'Flat List View',
+            description:
+              'Prefer a scannable, flat list instead of nesting? List view shows every changed path in one column with its old → new value in the next, no drilling into the tree required.',
+            side: 'bottom',
+            align: 'start'
+          },
+          onHighlightStarted: () => {
+            if (isMobile) {
+              this.close();
+            }
+            const listTab = document.querySelector<HTMLButtonElement>('[data-tour="list-tab"]');
+            if (listTab) {
+              listTab.click();
             }
           }
         },

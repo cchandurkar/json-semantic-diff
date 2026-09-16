@@ -3,7 +3,7 @@ import { ArrayMatchAnalysis } from 'json-semantic-diff';
 /**
  * One-line explanation of how an array is matched, for the array-picker's hint
  * text. Reuses the same "Match by X" wording already established by
- * `matchSummary` in `source-view-model.ts` and the Tree's match pill
+ * `formatArrayMatchBadge` in `shared/array-match-badge.ts` and the Tree's match pill
  * (`diff-tree.component.html`), rather than inventing new copy - this is
  * purely a shorter, hint-sized variant of the same idea.
  *

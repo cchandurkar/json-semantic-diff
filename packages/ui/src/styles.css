@@ -84,12 +84,12 @@
   --focus-ring: rgb(31 111 235 / 35%);
   --selection: #1a3a5c;
   --selection-border: #388bfd;
-  --diff-added: #3fb950;
-  --diff-added-bg: #033a16;
-  --diff-removed: #f85149;
-  --diff-removed-bg: #67060c;
-  --diff-modified: #d29922;
-  --diff-modified-bg: #3d2d00;
+  --diff-added: #2f8f46;
+  --diff-added-bg: #062d14;
+  --diff-removed: #d44843;
+  --diff-removed-bg: #4a0b10;
+  --diff-modified: #b07d1c;
+  --diff-modified-bg: #322707;
   --success: var(--diff-added);
   --success-bg: var(--diff-added-bg);
   --success-border: color-mix(in srgb, var(--diff-added) 35%, transparent);

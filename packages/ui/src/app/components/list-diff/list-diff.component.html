@@ -1,0 +1,129 @@
+<div class="list-container" role="region" aria-label="Semantic diff list">
+  @if (rows().length === 0) {
+    <div class="empty-list">
+      <p>No leaf changes to display.</p>
+    </div>
+  } @else {
+    <div class="list-rows" role="list">
+      @for (row of rows(); track row.nodeId) {
+        <div
+          class="list-row"
+          role="listitem"
+          tabindex="0"
+          (click)="selectRow(row.nodeId, $event)"
+          (keydown)="onRowKeydown(row.nodeId, $event)"
+          [class]="'kind-' + row.changeKind"
+          [class.is-selected]="row.nodeId === selectedNodeId()"
+          [class.search-match]="searchResultIds().has(row.nodeId) || rowMatchesQuery(row, searchQuery())"
+          [attr.data-node-id]="row.nodeId"
+          [attr.aria-label]="row.path + ': ' + changeLabel(row)"
+          [cdkContextMenuTriggerFor]="rowActions"
+          [cdkContextMenuTriggerData]="{ $implicit: row.node }"
+        >
+          <span class="change-marker" aria-hidden="true">{{ row.marker }}</span>
+
+          <div class="path-cell">
+            <span class="path-text" [title]="row.path">
+              @if (splitMatch(row.path, searchQuery()); as m) {
+                {{ m.before }}<mark class="search-hit">{{ m.match }}</mark>{{ m.after }}
+              } @else {
+                {{ row.path }}
+              }
+            </span>
+          </div>
+
+          <div class="diff-values">
+            @if (row.changeKind === 'modified' || row.changeKind === 'type-changed') {
+              <span class="value-cell left" [title]="row.leftDisplay">
+                @for (seg of row.leftSegments; track $index) {
+                  <span [class.diff-mark]="seg.changed">{{ seg.text }}</span>
+                }
+              </span>
+              <span class="arrow" aria-hidden="true">
+                <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true" focusable="false">
+                  <path
+                    d="M2 6h7M6 2.5L9.5 6 6 9.5"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.4"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+              </span>
+              <span class="value-cell right" [title]="row.rightDisplay">
+                @for (seg of row.rightSegments; track $index) {
+                  <span [class.diff-mark]="seg.changed">{{ seg.text }}</span>
+                }
+              </span>
+            } @else if (row.changeKind === 'added') {
+              <span class="value-cell right" [title]="row.rightDisplay">
+                @for (seg of row.rightSegments; track $index) {
+                  <span [class.diff-mark]="seg.changed">{{ seg.text }}</span>
+                }
+              </span>
+            } @else if (row.changeKind === 'removed') {
+              <span class="value-cell left" [title]="row.leftDisplay">
+                @for (seg of row.leftSegments; track $index) {
+                  <span [class.diff-mark]="seg.changed">{{ seg.text }}</span>
+                }
+              </span>
+            } @else {
+              <span class="value-cell unchanged" [title]="row.leftDisplay">
+                {{ row.leftDisplay }}
+              </span>
+            }
+          </div>
+
+          <div class="row-badge">
+            @if (row.arrayMatch; as badge) {
+              <button
+                type="button"
+                class="match-pill"
+                [class.warning]="badge.warning"
+                [attr.title]="badge.tooltip"
+                (click)="$event.stopPropagation(); analysisRequested.emit(badge.arrayPath)"
+              >
+                {{ badge.label }}
+              </button>
+            }
+          </div>
+
+          <button
+            type="button"
+            class="row-actions"
+            (click)="$event.stopPropagation()"
+            [cdkMenuTriggerFor]="rowActions"
+            [cdkMenuTriggerData]="{ $implicit: row.node }"
+            [attr.aria-label]="'Actions for ' + row.path"
+          >
+            <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true" focusable="false">
+              <circle cx="3" cy="7" r="1.4" fill="currentColor" />
+              <circle cx="7" cy="7" r="1.4" fill="currentColor" />
+              <circle cx="11" cy="7" r="1.4" fill="currentColor" />
+            </svg>
+          </button>
+        </div>
+      }
+    </div>
+  }
+</div>
+
+<!-- Copy/Comparison menu shared by right-click trigger and kebab button -->
+<ng-template #rowActions let-node>
+  <div cdkMenu [attr.aria-label]="'Actions for ' + node.label">
+    @for (group of rowMenu(node); track group.title; let last = $last) {
+      <div cdkMenuGroup [attr.aria-label]="group.title">
+        <p class="node-menu-title">{{ group.title }}</p>
+        @for (item of group.items; track item.id) {
+          <button type="button" cdkMenuItem (cdkMenuItemTriggered)="emitAction(item.id, node)">
+            {{ item.label }}
+          </button>
+        }
+      </div>
+      @if (!last) {
+        <hr class="node-menu-separator" aria-hidden="true" />
+      }
+    }
+  </div>
+</ng-template>

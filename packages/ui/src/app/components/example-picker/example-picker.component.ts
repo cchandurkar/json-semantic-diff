@@ -1,12 +1,10 @@
 import {
-  PLATFORM_ID,
   ChangeDetectionStrategy,
   Component,
   ElementRef,
   OnDestroy,
   TemplateRef,
   ViewContainerRef,
-  afterNextRender,
   effect,
   inject,
   input,
@@ -14,7 +12,6 @@ import {
   signal,
   viewChild
 } from '@angular/core';
-import { isPlatformBrowser } from '@angular/common';
 import { ConnectedPosition, Overlay, OverlayRef } from '@angular/cdk/overlay';
 import { TemplatePortal } from '@angular/cdk/portal';
 import { DIFF_EXAMPLES, DiffExample } from '../../examples';
@@ -30,9 +27,6 @@ const PANEL_POSITIONS: ConnectedPosition[] = [
   { originX: 'start', originY: 'top', overlayX: 'start', overlayY: 'bottom', offsetY: -6 },
   { originX: 'end', originY: 'top', overlayX: 'end', overlayY: 'bottom', offsetY: -6 }
 ];
-
-const FLASH_CYCLE_MS = 720;
-const FLASH_REPEAT_COUNT = 4;
 
 /**
  * Dropdown listing the built-in examples, sized for the sidebar column.
@@ -60,8 +54,6 @@ const FLASH_REPEAT_COUNT = 4;
 export class ExamplePickerComponent implements OnDestroy {
   private readonly host = inject(ElementRef<HTMLElement>);
   private readonly overlay = inject(Overlay);
-  private readonly platformId = inject(PLATFORM_ID);
-  private readonly isBrowser = isPlatformBrowser(this.platformId);
   private readonly viewContainer = inject(ViewContainerRef);
   private readonly trigger = viewChild.required<ElementRef<HTMLButtonElement>>('trigger');
   private readonly panelTemplate = viewChild.required<TemplateRef<unknown>>('panelTpl');
@@ -72,18 +64,6 @@ export class ExamplePickerComponent implements OnDestroy {
 
   readonly examples = DIFF_EXAMPLES;
   readonly open = signal(false);
-  readonly flashHint = signal(false);
-
-  private flashStartTimer?: ReturnType<typeof setTimeout>;
-  private flashEndTimer?: ReturnType<typeof setTimeout>;
-
-  private readonly clearFlashHint = afterNextRender(() => {
-    if (!this.isBrowser) return;
-    this.flashStartTimer = setTimeout(() => {
-      this.flashHint.set(true);
-      this.flashEndTimer = setTimeout(() => this.flashHint.set(false), FLASH_CYCLE_MS * FLASH_REPEAT_COUNT);
-    }, 1500);
-  });
 
   constructor() {
     effect(() => {
@@ -100,13 +80,11 @@ export class ExamplePickerComponent implements OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this.cancelFlashHint();
     this.overlayRef?.dispose();
     this.overlayRef = undefined;
   }
 
   toggle(): void {
-    this.cancelFlashHint();
     this.open.update((value) => !value);
   }
 
@@ -117,13 +95,11 @@ export class ExamplePickerComponent implements OnDestroy {
   }
 
   select(example: DiffExample): void {
-    this.cancelFlashHint();
     this.close();
     this.exampleSelected.emit(example);
   }
 
   onDocumentPointerDown(event: Event): void {
-    this.cancelFlashHint();
     if (!this.open()) return;
     const target = event.target as Node;
     // The trigger is handled by its own click, which toggles.
@@ -131,14 +107,6 @@ export class ExamplePickerComponent implements OnDestroy {
     // The panel lives in the overlay container, outside this host.
     if (this.overlayRef?.overlayElement.contains(target)) return;
     this.close();
-  }
-
-  private cancelFlashHint(): void {
-    clearTimeout(this.flashStartTimer);
-    clearTimeout(this.flashEndTimer);
-    this.flashStartTimer = undefined;
-    this.flashEndTimer = undefined;
-    this.flashHint.set(false);
   }
 
   private attachPanel(): void {

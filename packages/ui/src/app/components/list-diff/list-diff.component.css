@@ -1,67 +1,58 @@
-.tree {
+:host {
+  display: block;
+  height: 100%;
+}
+
+.list-container {
   border: 1px solid var(--border);
   border-radius: var(--radius);
   overflow: hidden;
   background: var(--card);
 }
 
-.diff-row {
-  --depth: 0;
+.empty-list {
+  padding: 32px 16px;
+  text-align: center;
+  color: var(--muted-foreground);
+  font: 12px/1.5 var(--sans);
+}
 
+.list-rows {
+  display: flex;
+  flex-direction: column;
+}
+
+.list-row {
   position: relative;
   display: grid;
-  grid-template-columns: 24px 20px fit-content(42%) minmax(0, 1fr) auto 26px;
-  column-gap: 6px;
+  grid-template-columns: 24px minmax(200px, 1.15fr) minmax(0, 1fr) auto 26px;
+  column-gap: 8px;
   align-items: center;
   min-height: 30px;
   border-bottom: 1px solid var(--border-subtle);
   font: 12px/1.4 var(--mono);
-  padding: 0 4px 0 calc(var(--depth) * 18px);
+  padding: 0 4px;
   cursor: pointer;
 }
 
-.diff-row:focus-visible {
+.list-row:focus-visible {
   outline: 2px solid var(--primary);
   outline-offset: -2px;
 }
 
-.diff-row:last-child {
+.list-row:last-child {
   border-bottom: 0;
 }
 
-.diff-row:hover {
+.list-row:hover {
   background: var(--accent);
-}
-
-.expand {
-  width: 24px;
-  height: 24px;
-  border: 0;
-  background: transparent;
-  color: var(--muted-foreground);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.expand:disabled {
-  cursor: default;
-  opacity: 0.55;
-}
-
-.expand .chevron {
-  transition: transform 0.12s ease;
-}
-
-.expand .chevron.is-collapsed {
-  transform: rotate(-90deg);
 }
 
 .change-marker {
   font-weight: 800;
   text-align: center;
   color: var(--subtle-foreground);
+  user-select: none;
 }
 
 .kind-added .change-marker {
@@ -85,64 +76,12 @@
   overflow: hidden;
 }
 
-.label {
+.path-text {
   display: inline-block;
   color: var(--foreground);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.in-range {
-  border-bottom-color: transparent;
-}
-
-.in-range::after {
-  content: '';
-  position: absolute;
-  inset: 0 0 -1px;
-  pointer-events: none;
-  z-index: 1;
-  box-shadow:
-    inset 2px 0 0 0 var(--primary),
-    inset -2px 0 0 0 var(--primary);
-}
-
-.in-range.range-start::after {
-  box-shadow:
-    inset 2px 0 0 0 var(--primary),
-    inset -2px 0 0 0 var(--primary),
-    inset 0 2px 0 0 var(--primary);
-}
-
-.in-range.range-end::after,
-.diff-row.range-end::after {
-  box-shadow:
-    inset 2px 0 0 0 var(--primary),
-    inset -2px 0 0 0 var(--primary),
-    inset 0 -2px 0 0 var(--primary);
-}
-
-.diff-row.range-end:last-child::after {
-  bottom: 0;
-}
-
-.in-range.range-start.range-end::after {
-  box-shadow:
-    inset 2px 0 0 0 var(--primary),
-    inset -2px 0 0 0 var(--primary),
-    inset 0 2px 0 0 var(--primary),
-    inset 0 -2px 0 0 var(--primary);
-}
-
-.search-match {
-  background: color-mix(in srgb, var(--primary) 6%, transparent);
-}
-
-.search-hit {
-  background: color-mix(in srgb, var(--warning) 55%, transparent);
-  border-radius: 2px;
-  padding: 0 1px;
 }
 
 .row-badge {
@@ -186,16 +125,16 @@
   color: var(--warning);
 }
 
-.diff-row.kind-added {
+.list-row.kind-added {
   background: var(--diff-added-bg);
 }
 
-.diff-row.kind-removed {
+.list-row.kind-removed {
   background: var(--diff-removed-bg);
 }
 
-.diff-row.kind-modified:not(.has-children),
-.diff-row.kind-type-changed:not(.has-children) {
+.list-row.kind-modified,
+.list-row.kind-type-changed {
   background: var(--diff-modified-bg);
 }
 
@@ -206,7 +145,6 @@
   gap: 6px;
   padding: 6px 0;
   overflow: hidden;
-  margin-left: 10px;
 }
 
 .value-cell {
@@ -216,6 +154,10 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   padding: 0;
+  color: var(--muted-foreground);
+}
+
+.value-cell.unchanged {
   color: var(--muted-foreground);
 }
 
@@ -230,18 +172,12 @@
   text-decoration-color: color-mix(in srgb, var(--diff-removed) 55%, transparent);
 }
 
-.kind-modified:not(.has-children) .left,
-.kind-type-changed:not(.has-children) .left {
+.kind-modified .left,
+.kind-type-changed .left {
   color: var(--diff-removed);
   text-decoration: line-through;
   text-decoration-color: color-mix(in srgb, var(--diff-removed) 55%, transparent);
   opacity: 0.85;
-}
-
-.kind-modified:not(.has-children) .right,
-.kind-type-changed:not(.has-children) .right {
-  color: var(--diff-added);
-  font-weight: 500;
 }
 
 .arrow {
@@ -254,10 +190,16 @@
   margin: 0 1px;
 }
 
-.kind-modified:not(.has-children) .arrow,
-.kind-type-changed:not(.has-children) .arrow {
+.kind-modified .arrow,
+.kind-type-changed .arrow {
   color: var(--diff-modified);
   opacity: 0.85;
+}
+
+.kind-modified .right,
+.kind-type-changed .right {
+  color: var(--diff-added);
+  font-weight: 500;
 }
 
 .diff-mark {
@@ -266,14 +208,29 @@
   padding: 0 1px;
 }
 
-.kind-modified:not(.has-children) .left .diff-mark,
-.kind-type-changed:not(.has-children) .left .diff-mark {
+.kind-modified .left .diff-mark,
+.kind-type-changed .left .diff-mark {
   background: color-mix(in srgb, var(--diff-removed) 25%, transparent);
 }
 
-.kind-modified:not(.has-children) .right .diff-mark,
-.kind-type-changed:not(.has-children) .right .diff-mark {
+.kind-modified .right .diff-mark,
+.kind-type-changed .right .diff-mark {
   background: color-mix(in srgb, var(--diff-added) 25%, transparent);
+}
+
+.search-match {
+  background: color-mix(in srgb, var(--primary) 6%, transparent);
+}
+
+.search-hit {
+  background: color-mix(in srgb, var(--warning) 55%, transparent);
+  border-radius: 2px;
+  padding: 0 1px;
+}
+
+.list-row.is-selected {
+  outline: 2px solid var(--primary);
+  outline-offset: -2px;
 }
 
 .row-actions {
@@ -302,15 +259,14 @@
 
 .row-actions:focus-visible,
 .row-actions[aria-expanded='true'],
-.diff-row:hover .row-actions {
+.list-row:hover .row-actions {
   opacity: 1;
 }
 
 @media (width <= 900px) {
-  .diff-row {
-    grid-template-columns: 22px 18px fit-content(48%) minmax(0, 1fr) auto 24px;
-    column-gap: 4px;
-    padding-left: calc(var(--depth) * 14px);
+  .list-row {
+    grid-template-columns: 20px minmax(180px, 1fr) minmax(0, 1fr) auto 24px;
+    column-gap: 6px;
   }
 
   .match-pill {

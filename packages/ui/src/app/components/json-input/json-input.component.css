@@ -23,16 +23,11 @@
 }
 
 .input-card__header {
-  height: 48px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 8px;
+  padding: 4px 10px;
   border-bottom: 1px solid var(--border);
-}
-
-.input-card.is-collapsed .input-card__header {
-  border-bottom: 0;
 }
 
 .header-meta {
@@ -83,10 +78,6 @@
 
 .file-button svg {
   display: block;
-}
-
-.collapse-button {
-  padding: 6px;
 }
 
 .file-button:disabled {

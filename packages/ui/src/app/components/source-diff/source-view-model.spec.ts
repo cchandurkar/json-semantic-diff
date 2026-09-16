@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { DEFAULT_DIFF_OPTIONS, DiffOptions, DiffResult, JsonValue, diffJson } from 'json-semantic-diff';
+import { formatArrayMatchBadge } from '../../shared/array-match-badge';
 import { EXAMPLE_LEFT, EXAMPLE_RIGHT } from '../../shared/testing/example-data.fixture';
 import { DEFAULT_CONTEXT_LINES, SourceDiffRow, SourceSegment, emitSourceRows, flattenChanges, segmentRows } from '../../source';
 import {
@@ -9,7 +10,6 @@ import {
   changeLabel,
   collapsedKeyContaining,
   leftMarker,
-  matchSummary,
   rightMarker
 } from './source-view-model';
 
@@ -109,7 +109,7 @@ describe('D. reordered array matched by id', () => {
     const arrayOpen = rows.find((r) => r.arrayMatch);
 
     expect(arrayOpen?.reordered).toBe(true);
-    expect(matchSummary(arrayOpen!.arrayMatch!)).toMatch(/^Matched by userId · \d+% · reordered$/);
+    expect(formatArrayMatchBadge(arrayOpen!.arrayMatch!)?.label).toMatch(/^Matched by userId · \d+%$/);
   });
 
   it('states all three reassurances in the tooltip', () => {
@@ -158,7 +158,7 @@ describe('E. composite key (store, sku)', () => {
     const rows = rowsOf(buildItems(view(run(left, right)), NONE));
     const arrayOpen = rows.find((r) => r.arrayMatch);
 
-    expect(matchSummary(arrayOpen!.arrayMatch!)).toMatch(/Matched by (store \+ sku|sku \+ store)/);
+    expect(formatArrayMatchBadge(arrayOpen!.arrayMatch!)?.label).toMatch(/Matched by (store \+ sku|sku \+ store)/);
   });
 });
 

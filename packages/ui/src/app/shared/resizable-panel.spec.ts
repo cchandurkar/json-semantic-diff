@@ -2,12 +2,15 @@ import { describe, expect, it } from 'vitest';
 import {
   ANALYSIS_PANEL_COLLAPSED_STORAGE_KEY,
   ANALYSIS_PANEL_WIDTH_STORAGE_KEY,
+  INPUTS_COLLAPSED_STORAGE_KEY,
   clampWidth,
   parsePanelWidth,
   readStoredAnalysisPanelCollapsed,
   readStoredAnalysisPanelWidth,
+  readStoredInputsCollapsed,
   storeAnalysisPanelCollapsed,
-  storeAnalysisPanelWidth
+  storeAnalysisPanelWidth,
+  storeInputsCollapsed
 } from './resizable-panel';
 
 describe('clampWidth', () => {
@@ -79,5 +82,25 @@ describe('analysis panel collapsed storage', () => {
     localStorage.setItem(ANALYSIS_PANEL_COLLAPSED_STORAGE_KEY, 'nonsense');
     expect(readStoredAnalysisPanelCollapsed()).toBe(false);
     localStorage.removeItem(ANALYSIS_PANEL_COLLAPSED_STORAGE_KEY);
+  });
+});
+
+describe('workspace inputs collapsed storage', () => {
+  it('defaults to expanded (false) when nothing is stored', () => {
+    localStorage.removeItem(INPUTS_COLLAPSED_STORAGE_KEY);
+    expect(readStoredInputsCollapsed()).toBe(false);
+  });
+
+  it('round-trips a stored collapsed choice', () => {
+    storeInputsCollapsed(true);
+    expect(readStoredInputsCollapsed()).toBe(true);
+    storeInputsCollapsed(false);
+    expect(readStoredInputsCollapsed()).toBe(false);
+  });
+
+  it('treats any non-"true" stored value as expanded', () => {
+    localStorage.setItem(INPUTS_COLLAPSED_STORAGE_KEY, 'nonsense');
+    expect(readStoredInputsCollapsed()).toBe(false);
+    localStorage.removeItem(INPUTS_COLLAPSED_STORAGE_KEY);
   });
 });

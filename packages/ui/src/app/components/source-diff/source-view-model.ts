@@ -1,6 +1,5 @@
-import { ArrayMatchAnalysis, DiffChangeKind } from 'json-semantic-diff';
+import { DiffChangeKind } from 'json-semantic-diff';
 import { SourceDiffRow, SourceSegment } from '../../source';
-import { percent } from '../../shared/format';
 import { DiffSegment, diffText } from '../../shared/text-diff';
 
 /**
@@ -67,19 +66,6 @@ export function changeLabel(row: SourceDiffRow): string {
     default:
       return '';
   }
-}
-
-/**
- * Reads straight off the core analysis carried by the array's open row.
- * No scoring is recomputed and `percent` is the shared UI formatter.
- */
-export function matchSummary(match: ArrayMatchAnalysis): string {
-  const parts: string[] = [];
-  if (match.keyPaths?.length) parts.push(`Matched by ${match.keyPaths.join(' + ')}`);
-  const score = match.inference?.best?.score;
-  if (score !== undefined) parts.push(percent(score));
-  if (match.reordered) parts.push('reordered');
-  return parts.join(' · ');
 }
 
 export const REORDER_TOOLTIP =

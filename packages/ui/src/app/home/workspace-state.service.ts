@@ -37,7 +37,7 @@ export class WorkspaceStateService {
   readonly editorHeight = signal(EDITOR_HEIGHT_DEFAULT);
   readonly options = signal<DiffOptions>({ ...DEFAULT_DIFF_OPTIONS });
   readonly changesOnly = signal(true);
-  readonly view = signal<'tree' | 'source'>('source');
+  readonly view = signal<'tree' | 'source' | 'list'>('tree');
   readonly selectedNodeId = signal<string | null>(null);
   readonly searchQuery = signal('');
   readonly searchResultIndex = signal(0);
@@ -120,6 +120,14 @@ export class WorkspaceStateService {
     if (!worker) {
       // No worker: the computation below still blocks the main thread, so we
       // still need the double rAF to let the disabled/spinner state paint first.
+      if (typeof requestAnimationFrame === 'undefined') {
+        try {
+          this.runCompare();
+        } finally {
+          this.comparing.set(false);
+        }
+        return;
+      }
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
           try {
@@ -281,7 +289,7 @@ export class WorkspaceStateService {
     this.result.set(null);
     this.dirty.set(false);
     this.selectedNodeId.set(null);
-    this.view.set('source');
+    this.view.set('tree');
     this.selectedAnalysis.set(null);
     this.editorHeight.set(EDITOR_HEIGHT_DEFAULT);
   }

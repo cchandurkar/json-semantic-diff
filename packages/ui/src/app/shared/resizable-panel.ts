@@ -76,3 +76,32 @@ export function storeAnalysisPanelCollapsed(collapsed: boolean): void {
     /* ignored */
   }
 }
+
+/**
+ * Whole-workspace JSON inputs auto-collapse preference storage.
+ */
+export const INPUTS_COLLAPSED_STORAGE_KEY = 'json-semantic-diff.inputsCollapsed';
+
+/**
+ * Returns false (i.e. "expanded") when storage is unavailable (private mode,
+ * blocked cookies, or a non-browser environment such as build-time
+ * prerendering) or when there is no saved choice.
+ */
+export function readStoredInputsCollapsed(): boolean {
+  if (typeof localStorage === 'undefined') return false;
+  try {
+    return localStorage.getItem(INPUTS_COLLAPSED_STORAGE_KEY) === 'true';
+  } catch {
+    return false;
+  }
+}
+
+/** Storage failures are non-fatal: the collapsed state still applies for this session. */
+export function storeInputsCollapsed(collapsed: boolean): void {
+  if (typeof localStorage === 'undefined') return;
+  try {
+    localStorage.setItem(INPUTS_COLLAPSED_STORAGE_KEY, String(collapsed));
+  } catch {
+    /* ignored */
+  }
+}

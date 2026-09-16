@@ -3,6 +3,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   ElementRef,
+  OnDestroy,
   afterNextRender,
   computed,
   effect,
@@ -17,6 +18,7 @@ import { JsonInputComponent } from '../components/json-input/json-input.componen
 import { DiffTreeComponent } from '../components/diff-tree/diff-tree.component';
 import { AnalysisPanelComponent } from '../components/analysis-panel/analysis-panel.component';
 import { SourceDiffComponent } from '../components/source-diff/source-diff.component';
+import { ListDiffComponent } from '../components/list-diff/list-diff.component';
 import { SearchControlComponent } from '../components/search-control/search-control.component';
 import { SidebarComponent } from '../components/sidebar/sidebar.component';
 import { ToastComponent } from '../components/toast/toast.component';
@@ -28,13 +30,20 @@ import {
   clampWidth,
   readStoredAnalysisPanelCollapsed,
   readStoredAnalysisPanelWidth,
+  readStoredInputsCollapsed,
   storeAnalysisPanelCollapsed,
-  storeAnalysisPanelWidth
+  storeAnalysisPanelWidth,
+  storeInputsCollapsed
 } from '../shared/resizable-panel';
+import { DIFF_EXAMPLES } from '../examples';
 import { WorkspaceStateService } from './workspace-state.service';
 
 /** Pointer movement (px) required before a resize-handle pointerdown counts as a drag rather than a click. */
 const PANEL_DRAG_THRESHOLD_PX = 4;
+
+/** Timing for the "notice me" flash hint on the hero's "Load Example" chip. */
+const FLASH_CYCLE_MS = 720;
+const FLASH_REPEAT_COUNT = 3;
 
 @Component({
   selector: 'app-home',
@@ -43,6 +52,7 @@ const PANEL_DRAG_THRESHOLD_PX = 4;
     JsonInputComponent,
     DiffTreeComponent,
     SourceDiffComponent,
+    ListDiffComponent,
     SidebarComponent,
     AnalysisPanelComponent,
     ToastComponent,
@@ -50,13 +60,59 @@ const PANEL_DRAG_THRESHOLD_PX = 4;
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './home.component.html',
-  styleUrl: './home.component.css'
+  styleUrl: './home.component.css',
+  host: {
+    '(document:pointerdown)': 'cancelLoadExampleFlashHint()'
+  }
 })
-export class HomeComponent {
+export class HomeComponent implements OnDestroy {
   readonly darkMode = sharedDarkMode;
 
   readonly workspace = inject(WorkspaceStateService);
-  readonly editorsCollapsed = signal(false);
+
+  /**
+   * Tracks whether the whole-workspace JSON input cards + compare row are collapsed.
+   * Starts false during SSR prerendering. In the browser, this automatically collapses
+   * whenever a comparison succeeds, and can also be toggled manually by the user.
+   */
+  readonly inputsCollapsed = signal(false);
+
+  /**
+   * Inputs are only collapsed when a comparison result exists. Without a result,
+   * inputs must always stay expanded so the user can enter JSON.
+   */
+  readonly isInputsCollapsed = computed(() => {
+    if (!this.workspace.result()) return false;
+    return this.inputsCollapsed();
+  });
+
+  readonly leftSummaryText = computed(() => {
+    if (this.workspace.leftError()) return 'Invalid';
+    const text = this.workspace.leftText().trim();
+    if (!text) return 'Empty';
+    try {
+      const parsed = JSON.parse(text) as unknown;
+      if (Array.isArray(parsed)) return `${parsed.length} items`;
+      if (parsed && typeof parsed === 'object') return `${Object.keys(parsed).length} keys`;
+      return 'Valid';
+    } catch {
+      return 'Invalid';
+    }
+  });
+
+  readonly rightSummaryText = computed(() => {
+    if (this.workspace.rightError()) return 'Invalid';
+    const text = this.workspace.rightText().trim();
+    if (!text) return 'Empty';
+    try {
+      const parsed = JSON.parse(text) as unknown;
+      if (Array.isArray(parsed)) return `${parsed.length} items`;
+      if (parsed && typeof parsed === 'object') return `${Object.keys(parsed).length} keys`;
+      return 'Valid';
+    } catch {
+      return 'Invalid';
+    }
+  });
 
   readonly analysisPanelWidth = signal(ANALYSIS_PANEL_DEFAULT_WIDTH);
   readonly resizingAnalysisPanel = signal(false);
@@ -71,6 +127,18 @@ export class HomeComponent {
    */
   readonly sidebarDrawerOpen = signal(false);
   readonly analysisDrawerOpen = signal(false);
+
+  /** "Notice me" flash animation on the hero's "Load Example" chip, shown once shortly after load. */
+  readonly loadExampleFlashHint = signal(false);
+  private flashHintStartTimer?: ReturnType<typeof setTimeout>;
+  private flashHintEndTimer?: ReturnType<typeof setTimeout>;
+
+  private readonly startLoadExampleFlashHint = afterNextRender(() => {
+    this.flashHintStartTimer = setTimeout(() => {
+      this.loadExampleFlashHint.set(true);
+      this.flashHintEndTimer = setTimeout(() => this.loadExampleFlashHint.set(false), FLASH_CYCLE_MS * FLASH_REPEAT_COUNT);
+    }, 1500);
+  });
 
   private readonly sidebarToggleButton = viewChild<ElementRef<HTMLButtonElement>>('sidebarToggleButton');
   private readonly analysisToggleButton = viewChild<ElementRef<HTMLButtonElement>>('analysisToggleButton');
@@ -110,6 +178,9 @@ export class HomeComponent {
       this.analysisPanelWidth.set(clampWidth(storedWidth, ANALYSIS_PANEL_MIN_WIDTH, ANALYSIS_PANEL_MAX_WIDTH));
     }
     this.analysisPanelCollapsed.set(readStoredAnalysisPanelCollapsed());
+    if (this.workspace.result()) {
+      this.inputsCollapsed.set(readStoredInputsCollapsed());
+    }
     // The pre-hydration script in `index.html` injects a temporary global
     // `<style id="analysis-panel-width-override">` tag so a reload never
     // flashes the default width before snapping to the real one. Now that
@@ -138,6 +209,18 @@ export class HomeComponent {
       } else {
         delete document.documentElement.dataset['analysisPanelCollapsed'];
       }
+    });
+
+    let previousResult = this.workspace.result();
+    effect(() => {
+      const result = this.workspace.result();
+      if (result && result !== previousResult) {
+        this.inputsCollapsed.set(true);
+        storeInputsCollapsed(true);
+      } else if (!result) {
+        this.inputsCollapsed.set(false);
+      }
+      previousResult = result;
     });
 
     const router = inject(Router);
@@ -239,8 +322,10 @@ export class HomeComponent {
     return (event.target as HTMLInputElement).checked;
   }
 
-  toggleEditorsCollapsed(): void {
-    this.editorsCollapsed.update((value) => !value);
+  toggleInputsCollapsed(): void {
+    const next = !this.isInputsCollapsed();
+    this.inputsCollapsed.set(next);
+    storeInputsCollapsed(next);
   }
 
   /** SidebarComponent emits this when Escape/its own "×" close the drawer; see its doc comment. */
@@ -251,5 +336,27 @@ export class HomeComponent {
   /** AnalysisPanelComponent emits this when Escape/its own "×" close the drawer; see its doc comment. */
   restoreAnalysisToggleFocus(): void {
     this.analysisToggleButton()?.nativeElement.focus();
+  }
+
+  /** Loads the first built-in demonstration example into the workspace. */
+  loadFeaturedExample(): void {
+    this.cancelLoadExampleFlashHint();
+    const example = DIFF_EXAMPLES[0];
+    if (example) {
+      this.workspace.loadExample(example);
+    }
+  }
+
+  /** Stops the hero chip's flash hint the moment the user interacts with the page at all. */
+  cancelLoadExampleFlashHint(): void {
+    clearTimeout(this.flashHintStartTimer);
+    clearTimeout(this.flashHintEndTimer);
+    this.flashHintStartTimer = undefined;
+    this.flashHintEndTimer = undefined;
+    this.loadExampleFlashHint.set(false);
+  }
+
+  ngOnDestroy(): void {
+    this.cancelLoadExampleFlashHint();
   }
 }

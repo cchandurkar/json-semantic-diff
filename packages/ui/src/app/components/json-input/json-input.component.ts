@@ -16,10 +16,8 @@ export class JsonInputComponent {
   readonly error = input<string | null>(null);
   readonly statusText = input('Waiting for JSON');
   readonly darkMode = input(false);
-  readonly collapsed = input(false);
   readonly editorHeight = model<number>(260);
   readonly valueChange = output<string>();
-  readonly collapseToggle = output<void>();
 
   readonly isValid = computed(() => {
     if (this.error() || !this.value().trim()) return false;
@@ -47,10 +45,6 @@ export class JsonInputComponent {
 
   format(): void {
     this.emitIfChanged(formatJson(this.value()));
-  }
-
-  requestCollapseToggle(): void {
-    this.collapseToggle.emit();
   }
 
   /**

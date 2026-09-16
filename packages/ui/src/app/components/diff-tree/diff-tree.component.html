@@ -54,43 +54,61 @@
         <span class="label">
           @if (splitMatch(node.label, searchQuery()); as m) {
             {{ m.before }}<mark class="search-hit">{{ m.match }}</mark
-            >{{ m.after }}
+            >{{ m.after }}:
           } @else {
-            {{ node.label }}
+            {{ node.label }}:
           }
         </span>
-        @if (showsKeyPill(node)) {
-          <button type="button" class="match-pill" (click)="$event.stopPropagation(); analysisRequested.emit(node.path)">
-            Matched by {{ node.arrayMatch?.keyPaths?.join(' + ') }} · {{ keyPillSuffix(node) }}
-          </button>
-        } @else if (node.arrayMatch?.outcome === 'manual-position') {
-          <button type="button" class="match-pill" (click)="$event.stopPropagation(); analysisRequested.emit(node.path)">Position · Manual</button>
-        } @else if (node.arrayMatch?.inference && node.arrayMatch?.confidence === 'low' && !node.arrayMatch?.override) {
-          <button type="button" class="match-pill warning" (click)="$event.stopPropagation(); analysisRequested.emit(node.path)">Matching uncertain</button>
-        }
       </div>
-      <div class="value-cell left">
-        @for (seg of valueSegments(node, 'left'); track $index) {
-          <span [class.diff-mark]="seg.changed">{{ seg.text }}</span>
-        }
-      </div>
-      <div class="arrow">
+      <div class="diff-values">
         @if (node.changeKind === 'modified' || node.changeKind === 'type-changed') {
-          <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true" focusable="false">
-            <path
-              d="M2 6h7M6 2.5L9.5 6 6 9.5"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.4"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            />
-          </svg>
+          <span class="value-cell left" [title]="display(node.left)">
+            @for (seg of valueSegments(node, 'left'); track $index) {
+              <span [class.diff-mark]="seg.changed">{{ seg.text }}</span>
+            }
+          </span>
+          <span class="arrow" aria-hidden="true">
+            <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true" focusable="false">
+              <path
+                d="M2 6h7M6 2.5L9.5 6 6 9.5"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.4"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+          </span>
+          <span class="value-cell right" [title]="display(node.right)">
+            @for (seg of valueSegments(node, 'right'); track $index) {
+              <span [class.diff-mark]="seg.changed">{{ seg.text }}</span>
+            }
+          </span>
+        } @else if (node.changeKind === 'added') {
+          <span class="value-cell right" [title]="display(node.right)">
+            @for (seg of valueSegments(node, 'right'); track $index) {
+              <span [class.diff-mark]="seg.changed">{{ seg.text }}</span>
+            }
+          </span>
+        } @else {
+          <span class="value-cell left" [title]="display(node.left)">
+            @for (seg of valueSegments(node, 'left'); track $index) {
+              <span [class.diff-mark]="seg.changed">{{ seg.text }}</span>
+            }
+          </span>
         }
       </div>
-      <div class="value-cell right">
-        @for (seg of valueSegments(node, 'right'); track $index) {
-          <span [class.diff-mark]="seg.changed">{{ seg.text }}</span>
+      <div class="row-badge">
+        @if (arrayMatchBadge(node); as badge) {
+          <button
+            type="button"
+            class="match-pill"
+            [class.warning]="badge.warning"
+            (click)="$event.stopPropagation(); analysisRequested.emit(node.path)"
+            [attr.title]="badge.tooltip"
+          >
+            {{ badge.label }}
+          </button>
         }
       </div>
       <button

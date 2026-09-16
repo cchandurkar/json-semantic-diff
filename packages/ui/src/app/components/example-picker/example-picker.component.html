@@ -2,7 +2,7 @@
   #trigger
   type="button"
   class="picker-trigger"
-  [class.flash-hint]="flashHint()"
+  data-tour="example-picker-trigger"
   aria-haspopup="menu"
   [attr.aria-expanded]="open()"
   (click)="toggle()"
@@ -17,7 +17,7 @@
 <ng-template #panelTpl>
   <div class="picker-panel" role="menu" aria-label="Built-in examples">
     @for (example of examples; track example.id) {
-      <button type="button" class="picker-item" role="menuitem" (click)="select(example)">
+      <button type="button" class="picker-item" role="menuitem" [attr.data-example-id]="example.id" (click)="select(example)">
         <span class="picker-name">{{ example.name }}</span>
         <span class="picker-description">{{ example.description }}</span>
         @if (example.highlights.length) {

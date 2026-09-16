@@ -86,7 +86,7 @@
 app-sidebar {
   flex: 0 0 270px;
   min-width: 0;
-  border-right: 1px solid var(--border);
+  border-right: 1px solid var(--border-subtle);
 }
 
 .panel-resize-handle {
@@ -94,24 +94,28 @@ app-sidebar {
   position: relative;
   cursor: col-resize;
   touch-action: none;
-  border-left: 1px solid var(--border);
-  transition: flex-basis 0.15s ease;
+  background: transparent;
+  transition:
+    flex-basis 0.15s ease,
+    background-color 0.15s ease;
 }
 
-.panel-resize-handle:hover {
-  background: var(--primary-hover);
+.panel-resize-handle:hover,
+.panel-resize-handle.is-resizing {
+  background: color-mix(in srgb, var(--primary) 22%, transparent);
 }
 
 /* Collapsed: a little wider so the chevron chip stays an easy target, and a
    faint fill so the strip itself reads as "there's something hidden here". */
 .panel-resize-handle.is-collapsed {
-  flex-basis: 14px;
+  flex-basis: 12px;
   cursor: pointer;
-  background: var(--muted);
+  background: color-mix(in srgb, var(--muted) 65%, transparent);
+  border-left: 1px solid var(--border-subtle);
 }
 
 .panel-resize-handle.is-collapsed:hover {
-  background: var(--primary-hover);
+  background: color-mix(in srgb, var(--primary) 18%, transparent);
 }
 
 /* .panel-resize-handle.is-collapsed::after {
@@ -135,12 +139,13 @@ app-sidebar {
   align-items: center;
   justify-content: center;
   width: 18px;
-  height: 40px;
+  height: 38px;
   padding: 0;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-subtle);
   border-radius: 999px;
   background: var(--card);
   color: var(--muted-foreground);
+  box-shadow: 0 1px 4px rgb(0 0 0 / 6%);
   cursor: pointer;
 
   /* Generated content (::after below) paints after real children regardless
@@ -149,12 +154,14 @@ app-sidebar {
   z-index: 1;
   transition:
     color 0.15s ease,
-    border-color 0.15s ease;
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
 }
 
 .panel-collapse-toggle:hover {
   color: var(--foreground);
-  border-color: var(--border-strong);
+  border-color: var(--border);
+  box-shadow: 0 2px 8px rgb(0 0 0 / 10%);
 }
 
 .panel-collapse-toggle:focus-visible {
@@ -227,6 +234,14 @@ app-analysis-panel.no-transition {
   animation: rise 0.35s ease-out;
 }
 
+.hero-chip-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
 .privacy-badge {
   display: inline-flex;
   align-items: center;
@@ -237,6 +252,74 @@ app-analysis-panel.no-transition {
   color: var(--muted-foreground);
   font-size: 11px;
   background: var(--card);
+}
+
+.hero-chip-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  min-height: 27px;
+  box-sizing: border-box;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--card);
+  color: var(--foreground);
+  font: 500 11px/1.2 var(--sans);
+  cursor: pointer;
+  white-space: nowrap;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.hero-chip-btn .chip-icon {
+  color: var(--primary);
+  flex-shrink: 0;
+  transition: transform 0.15s ease;
+}
+
+.hero-chip-btn:hover {
+  background: var(--accent);
+  color: var(--accent-foreground);
+  border-color: color-mix(in srgb, var(--primary) 38%, var(--border));
+  box-shadow: 0 1px 3px rgb(0 0 0 / 6%);
+}
+
+.hero-chip-btn:hover .chip-icon {
+  transform: rotate(15deg) scale(1.1);
+}
+
+.hero-chip-btn:active {
+  transform: translateY(1px);
+}
+
+.hero-chip-btn:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.hero-chip-btn.flash-hint {
+  animation: hero-chip-flash-hint 0.72s ease-out 3;
+}
+
+@keyframes hero-chip-flash-hint {
+  0% {
+    border-color: color-mix(in srgb, var(--primary) 42%, var(--border));
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--primary) 58%, transparent);
+  }
+
+  38% {
+    border-color: color-mix(in srgb, var(--primary) 92%, var(--border));
+    box-shadow: 0 0 0 9px color-mix(in srgb, var(--primary) 34%, transparent);
+  }
+
+  100% {
+    border-color: var(--border);
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--primary) 0%, transparent);
+  }
 }
 
 .dot {
@@ -323,6 +406,166 @@ h1 span {
 
 .workspace:has(+ .main-toolbar) {
   padding-top: 14px;
+}
+
+.workspace.is-collapsed {
+  padding-top: 10px;
+}
+
+.workspace-summary-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 38px;
+  padding: 0 12px;
+  background: var(--card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius);
+  margin-bottom: 8px;
+  transition:
+    border-color 0.15s ease,
+    background-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.workspace-summary-bar:hover {
+  border-color: var(--border);
+}
+
+.workspace-collapse-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 6px;
+  margin-left: -4px;
+  border: 0;
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--foreground);
+  font: 600 12px var(--sans);
+  cursor: pointer;
+  transition:
+    color 0.15s ease,
+    background-color 0.15s ease;
+}
+
+.workspace-collapse-toggle:hover {
+  background: var(--muted);
+}
+
+.summary-chevron {
+  flex-shrink: 0;
+  color: var(--muted-foreground);
+  transition: transform 0.15s ease;
+}
+
+.summary-title {
+  letter-spacing: -0.01em;
+}
+
+.summary-indicators {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+  cursor: default;
+  user-select: none;
+}
+
+.workspace.is-collapsed .summary-indicators {
+  cursor: pointer;
+}
+
+.indicator-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font: 11px var(--mono);
+  padding: 2px 7px;
+  border-radius: var(--radius);
+  background: var(--muted);
+  color: var(--muted-foreground);
+  border: 1px solid var(--border-subtle);
+}
+
+.indicator-label {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: var(--foreground);
+  opacity: 0.75;
+}
+
+.indicator-value {
+  color: var(--foreground);
+}
+
+.indicator-chip.has-error {
+  border-color: var(--danger-border);
+  color: var(--danger);
+}
+
+.indicator-divider {
+  font-size: 10px;
+  color: var(--subtle-foreground);
+  font-weight: 500;
+}
+
+.summary-dirty-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font: 600 11px var(--sans);
+  color: var(--warning);
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--warning-bg);
+  border: 1px solid var(--warning-border);
+}
+
+.dirty-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--warning);
+}
+
+.summary-action-btn {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--muted-foreground);
+  font: 500 11px var(--sans);
+  padding: 4px 10px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition:
+    color 0.15s ease,
+    background-color 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.summary-action-btn:hover {
+  color: var(--foreground);
+  background: var(--muted);
+  border-color: var(--border-strong);
+}
+
+.workspace-body {
+  transition:
+    max-height 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 0.18s ease;
+  max-height: 2000px;
+  opacity: 1;
+}
+
+.workspace-body.is-collapsed {
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  visibility: hidden;
+  pointer-events: none;
 }
 
 .input-grid {
@@ -463,6 +706,10 @@ h1 span {
     0 1px 2px rgb(0 0 0 / 6%);
 }
 
+:host-context(html[data-theme='dark']) .segmented.active {
+  background: var(--border);
+}
+
 .segmented:hover:not(:disabled, .active) {
   background: color-mix(in srgb, var(--foreground) 5%, transparent);
   color: var(--foreground);
@@ -568,7 +815,7 @@ h1 span {
   flex: 1 1 auto;
   min-height: 0;
   overflow-y: auto;
-  padding: 14px 0 24px;
+  padding: 7px 0 24px;
 }
 
 @keyframes rise {
@@ -609,6 +856,18 @@ h1 span {
     animation: none;
   }
 
+  .hero-chip-btn,
+  .hero-chip-btn .chip-icon {
+    transition: none;
+    transform: none;
+  }
+
+  .hero-chip-btn.flash-hint {
+    animation: none;
+    border-color: color-mix(in srgb, var(--primary) 64%, var(--border));
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary) 26%, transparent);
+  }
+
   .hero-leave {
     animation-duration: 0.01ms;
   }
@@ -635,5 +894,22 @@ h1 span {
 
   h1 {
     font-size: 34px;
+  }
+
+  .workspace-summary-bar {
+    height: auto;
+    padding: 8px 10px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .summary-indicators {
+    order: 3;
+    width: 100%;
+    overflow-x: auto;
+  }
+
+  .summary-action-btn {
+    margin-left: auto;
   }
 }

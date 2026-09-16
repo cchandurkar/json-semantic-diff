@@ -60,7 +60,33 @@
   <main class="main-column">
     @if (!workspace.result()) {
       <section class="hero" (animate.leave)="onHeroLeave($event)">
-        <div class="privacy-badge"><span class="dot"></span> Runs entirely in your browser</div>
+        <div class="hero-chip-row">
+          <div class="privacy-badge"><span class="dot"></span> Runs entirely in your browser</div>
+          <button
+            type="button"
+            class="hero-chip-btn"
+            data-tour="load-example-chip"
+            [class.flash-hint]="loadExampleFlashHint()"
+            (click)="loadFeaturedExample()"
+          >
+            <svg
+              class="chip-icon"
+              width="12"
+              height="12"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+              focusable="false"
+            >
+              <path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z" />
+            </svg>
+            <span>Load Example</span>
+          </button>
+        </div>
         <h1>Understand what changed,<br /><span>not just where.</span></h1>
         <p>JSON comparison with smart array matching, noise reduction, and explainable identity detection.</p>
         <a
@@ -87,72 +113,124 @@
       </section>
     }
 
-    <section class="workspace">
-      <div class="input-grid" [class.compact]="!!workspace.result()" data-tour="json-editors">
-        <app-json-input
-          label="ORIGINAL"
-          [value]="workspace.leftText()"
-          [error]="workspace.leftError()"
-          [statusText]="workspace.inputStatus()"
-          [darkMode]="darkMode()"
-          [collapsed]="editorsCollapsed()"
-          [(editorHeight)]="workspace.editorHeight"
-          (collapseToggle)="toggleEditorsCollapsed()"
-          (valueChange)="workspace.leftText.set($event); workspace.markDirty()"
-        />
-        <app-json-input
-          label="CHANGED"
-          [value]="workspace.rightText()"
-          [error]="workspace.rightError()"
-          [statusText]="workspace.inputStatus()"
-          [darkMode]="darkMode()"
-          [collapsed]="editorsCollapsed()"
-          [(editorHeight)]="workspace.editorHeight"
-          (collapseToggle)="toggleEditorsCollapsed()"
-          (valueChange)="workspace.rightText.set($event); workspace.markDirty()"
-        />
-      </div>
+    <section class="workspace" [class.is-collapsed]="isInputsCollapsed()">
+      @if (workspace.result()) {
+        <div class="workspace-summary-bar">
+          <button
+            type="button"
+            class="workspace-collapse-toggle"
+            [attr.aria-expanded]="!isInputsCollapsed()"
+            aria-controls="workspace-inputs-body"
+            [attr.aria-label]="isInputsCollapsed() ? 'Expand JSON inputs' : 'Collapse JSON inputs'"
+            (click)="toggleInputsCollapsed()"
+          >
+            <svg class="summary-chevron" width="14" height="14" viewBox="0 0 14 14" aria-hidden="true" focusable="false">
+              <path
+                [attr.d]="isInputsCollapsed() ? 'M4 5l3 3 3-3' : 'M4 9l3-3 3 3'"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.6"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+            <span class="summary-title">JSON Inputs</span>
+          </button>
 
-      <div class="compare-row">
-        @if (workspace.dirty() && workspace.result()) {
-          <span class="dirty-note">Inputs changed</span>
-        }
-        <button
-          type="button"
-          class="primary-button"
-          [disabled]="!workspace.canCompare() || workspace.comparing()"
-          [attr.aria-busy]="workspace.comparing()"
-          (click)="workspace.compare()"
-          data-tour="compare-button"
-        >
-          @if (workspace.comparing()) {
-            <span class="spinner" aria-hidden="true"></span>
-            Comparing…
-          } @else {
-            Compare JSON
+          <div
+            class="summary-indicators"
+            role="button"
+            tabindex="0"
+            [attr.aria-label]="isInputsCollapsed() ? 'Click to expand JSON inputs' : 'JSON input details'"
+            (click)="isInputsCollapsed() && toggleInputsCollapsed()"
+            (keydown.enter)="isInputsCollapsed() && toggleInputsCollapsed()"
+            (keydown.space)="isInputsCollapsed() && toggleInputsCollapsed(); $event.preventDefault()"
+          >
+            <span class="indicator-chip" [class.has-error]="workspace.leftError()">
+              <span class="indicator-label">ORIGINAL</span>
+              <span class="indicator-value">{{ leftSummaryText() }}</span>
+            </span>
+
+            <span class="indicator-divider" aria-hidden="true">vs</span>
+
+            <span class="indicator-chip" [class.has-error]="workspace.rightError()">
+              <span class="indicator-label">CHANGED</span>
+              <span class="indicator-value">{{ rightSummaryText() }}</span>
+            </span>
+
+            @if (workspace.dirty()) {
+              <span class="summary-dirty-badge">
+                <span class="dirty-dot" aria-hidden="true"></span>
+                Modified — re-compare
+              </span>
+            }
+          </div>
+
+          <button
+            type="button"
+            class="summary-action-btn"
+            [attr.aria-expanded]="!isInputsCollapsed()"
+            aria-controls="workspace-inputs-body"
+            (click)="toggleInputsCollapsed()"
+          >
+            {{ isInputsCollapsed() ? 'Edit JSON' : 'Collapse' }}
+          </button>
+        </div>
+      }
+
+      <div
+        id="workspace-inputs-body"
+        class="workspace-body"
+        [class.is-collapsed]="isInputsCollapsed()"
+        [attr.aria-hidden]="isInputsCollapsed()"
+      >
+        <div class="input-grid" data-tour="json-editors">
+          <app-json-input
+            label="ORIGINAL"
+            [value]="workspace.leftText()"
+            [error]="workspace.leftError()"
+            [statusText]="workspace.inputStatus()"
+            [darkMode]="darkMode()"
+            [(editorHeight)]="workspace.editorHeight"
+            (valueChange)="workspace.leftText.set($event); workspace.markDirty()"
+          />
+          <app-json-input
+            label="CHANGED"
+            [value]="workspace.rightText()"
+            [error]="workspace.rightError()"
+            [statusText]="workspace.inputStatus()"
+            [darkMode]="darkMode()"
+            [(editorHeight)]="workspace.editorHeight"
+            (valueChange)="workspace.rightText.set($event); workspace.markDirty()"
+          />
+        </div>
+
+        <div class="compare-row">
+          @if (workspace.dirty() && workspace.result()) {
+            <span class="dirty-note">Inputs changed</span>
           }
-        </button>
+          <button
+            type="button"
+            class="primary-button"
+            [disabled]="!workspace.canCompare() || workspace.comparing()"
+            [attr.aria-busy]="workspace.comparing()"
+            (click)="workspace.compare()"
+            data-tour="compare-button"
+          >
+            @if (workspace.comparing()) {
+              <span class="spinner" aria-hidden="true"></span>
+              Comparing…
+            } @else {
+              Compare JSON
+            }
+          </button>
+        </div>
       </div>
     </section>
 
     @if (workspace.result(); as diff) {
       <div class="main-toolbar">
         <div class="toolbar-group view-switcher" role="tablist" aria-label="Diff view">
-          <button
-            type="button"
-            class="segmented"
-            role="tab"
-            data-tour="source-tab"
-            [class.active]="workspace.view() === 'source'"
-            [attr.aria-selected]="workspace.view() === 'source'"
-            (click)="workspace.view.set('source')"
-          >
-            <svg class="tab-icon" width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
-              <path d="M4.5 3.5L1.5 7l3 3.5M9.5 3.5L12.5 7l-3 3.5" />
-              <path d="M8.2 2.5l-2.4 9" stroke-width="1.3" />
-            </svg>
-            <span>Source</span>
-          </button>
           <button
             type="button"
             class="segmented"
@@ -169,6 +247,38 @@
               <path d="M4.5 3.5h5M3 5v5.5h6.5" />
             </svg>
             <span>Tree</span>
+          </button>
+          <button
+            type="button"
+            class="segmented"
+            role="tab"
+            data-tour="list-tab"
+            [class.active]="workspace.view() === 'list'"
+            [attr.aria-selected]="workspace.view() === 'list'"
+            (click)="workspace.view.set('list')"
+          >
+            <svg class="tab-icon" width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+              <path d="M4.5 3.5h7.5M4.5 7h7.5M4.5 10.5h7.5" />
+              <circle cx="2" cy="3.5" r="0.8" fill="currentColor" />
+              <circle cx="2" cy="7" r="0.8" fill="currentColor" />
+              <circle cx="2" cy="10.5" r="0.8" fill="currentColor" />
+            </svg>
+            <span>List</span>
+          </button>
+          <button
+            type="button"
+            class="segmented"
+            role="tab"
+            data-tour="source-tab"
+            [class.active]="workspace.view() === 'source'"
+            [attr.aria-selected]="workspace.view() === 'source'"
+            (click)="workspace.view.set('source')"
+          >
+            <svg class="tab-icon" width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+              <path d="M4.5 3.5L1.5 7l3 3.5M9.5 3.5L12.5 7l-3 3.5" />
+              <path d="M8.2 2.5l-2.4 9" stroke-width="1.3" />
+            </svg>
+            <span>Source</span>
           </button>
         </div>
         <label class="toolbar-toggle">
@@ -201,7 +311,18 @@
       </div>
 
       <div class="results-scroll">
-        @if (workspace.view() === 'source') {
+        @if (workspace.view() === 'list') {
+          <app-list-diff
+            [root]="diff.root"
+            [changesOnly]="workspace.changesOnly()"
+            [selectedNodeId]="workspace.selectedNodeId()"
+            [searchResultIds]="workspace.searchResultIds()"
+            [searchQuery]="workspace.searchQuery()"
+            (nodeSelected)="workspace.selectNode($event)"
+            (nodeAction)="workspace.handleNodeAction($event)"
+            (analysisRequested)="workspace.openAnalysis($event)"
+          />
+        } @else if (workspace.view() === 'source') {
           <app-source-diff
             [result]="diff"
             [changesOnly]="workspace.changesOnly()"

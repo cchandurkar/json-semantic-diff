@@ -1,7 +1,6 @@
 <div class="source">
   <p class="pane-note">
-    Aligned for comparison: object keys are sorted and matched records are paired side by side, so this is a semantic projection rather than
-    a verbatim reproduction of your input.
+    Aligned for comparison: keys sorted, matched records paired - a semantic projection, not a verbatim copy of your input.
   </p>
 
   <div class="source-scroll">
@@ -32,9 +31,9 @@
           [cdkContextMenuTriggerFor]="rowActions"
           [cdkContextMenuTriggerData]="{ $implicit: item.row.nodeId }"
         >
-          <span class="gutter left-gutter">{{ item.row.left?.lineNumber }}</span>
+          <span class="gutter left-gutter" [attr.aria-hidden]="item.row.left ? null : 'true'">{{ item.row.left?.lineNumber }}</span>
           <span class="marker left-marker" aria-hidden="true">{{ leftMarker(item.row) }}</span>
-          <span class="code left" [style.--depth]="item.row.depth">
+          <span class="code left" [style.--depth]="item.row.depth" [attr.aria-hidden]="item.row.left ? null : 'true'">
             @if (renderCell(item.row, 'left'); as cell) {
               @for (tok of cell.keyTokens; track $index) {
                 <ng-container *ngTemplateOutlet="highlightedToken; context: { $implicit: tok }"></ng-container>
@@ -52,9 +51,9 @@
             }
           </span>
 
-          <span class="gutter right-gutter">{{ item.row.right?.lineNumber }}</span>
+          <span class="gutter right-gutter" [attr.aria-hidden]="item.row.right ? null : 'true'">{{ item.row.right?.lineNumber }}</span>
           <span class="marker right-marker" aria-hidden="true">{{ rightMarker(item.row) }}</span>
-          <span class="code right" [style.--depth]="item.row.depth">
+          <span class="code right" [style.--depth]="item.row.depth" [attr.aria-hidden]="item.row.right ? null : 'true'">
             <span class="code-text">
               @if (renderCell(item.row, 'right'); as cell) {
                 @for (tok of cell.keyTokens; track $index) {
@@ -72,13 +71,8 @@
                 }
               }
             </span>
-            @if (item.row.arrayMatch; as match) {
-              @if (item.row.reordered) {
-                <span class="reorder-pill" [title]="reorderTooltip">↕ Reordered for comparison</span>
-              }
-              @if (match.outcome === 'identity-applied') {
-                <span class="match-pill" [title]="reorderTooltip">{{ matchSummary(match) }}</span>
-              }
+            @if (formatArrayMatchBadge(item.row.arrayMatch); as badge) {
+              <span class="match-pill" [class.warning]="badge.warning" [title]="badge.tooltip">{{ badge.label }}</span>
             }
           </span>
 
