@@ -7,7 +7,10 @@ import { expect, test } from '@playwright/test';
 test('loads the first built-in example and computes a diff automatically', async ({ page }) => {
   await page.goto('/');
 
-  await page.getByRole('button', { name: 'Load example' }).click();
+  // Target the sidebar's example-picker trigger specifically: the hero
+  // section also has a "Load Example" chip with the same accessible name
+  // (case-insensitive match), so a bare role+name locator is ambiguous.
+  await page.locator('[data-tour="example-picker-trigger"]').click();
   // First entry in DIFF_EXAMPLES (diff-examples.ts): API_RESPONSE.
   // Anchored to the start: "Noisy API Response" also contains "API Response"
   // as a substring and would otherwise match too (strict-mode violation).
