@@ -356,6 +356,21 @@ export class SidebarComponent {
           }
         },
         {
+          element: '[data-tour="export-button"]',
+          popover: {
+            title: 'Export Diff Reports',
+            description:
+              'Export your comparison anytime as a self-contained HTML report with live themes and visual fidelity, or as a cleanly formatted Markdown table.',
+            side: 'left',
+            align: 'end'
+          },
+          onHighlightStarted: () => {
+            if (isMobile) {
+              this.close();
+            }
+          }
+        },
+        {
           popover: {
             title: "You're All Set!",
             description:

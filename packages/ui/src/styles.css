@@ -84,12 +84,12 @@
   --focus-ring: rgb(31 111 235 / 35%);
   --selection: #1a3a5c;
   --selection-border: #388bfd;
-  --diff-added: #2f8f46;
-  --diff-added-bg: #062d14;
-  --diff-removed: #d44843;
-  --diff-removed-bg: #4a0b10;
-  --diff-modified: #b07d1c;
-  --diff-modified-bg: #322707;
+  --diff-added: #3fb950;
+  --diff-added-bg: #122619;
+  --diff-removed: #f85149;
+  --diff-removed-bg: #2b1619;
+  --diff-modified: #d29922;
+  --diff-modified-bg: #261f12;
   --success: var(--diff-added);
   --success-bg: var(--diff-added-bg);
   --success-border: color-mix(in srgb, var(--diff-added) 35%, transparent);
@@ -203,6 +203,10 @@ textarea:focus-visible {
 /* CDK menu panels. Global because menus render in the body-level `.cdk-overlay-container`,
    which component-scoped styles cannot reach. Matches the house panel look used by
    `.picker-panel` and `.settings-panel`. */
+body.driver-active .cdk-overlay-container {
+  z-index: 100001;
+}
+
 .cdk-menu {
   min-width: 210px;
   max-width: min(300px, calc(100vw - 24px));
