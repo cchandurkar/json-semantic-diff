@@ -20,6 +20,17 @@ import { largeReorderedDataset } from './fixtures/large-dataset';
  * home.component.html anyway, so asserting on `disabled` alone is
  * sufficient evidence of the busy state.
  *
+ * IMPORTANT: once a result exists, the whole `.workspace` input/compare
+ * section auto-collapses to `visibility:hidden` (see home.component.ts's
+ * `isInputsCollapsed`/effect on `workspace.result()`). Playwright's
+ * role-based locators exclude non-visible elements from the accessibility
+ * tree, so `compareButton` becomes unqueryable the instant the FIRST
+ * compare in a test resolves - re-asserting `toBeEnabled()` on it afterward
+ * hangs until timeout even though the worker resolved almost instantly.
+ * Tests below wait on a result-dependent, always-visible signal instead
+ * (the main toolbar/tabs, or the rendered diff content) rather than
+ * re-querying the Compare button post-resolution.
+ *
  * LARGE_COUNT is intentionally modest: big enough to be a real (non-zero)
  * diff through the worker, small enough that the whole test stays fast and
  * deterministic rather than chasing an exact timing window.
@@ -44,8 +55,10 @@ test('disables the Compare button and shows a spinner while a large diff is in f
 
   await expect(compareButton).toBeDisabled();
 
-  // Resolves back to the idle state once the worker responds.
-  await expect(compareButton).toBeEnabled({ timeout: RESOLVE_TIMEOUT });
+  // Resolves back to the idle state once the worker responds. The workspace
+  // auto-collapses once a result exists (see file header comment), so wait
+  // on the always-visible Tree tab rather than re-querying compareButton.
+  await expect(page.getByRole('tab', { name: 'Tree' })).toBeVisible({ timeout: RESOLVE_TIMEOUT });
 
   await page.getByRole('tab', { name: 'Tree' }).click();
   await expect(page.getByRole('tree')).toBeVisible();
@@ -69,7 +82,14 @@ test('cancels a stale in-flight compare when a new one is started before it reso
   await page.getByLabel('ORIGINAL JSON').fill(JSON.stringify(small));
   await page.getByLabel('CHANGED JSON').fill(JSON.stringify(smallChanged));
   await page.getByRole('button', { name: 'Compare JSON' }).click();
+  // Tree is the default view; switch to Source since this test asserts on
+  // `.source-scroll`'s rendered text content specifically.
+  await page.getByRole('tab', { name: 'Source' }).click();
   await expect(page.locator('.source-scroll')).toContainText('Alicia');
+
+  // The workspace auto-collapses (hides the editors) once that baseline
+  // result exists - re-expand before filling the large dataset below.
+  await page.getByRole('button', { name: 'Edit JSON' }).click();
 
   const big = largeReorderedDataset(LARGE_COUNT);
   await page.getByLabel('ORIGINAL JSON').fill(big.left);
@@ -85,13 +105,15 @@ test('cancels a stale in-flight compare when a new one is started before it reso
   // (large) inputs.
   await page.getByRole('checkbox', { name: /Normalize timestamps/ }).click();
 
-  await expect(compareButton).toBeEnabled({ timeout: RESOLVE_TIMEOUT });
+  // The workspace was already collapsed (from the baseline compare above),
+  // so - unlike the first test - there's no visibility transition to wait
+  // out here; just wait for the rendered diff to reflect the large inputs.
 
   // The final render must be a complete, uncorrupted result for the large
   // inputs - not the stale small baseline, and not a half-applied mix of the
   // two overlapping worker calls.
   const renderedDiff = page.locator('.source-scroll');
-  await expect(renderedDiff).toContainText('SKU-0');
+  await expect(renderedDiff).toContainText('SKU-0', { timeout: RESOLVE_TIMEOUT });
   await expect(renderedDiff).not.toContainText('Alicia');
   await page.getByRole('button', { name: 'Analysis' }).click();
   await expect(page.locator('.summary-card .stat-chip.total b')).not.toHaveText('0');
@@ -115,7 +137,10 @@ test('keeps the main thread responsive while a large diff runs in the worker', a
   await normalizeToggle.click({ timeout: 10_000 });
   await expect(normalizeToggle).not.toBeChecked();
 
-  await expect(compareButton).toBeEnabled({ timeout: RESOLVE_TIMEOUT });
+  // Resolves back to the idle state once the worker responds. The workspace
+  // auto-collapses once a result exists (see file header comment), so wait
+  // on the always-visible Tree tab rather than re-querying compareButton.
+  await expect(page.getByRole('tab', { name: 'Tree' })).toBeVisible({ timeout: RESOLVE_TIMEOUT });
 });
 
 test('produces a correct, non-empty result via the worker path for a modest fixture', async ({ page }) => {
