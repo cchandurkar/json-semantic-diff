@@ -4,6 +4,14 @@
       <p>No leaf changes to display.</p>
     </div>
   } @else {
+    <div class="list-header" aria-hidden="true">
+      <span class="col-marker"></span>
+      <span class="col-path">Path</span>
+      <span class="col-change">Change</span>
+      <span class="col-badge"></span>
+      <span class="col-actions"></span>
+    </div>
+
     <div class="list-rows" role="list">
       @for (row of rows(); track row.nodeId) {
         <div

@@ -13,6 +13,7 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NavigationCancel, NavigationEnd, NavigationError, NavigationStart, Router } from '@angular/router';
+import { CdkMenu, CdkMenuGroup, CdkMenuItem, CdkMenuTrigger } from '@angular/cdk/menu';
 import { filter } from 'rxjs';
 import { JsonInputComponent } from '../components/json-input/json-input.component';
 import { DiffTreeComponent } from '../components/diff-tree/diff-tree.component';
@@ -23,6 +24,7 @@ import { SearchControlComponent } from '../components/search-control/search-cont
 import { SidebarComponent } from '../components/sidebar/sidebar.component';
 import { ToastComponent } from '../components/toast/toast.component';
 import { darkMode as sharedDarkMode } from '../shared/dark-mode-state';
+import { buildExportReport, downloadFile, formatReportFilename, renderHtmlReport, renderMarkdownReport } from '../shared/export';
 import {
   ANALYSIS_PANEL_DEFAULT_WIDTH,
   ANALYSIS_PANEL_MAX_WIDTH,
@@ -56,7 +58,11 @@ const FLASH_REPEAT_COUNT = 3;
     SidebarComponent,
     AnalysisPanelComponent,
     ToastComponent,
-    SearchControlComponent
+    SearchControlComponent,
+    CdkMenu,
+    CdkMenuItem,
+    CdkMenuGroup,
+    CdkMenuTrigger
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './home.component.html',
@@ -354,6 +360,80 @@ export class HomeComponent implements OnDestroy {
     this.flashHintStartTimer = undefined;
     this.flashHintEndTimer = undefined;
     this.loadExampleFlashHint.set(false);
+  }
+
+  /** Exports the current diff as a self-contained HTML report file download, always capturing the List view. */
+  async exportAsHtml(): Promise<void> {
+    const result = this.workspace.result();
+    if (!result) return;
+
+    const originalView = this.workspace.view();
+    const needsViewSwitch = originalView !== 'list';
+
+    if (needsViewSwitch) {
+      this.workspace.view.set('list');
+      await new Promise<void>((resolve) => {
+        requestAnimationFrame(() => setTimeout(resolve, 0));
+      });
+    }
+
+    try {
+      const now = new Date();
+      const theme = typeof document !== 'undefined' && document.documentElement.dataset['theme'] === 'dark' ? 'dark' : 'light';
+      const capturedChangesHtml = this.captureListDiffComponentHtml();
+      const capturedCss = this.captureActiveStylesheetsCss();
+
+      const report = buildExportReport(
+        result,
+        this.workspace.options(),
+        this.workspace.changesOnly(),
+        now,
+        theme,
+        capturedChangesHtml,
+        capturedCss
+      );
+      const html = renderHtmlReport(report);
+      const filename = formatReportFilename(now, 'html');
+      downloadFile(filename, html, 'text/html');
+    } finally {
+      if (needsViewSwitch) {
+        this.workspace.view.set(originalView);
+      }
+    }
+  }
+
+  /** Captures outerHTML of the app-list-diff component in the results area. */
+  private captureListDiffComponentHtml(): string | undefined {
+    if (typeof document === 'undefined') return undefined;
+    const activeEl = document.querySelector('.results-scroll > app-list-diff') ?? document.querySelector('app-list-diff');
+    return activeEl?.outerHTML;
+  }
+
+  /** Captures all active document stylesheets CSS rules for self-contained styling in the export. */
+  private captureActiveStylesheetsCss(): string {
+    if (typeof document === 'undefined') return '';
+    let css = '';
+    for (const sheet of Array.from(document.styleSheets)) {
+      try {
+        for (const rule of Array.from(sheet.cssRules)) {
+          css += rule.cssText + '\n';
+        }
+      } catch {
+        // Cross-origin stylesheet access restrictions
+      }
+    }
+    return css;
+  }
+
+  /** Exports the current diff as a formatted Markdown report file download. */
+  exportAsMarkdown(): void {
+    const result = this.workspace.result();
+    if (!result) return;
+    const now = new Date();
+    const report = buildExportReport(result, this.workspace.options(), this.workspace.changesOnly(), now);
+    const md = renderMarkdownReport(report);
+    const filename = formatReportFilename(now, 'md');
+    downloadFile(filename, md, 'text/markdown');
   }
 
   ngOnDestroy(): void {

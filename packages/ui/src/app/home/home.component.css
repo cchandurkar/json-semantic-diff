@@ -724,6 +724,29 @@ h1 span {
   display: block;
 }
 
+.export-chevron {
+  flex-shrink: 0;
+  display: block;
+  opacity: 0.7;
+  transition: transform 0.15s ease;
+}
+
+.export-button[aria-expanded='true'] {
+  background: var(--card);
+  color: var(--foreground);
+  box-shadow:
+    0 1px 3px rgb(0 0 0 / 10%),
+    0 1px 2px rgb(0 0 0 / 6%);
+}
+
+.export-button[aria-expanded='true'] .export-chevron {
+  transform: rotate(180deg);
+}
+
+:host-context(html[data-theme='dark']) .export-button[aria-expanded='true'] {
+  background: var(--border);
+}
+
 .toolbar-toggle {
   display: inline-flex;
   align-items: center;

@@ -24,3 +24,15 @@ export function decimalPercent(value?: number, signed = false): string {
 export function displayPath(path: string): string {
   return path.replace(/^\$\.?/, '') || 'root';
 }
+
+/** Formats a Date into a human-readable timestamp string, e.g. "September 16, 2026, 3:45 PM UTC". */
+export function formatGeneratedDate(date: Date, locale = 'en-US'): string {
+  return new Intl.DateTimeFormat(locale, {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    timeZoneName: 'short'
+  }).format(date);
+}

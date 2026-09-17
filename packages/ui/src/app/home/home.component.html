@@ -308,6 +308,32 @@
           (previous)="workspace.stepSearchResult(-1)"
           (clear)="workspace.clearSearch()"
         />
+        <div class="toolbar-group export-group">
+          <button
+            type="button"
+            class="segmented export-button"
+            [cdkMenuTriggerFor]="exportMenu"
+            [disabled]="!workspace.result()"
+            aria-label="Export diff report"
+          >
+            <svg class="tab-icon" width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+              <path d="M7 1.5v7M4 4.5l3-3 3 3M2.5 8.5v3a1 1 0 0 0 1 1h7a1 1 0 0 0 1-1v-3" />
+            </svg>
+            <span>Export</span>
+            <svg class="export-chevron" width="9" height="9" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+              <path d="M2 3.5L5 6.5L8 3.5" />
+            </svg>
+          </button>
+        </div>
+
+        <ng-template #exportMenu>
+          <div cdkMenu aria-label="Export options">
+            <div cdkMenuGroup>
+              <button type="button" cdkMenuItem (cdkMenuItemTriggered)="exportAsHtml()">HTML</button>
+              <button type="button" cdkMenuItem (cdkMenuItemTriggered)="exportAsMarkdown()">Markdown</button>
+            </div>
+          </div>
+        </ng-template>
       </div>
 
       <div class="results-scroll">
