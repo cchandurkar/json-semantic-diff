@@ -85,7 +85,7 @@ export class HowItWorksComponent implements OnDestroy {
     });
     this.metaService.updateTag({
       property: 'og:image',
-      content: 'https://jsonsemanticdiff.dev/og-image.png'
+      content: 'https://jsonsemanticdiff.dev/og.png'
     });
     this.metaService.updateTag({
       property: 'og:image:width',
@@ -111,7 +111,7 @@ export class HowItWorksComponent implements OnDestroy {
     });
     this.metaService.updateTag({
       name: 'twitter:image',
-      content: 'https://jsonsemanticdiff.dev/og-image.png'
+      content: 'https://jsonsemanticdiff.dev/og.png'
     });
 
     let link: HTMLLinkElement | null = this.doc.querySelector('link[rel="canonical"]');
@@ -136,7 +136,7 @@ export class HowItWorksComponent implements OnDestroy {
       description:
         'How JSON Semantic Diff identity inference works: candidate discovery, 6 scoring signals, decision gates, and why naive positional array matching breaks.',
       url: 'https://jsonsemanticdiff.dev/how-it-works',
-      image: 'https://jsonsemanticdiff.dev/og-image.png',
+      image: 'https://jsonsemanticdiff.dev/og.png',
       datePublished: '2026-09-07T00:00:00Z',
       dateModified: '2026-09-07T00:00:00Z',
       mainEntityOfPage: {

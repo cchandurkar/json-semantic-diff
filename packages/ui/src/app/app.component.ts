@@ -151,7 +151,7 @@ export class AppComponent implements OnDestroy, AfterViewInit {
           });
           this.metaService.updateTag({
             property: 'og:image',
-            content: 'https://jsonsemanticdiff.dev/og-image.png'
+            content: 'https://jsonsemanticdiff.dev/og.png'
           });
           this.metaService.updateTag({
             property: 'og:image:width',
@@ -177,7 +177,7 @@ export class AppComponent implements OnDestroy, AfterViewInit {
           });
           this.metaService.updateTag({
             name: 'twitter:image',
-            content: 'https://jsonsemanticdiff.dev/og-image.png'
+            content: 'https://jsonsemanticdiff.dev/og.png'
           });
 
           const link = this.doc.querySelector('link[rel="canonical"]');
